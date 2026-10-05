@@ -7,7 +7,7 @@
     "photo": "img/pano1outside.jpg",
     "links": [ 
       { "to": "vstup-terasa", "yaw": 158, "pitch": -25, "text": "Vstup na terasu" },
-      { "to": "hala", "yaw": 98, "pitch": -22, "text": "Vstup do domu" }
+      { "to": "vinewood-vila/hala", "yaw": 98, "pitch": -22, "text": "Vstup do domu" }
     ]
   },
   {
