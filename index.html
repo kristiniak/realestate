@@ -61,6 +61,12 @@
   .main-photo{cursor:zoom-in}
   .video-link{display:inline-flex;align-items:center;gap:8px;width:100%;justify-content:center;margin:4px 0 18px;padding:14px 16px;border-radius:0;background:transparent;border:1px solid var(--pin);color:var(--pin);text-decoration:none;font-weight:500;text-transform:uppercase;letter-spacing:.16em;font-size:13px;transition:background .15s,color .15s}
   .video-link:hover{background:var(--pin);color:var(--panel)}
+  .contact-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;margin:0 0 18px;padding:16px;
+    background:var(--pin);color:var(--panel);text-decoration:none;font-weight:500;text-transform:uppercase;
+    letter-spacing:.16em;font-size:14px;border:1px solid var(--pin);transition:background .15s,color .15s}
+  .contact-btn:hover{background:transparent;color:var(--pin)}
+  .contact-btn svg{width:22px;height:22px;fill:currentColor;flex:none}
+  .contact-note{margin:-12px 0 18px;text-align:center;color:var(--muted);font-size:13px}
   button.video-link{font-family:inherit;cursor:pointer}
 
   /* 360° prehliadka interiéru */
@@ -169,6 +175,12 @@
 <script>
   // Názov obrázka mapy. Rozmery sa zistia automaticky, nemusíš ich nikde zadávať.
   const IMG = 'mapa.jpg';
+
+  // ===== DISCORD =====
+  // Sem vlož pozvánku na váš Discord. Tlačidlo „Mám záujem“ sa ukáže pri každom dome.
+  // (Ak chceš pri niektorom dome iný odkaz, daj mu v data.json "contact": "https://...")
+  const DISCORD = 'https://discord.gg/SEM-VLOZ-POZVANKU';
+  const CONTACT_LABEL = 'Mám záujem';
 
   const $ = s => document.querySelector(s);
   const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -290,12 +302,18 @@
 
     const video = h.video
       ? `<a class="video-link" href="${esc(h.video)}" target="_blank" rel="noopener">▶ Videoprehliadka</a>` : '';
+    const link = h.contact || DISCORD;
+    const contact = link
+      ? `<a class="contact-btn" href="${esc(link)}" target="_blank" rel="noopener">
+           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 3h16a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H9l-5 4v-4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zm3 6.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm5 0a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm5 0a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z"/></svg>
+           ${esc(CONTACT_LABEL)}</a>
+         <p class="contact-note">Napíš nám na Discorde a uveď „${esc(h.name)}“</p>` : '';
     const tour = h.tour && h.tour.scenes && Object.keys(h.tour.scenes).length
       ? `<button class="video-link" data-tour>⟳ 360° prehliadka</button>` : '';
 
     $('#detail-view').innerHTML =
       `<button class="back" data-back>← Celá ponuka</button>
-       <h2>${esc(h.name)}</h2>${gallery}${tour}${video}${details}<p class="desc">${esc(h.desc || '')}</p>`;
+       <h2>${esc(h.name)}</h2>${gallery}${contact}${tour}${video}${details}<p class="desc">${esc(h.desc || '')}</p>`;
     $('#list-view').hidden = true;
     $('#detail-view').hidden = false;
     $('#panel').scrollTop = 0;
