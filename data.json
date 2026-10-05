@@ -4,7 +4,7 @@
     "name": "Vinewood vila",
     "x": 2834,
     "y": 5197,
-    "desc": "Moderná vila s výhľadom na mesto. Sem napíš vlastný popis, tipy alebo príbeh domu.",
+    "desc": "Moderná vila s výhľadom na mesto.",
     "details": { "Štvrť": "Vinewood Hills", "Garáž": "10 áut", "Cena": "5 000 000 $" },
     "photos": ["img/villa1outdoor.jpg", "img/villa1kitchen.jpg", "img/villa1bathroom.jpg"],
     "video": "https://www.youtube.com/watch?v=g4T0_Qx9I2k",
@@ -55,7 +55,7 @@
     "name": "Dom pri pláži",
     "x": 0,
     "y": 0,
-    "desc": "Menší dom pár krokov od mora. Hodí sa na ukážku, ako vyzerá záznam bez doplnkových údajov.",
+    "desc": "Menší dom pár krokov od mora.",
     "details": { "Štvrť": "Vespucci Beach" },
     "photos": ["img/plaz-dom-1.jpg"]
   },
@@ -64,7 +64,7 @@
     "name": "Farma v Sandy Shores",
     "x": 0,
     "y": 0,
-    "desc": "Dom bez fotiek, aby si videl, ako sa panel správa, keď žiadne nemáš.",
+    "desc": "Farma.",
     "photos": []
   }
 ]
