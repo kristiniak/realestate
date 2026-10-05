@@ -210,7 +210,6 @@
       ['farma', 'Farmy a chaty'], ['biznis', 'Kancelárie alebo biznis']]},
     {key: 'price', title: 'Cena', options: [
       ['do500k', 'do 500 000 $'], ['500k-2m', '500 000 – 2 mil. $'], ['2m-5m', '2 – 5 mil. $'], ['nad5m', 'nad 5 mil. $']]},
-    {key: 'tax', title: 'Dane z nehnuteľnosti', options: [['true', 'S daňou'], ['false', 'Bez dane']]},
     {key: 'pool', title: 'Bazén', options: [['true', 'S bazénom'], ['false', 'Bez bazéna']]},
     {key: 'view', title: 'Výhľad', options: [['more', 'Na more'], ['mesto', 'Na mesto'], ['priroda', 'Na prírodu a hory']]}
   ];
@@ -294,7 +293,6 @@
     if (h.area) rows.push(['Lokalita', optLabel('area', h.area)]);
     if (h.type) rows.push(['Typ', optLabel('type', h.type)]);
     if (typeof h.price === 'number') rows.push(['Cena', h.price.toLocaleString('sk-SK') + ' $']);
-    if (typeof h.tax === 'boolean') rows.push(['Dane z nehnuteľnosti', h.tax ? 'Áno' : 'Nie']);
     if (typeof h.pool === 'boolean') rows.push(['Bazén', h.pool ? 'Áno' : 'Nie']);
     if (h.view) rows.push(['Výhľad', [].concat(h.view).map(v => optLabel('view', v)).join(', ')]);
     Object.entries(h.details || {}).forEach(([k, v]) => {
