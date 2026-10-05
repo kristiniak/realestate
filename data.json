@@ -22,7 +22,8 @@
           "photo": "img/pano1chodba.jpg",
           "links": [
             { "to": "schody",  "yaw": -87, "pitch": -33 },
-            { "to": "kuchyna", "yaw": -2,   "pitch": -26 }
+            { "to": "kuchyna", "yaw": -2, "pitch": -26 },
+            { "to": "nort-conker-ave", "yaw": 178, "pitch": -15 }
           ]
         },
         "schody": {
