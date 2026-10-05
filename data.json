@@ -53,8 +53,8 @@
   {
     "id": "plaz-dom",
     "name": "Dom pri pláži",
-    "x":,
-    "y":,
+    "x": 0,
+    "y": 0,
     "desc": "Menší dom pár krokov od mora. Hodí sa na ukážku, ako vyzerá záznam bez doplnkových údajov.",
     "details": { "Štvrť": "Vespucci Beach" },
     "photos": ["img/plaz-dom-1.jpg"]
@@ -62,8 +62,8 @@
   {
     "id": "farma",
     "name": "Farma v Sandy Shores",
-    "x":,
-    "y":,
+    "x": 0,
+    "y": 0,
     "desc": "Dom bez fotiek, aby si videl, ako sa panel správa, keď žiadne nemáš.",
     "photos": []
   }
