@@ -1,0 +1,25 @@
+[
+  {
+    "id": "nort-conker-ave",
+    "name": "North Conker Avenue",
+    "x": 2837,
+    "y": 5183,
+    "photo": "img/pano1outside.jpg",
+    "links": [ { "to": "vstup-terasa", "yaw": 158, "pitch": -25, "text": "Vstup na terasu" } ]
+  },
+  {
+    "id": "vstup-terasa",
+    "name": "Vstup na terasu",
+    "photo": "img/pano1terasavstup.jpg",
+    "links": [
+      { "to": "nort-conker-ave", "yaw": -127, "pitch": -8, "text": "Späť na ulicu" },
+      { "to": "terasa", "yaw": 8, "pitch": -37 }
+    ]
+  },
+  {
+    "id": "terasa",
+    "name": "Terasa",
+    "photo": "img/pano1terasa.jpg",
+    "links": [ { "to": "vstup-terasa", "yaw": -157, "pitch": -5 } ]
+  }
+]

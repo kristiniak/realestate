@@ -1,0 +1,70 @@
+[
+  {
+    "id": "vinewood-vila",
+    "name": "Vinewood vila",
+    "x": 2834,
+    "y": 5197,
+    "desc": "Moderná vila s výhľadom na mesto. Sem napíš vlastný popis, tipy alebo príbeh domu.",
+    "details": { "Štvrť": "Vinewood Hills", "Garáž": "10 áut", "Cena": "5 000 000 $" },
+    "photos": ["img/villa1outdoor.jpg", "img/villa1kitchen.jpg", "img/villa1bathroom.jpg"],
+    "video": "https://www.youtube.com/watch?v=g4T0_Qx9I2k",
+    "area": "vinewood-hills",
+    "type": "vila",
+    "price": 5000000,
+    "tax": true,
+    "pool": true,
+        "view": "mesto",
+    "tour": {
+      "start": "hala",
+      "scenes": {
+        "hala": {
+          "title": "Hala",
+          "photo": "img/pano1chodba.jpg",
+          "links": [
+            { "to": "schody",  "yaw": -87, "pitch": -33 },
+            { "to": "kuchyna", "yaw": -2,   "pitch": -26 }
+          ]
+        },
+        "schody": {
+          "title": "Schody",
+          "photo": "img/pano2.jpg",
+          "links": [
+            { "to": "hala", "yaw": 0, "pitch": -10 }
+          ]
+        },
+        "kuchyna": {
+          "title": "Kuchyňa",
+          "photo": "img/pano3.jpg",
+          "links": [
+            { "to": "hala",     "yaw": 180, "pitch": -5 },
+            { "to": "obyvacka", "yaw": 60,  "pitch": -5 }
+          ]
+        },
+        "obyvacka": {
+          "title": "Obývačka",
+          "photo": "img/pano4.jpg",
+          "links": [
+            { "to": "kuchyna", "yaw": -90, "pitch": -5 }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "id": "plaz-dom",
+    "name": "Dom pri pláži",
+    "x": 1300,
+    "y": 2600,
+    "desc": "Menší dom pár krokov od mora. Hodí sa na ukážku, ako vyzerá záznam bez doplnkových údajov.",
+    "details": { "Štvrť": "Vespucci Beach" },
+    "photos": ["img/plaz-dom-1.jpg"]
+  },
+  {
+    "id": "farma",
+    "name": "Farma v Sandy Shores",
+    "x": 2900,
+    "y": 1700,
+    "desc": "Dom bez fotiek, aby si videl, ako sa panel správa, keď žiadne nemáš.",
+    "photos": []
+  }
+]
