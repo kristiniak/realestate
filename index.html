@@ -21,12 +21,15 @@
   #map{background:var(--sea);outline:none;position:absolute;inset:0}
 
   /* Panáčik na 360° pohľad (ako v Google Maps) */
-  .pegman{position:absolute;right:14px;bottom:14px;z-index:800;width:52px;height:64px;padding:8px 0 6px;
-    background:var(--panel);border:1px solid var(--pin);cursor:grab;touch-action:none;display:grid;place-items:center}
+  .pegman{position:absolute;right:14px;bottom:14px;z-index:800;height:58px;padding:8px 16px 8px 12px;gap:12px;
+    font:inherit;font-size:13px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--pin);
+    background:var(--panel);border:1px solid var(--pin);cursor:grab;touch-action:none;display:flex;align-items:center}
   .pegman[hidden]{display:none}
-  .pegman svg{height:100%;fill:var(--pin);transition:transform .15s}
+  .pegman svg{height:40px;width:24px;flex:none;fill:var(--pin);transition:transform .15s}
+  .pegman .peg-label{white-space:nowrap}
   .pegman:hover svg{transform:translateY(-3px)}
-  .pegman.on{background:var(--pin)} .pegman.on svg{fill:var(--panel)}
+  .pegman.on{background:var(--pin);color:var(--panel)} .pegman.on svg{fill:var(--panel)}
+  @media (max-width:500px){.pegman{font-size:11px;letter-spacing:.06em;padding:8px 12px 8px 10px}}
   .peg-ghost{position:fixed;z-index:3000;width:30px;height:48px;pointer-events:none;transform:translate(-50%,-100%);
     filter:drop-shadow(0 4px 6px rgba(0,0,0,.5))}
   .peg-ghost svg{width:100%;height:100%;fill:var(--pin)}
@@ -139,8 +142,9 @@
     <button class="pegman" id="pegman" hidden aria-label="360° pohľad – potiahni panáčika na modrý bod v mape"
       title="Potiahni ma na modrý bod v mape">
       <svg viewBox="0 0 24 40" aria-hidden="true"><circle cx="12" cy="6" r="5"/><path d="M5 14h14l-1.5 13H15l-1 12h-4l-1-12H6.5z"/></svg>
+      <span class="peg-label" id="peg-label">Poobzeraj sa po lokalitách</span>
     </button>
-    <div class="peg-hint" id="peg-hint" hidden>Pusti panáčika na modrý bod</div>
+    <div class="peg-hint" id="peg-hint" hidden>Klikni na modrý bod (alebo naň potiahni panáčika)</div>
   </div>
   <aside id="panel">
     <div id="list-view">
@@ -179,7 +183,7 @@
   // ===== DISCORD =====
   // Sem vlož pozvánku na váš Discord. Tlačidlo „Mám záujem“ sa ukáže pri každom dome.
   // (Ak chceš pri niektorom dome iný odkaz, daj mu v data.json "contact": "https://...")
-  const DISCORD = 'https://discord.gg/PrrqcxaUy7';
+  const DISCORD = 'https://discord.gg/SEM-VLOZ-POZVANKU';
   const CONTACT_LABEL = 'Mám záujem';
 
   const $ = s => document.querySelector(s);
@@ -307,7 +311,7 @@
       ? `<a class="contact-btn" href="${esc(link)}" target="_blank" rel="noopener">
            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 3h16a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H9l-5 4v-4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zm3 6.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm5 0a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm5 0a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z"/></svg>
            ${esc(CONTACT_LABEL)}</a>
-         ` : '';
+         <p class="contact-note">Napíš nám na Discorde a uveď „${esc(h.name)}“</p>` : '';
     const tour = h.tour && h.tour.scenes && Object.keys(h.tour.scenes).length
       ? `<button class="video-link" data-tour>⟳ 360° prehliadka</button>` : '';
 
@@ -527,7 +531,8 @@
   // ===== PANÁČIK (360° pohľad z ulice) =====
   // Body sa berú z body.json (360° fotky z ulíc) + z domov, ktoré majú 360° prehliadku.
   let streetPoints = [], svLayer = null, pegMode = false, hotPoint = null;
-  const PEG_SVG = $('#pegman').innerHTML;
+  const PEG_SVG = $('#pegman svg').outerHTML;
+  const PEG_TEXT = 'Poobzeraj sa po lokalitách', PEG_TEXT_ON = 'Skryť body';   // texty pri panáčikovi
 
   // Všetky body, kam sa dá panáčik položiť
   function allPoints() {
@@ -539,6 +544,10 @@
   // Zobrazí/skryje modré body v mape
   function setPegMode(on) {
     pegMode = on;
+    $('#peg-label').textContent = on ? PEG_TEXT_ON : PEG_TEXT;
+    // Piny domov sa pri prezeraní lokalít skryjú, aby sa nebili s modrými bodmi
+    if (on) Object.values(markers).forEach(m => { if (map.hasLayer(m)) map.removeLayer(m); });
+    else applyFilters();
     $('#pegman').classList.toggle('on', on);
     $('#peg-hint').hidden = !on;
     if (svLayer) { map.removeLayer(svLayer); svLayer = null; }
@@ -562,7 +571,7 @@
     if (!svLayer) return null;
     const r = map.getContainer().getBoundingClientRect();
     if (clientX < r.left || clientX > r.right || clientY < r.top || clientY > r.bottom) return null;
-    let best = null, bestD = 40;
+    let best = null, bestD = 60;
     svLayer.eachLayer(m => {
       const s = map.latLngToContainerPoint(m.getLatLng());
       const d = Math.hypot(s.x + r.left - clientX, s.y + r.top - clientY);
