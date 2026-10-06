@@ -63,6 +63,16 @@
     display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
   .msg{padding:12px 16px;margin:20px 0 0;border:1px solid var(--line);background:var(--panel-2)}
   .msg.ok{border-color:#3c9a5f;color:#9fe0b4} .msg.err{border-color:#e07b6a;color:#f2b3a8} .msg.info{border-color:var(--pin);color:var(--text)}
+  .tabs{display:flex;gap:4px;margin:24px 0 0;border-bottom:1px solid var(--line)}
+  .tabs button{font:500 13px var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--text);background:none;border:0;
+    border-bottom:3px solid transparent;padding:14px 18px 11px;cursor:pointer}
+  .tabs button:hover{color:var(--pin)}
+  .tabs button[aria-selected="true"]{color:var(--pin);border-bottom-color:var(--pin)}
+  .ag-photo{width:150px;height:150px;background:#1e1d22 center/cover;border:1px solid var(--line);display:grid;place-items:center;
+    font-family:var(--serif);font-size:56px;color:var(--pin);margin:0 0 12px}
+  .list .ag-thumb{width:54px;height:54px;background:#26242a center/cover;display:grid;place-items:center;font-family:var(--serif);font-size:22px;color:var(--pin)}
+  .order{display:inline-flex;gap:4px;margin-right:6px}
+  .order button{width:34px;padding:8px 0}
   [hidden]{display:none !important}
 </style>
 </head>
@@ -72,11 +82,16 @@
 
 <main class="wrap">
   <div class="adm-top">
-    <div><h1>Správa ponuky</h1><div class="conn" id="conn">Nepripojené</div></div>
+    <div><h1>Správa webu</h1><div class="conn" id="conn">Nepripojené</div></div>
     <div class="toolbar" id="top-actions" hidden>
       <button class="btn btn-gold" id="btn-new" type="button">+ Nová ponuka</button>
+      <button class="btn btn-gold" id="btn-new-agent" type="button" hidden>+ Nový maklér</button>
     </div>
   </div>
+  <nav class="tabs" id="tabs" role="tablist" hidden>
+    <button type="button" role="tab" data-tab="list-view" aria-selected="true">Ponuky</button>
+    <button type="button" role="tab" data-tab="agents-view" aria-selected="false">Makléri</button>
+  </nav>
   <div id="msg"></div>
 
   <!-- PRIPOJENIE -->
@@ -179,6 +194,46 @@
       </div>
     </div>
   </section>
+
+  <!-- MAKLÉRI: ZOZNAM -->
+  <section id="agents-view" hidden>
+    <table class="list" style="margin-top:24px">
+      <thead><tr><th></th><th>Meno</th><th>Pozícia</th><th>Ponuky</th><th></th></tr></thead>
+      <tbody id="agents-body"></tbody>
+    </table>
+    <p class="hint">Poradie v zozname je rovnaké ako na stránke Makléri – meníte ho šípkami.</p>
+  </section>
+
+  <!-- MAKLÉRI: EDITOR -->
+  <section id="agent-editor" hidden>
+    <div class="panel">
+      <h2 id="ag-title">Nový maklér</h2>
+      <div class="row">
+        <div class="field"><label for="a-name">Meno *</label><input type="text" id="a-name" placeholder="napr. Kyllikki Mäkinen"></div>
+        <div class="field"><label for="a-role">Pozícia</label><input type="text" id="a-role" placeholder="napr. Realitný maklér"></div>
+        <div class="field"><label for="a-id">ID</label><input type="text" id="a-id"><p class="hint" id="a-id-hint">Vytvorí sa automaticky z mena.</p></div>
+      </div>
+      <div class="row">
+        <div class="field"><label for="a-contact">Kontakt (napr. meno na Discorde)</label><input type="text" id="a-contact"></div>
+        <div class="field"><label for="a-phone">Telefón</label><input type="text" id="a-phone" placeholder="napr. (879) 850-9659"></div>
+      </div>
+      <div class="field" style="margin-bottom:16px"><label for="a-bio">Krátky popis</label>
+        <textarea id="a-bio" style="min-height:100px" placeholder="Na čo sa maklér špecializuje…"></textarea></div>
+      <div class="field"><label>Fotka</label>
+        <div class="ag-photo" id="a-photo-prev"></div>
+        <div class="toolbar">
+          <label class="btn btn-line small" style="display:inline-flex;cursor:pointer;color:var(--pin);letter-spacing:.16em;margin:0">Vybrať fotku
+            <input type="file" id="a-file" accept="image/*" hidden></label>
+          <button class="btn btn-danger small" id="a-photo-del" type="button">Odstrániť fotku</button>
+        </div>
+        <p class="hint">Najlepšie štvorcová fotka (portrét). Bez fotky sa zobrazia iniciály.</p>
+      </div>
+      <div class="bar">
+        <button class="btn btn-line" id="btn-ag-cancel" type="button">← Späť na maklérov</button>
+        <button class="btn btn-gold" id="btn-ag-save" type="button">Uložiť makléra</button>
+      </div>
+    </div>
+  </section>
 </main>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -227,8 +282,13 @@
   // ================= UI pomocníci =================
   function msg(text, type = 'info') { $('#msg').innerHTML = text ? `<div class="msg ${type}">${text}</div>` : ''; }
   function show(view) {
-    ['setup', 'list-view', 'editor'].forEach(id => $('#' + id).hidden = id !== view);
-    $('#top-actions').hidden = view !== 'list-view';
+    ['setup', 'list-view', 'editor', 'agents-view', 'agent-editor'].forEach(id => $('#' + id).hidden = id !== view);
+    const isList = view === 'list-view' || view === 'agents-view';
+    $('#top-actions').hidden = !isList;
+    $('#btn-new').hidden = view !== 'list-view';
+    $('#btn-new-agent').hidden = view !== 'agents-view';
+    $('#tabs').hidden = !isList;
+    document.querySelectorAll('#tabs button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === view)));
     window.scrollTo(0, 0);
   }
   const slug = s => String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'ponuka';
@@ -438,6 +498,135 @@
     } catch (e) { msg('Mazanie zlyhalo: ' + esc(e.message), 'err'); }
   }
 
+  // ================= Makléri =================
+  let agEditing = null, agPhoto = null;   // agPhoto: {src} alebo {file, preview} alebo null
+  const initials = n => String(n).split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('');
+
+  function renderAgents() {
+    $('#agents-body').innerHTML = agents.length ? agents.map((a, i) => {
+      const n = houses.filter(h => h.agent === a.id).length;
+      return `<tr>
+        <td><span class="ag-thumb" style="${a.photo ? `background-image:url('${esc(a.photo)}')` : ''}">${a.photo ? '' : esc(initials(a.name || '?'))}</span></td>
+        <td><b>${esc(a.name || '(bez mena)')}</b></td>
+        <td>${esc(a.role || '—')}</td>
+        <td>${n}</td>
+        <td class="act">
+          <span class="order">
+            <button class="btn btn-line small" data-ag-up="${i}" type="button" aria-label="Posunúť vyššie"${i === 0 ? ' disabled' : ''}>↑</button>
+            <button class="btn btn-line small" data-ag-down="${i}" type="button" aria-label="Posunúť nižšie"${i === agents.length - 1 ? ' disabled' : ''}>↓</button>
+          </span>
+          <button class="btn btn-line small" data-ag-edit="${i}" type="button">Upraviť</button>
+          <button class="btn btn-danger small" data-ag-del="${i}" type="button">Zmazať</button>
+        </td></tr>`;
+    }).join('') : `<tr><td colspan="5" class="empty">Zatiaľ žiadni makléri. Kliknite na „+ Nový maklér“.</td></tr>`;
+  }
+
+  function renderAgPhoto() {
+    const src = agPhoto && (agPhoto.preview || agPhoto.src);
+    $('#a-photo-prev').style.backgroundImage = src ? `url('${src}')` : '';
+    $('#a-photo-prev').textContent = src ? '' : initials($('#a-name').value || '?');
+    $('#a-photo-del').hidden = !src;
+  }
+
+  function openAgentEditor(a) {
+    agEditing = a ? {...a} : null;
+    const d = a || {};
+    $('#ag-title').textContent = a ? 'Upraviť: ' + (a.name || '') : 'Nový maklér';
+    $('#a-name').value = d.name || '';
+    $('#a-role').value = d.role || '';
+    $('#a-id').value = d.id || '';
+    $('#a-id').readOnly = !!a;
+    $('#a-id-hint').textContent = a ? 'ID sa nemení (sú naň naviazané ponuky).' : 'Vytvorí sa automaticky z mena.';
+    $('#a-contact').value = d.discord || '';
+    $('#a-phone').value = d.phone || '';
+    $('#a-bio').value = d.bio || '';
+    agPhoto = d.photo ? {src: d.photo} : null;
+    renderAgPhoto();
+    msg('');
+    show('agent-editor');
+  }
+
+  // Zmenšenie fotky makléra: štvorcový výrez zo stredu, 600 × 600 px
+  async function agentPhotoBase64(file) {
+    const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = URL.createObjectURL(file); });
+    const s = Math.min(img.naturalWidth, img.naturalHeight), out = Math.min(600, s);
+    const c = document.createElement('canvas'); c.width = c.height = out;
+    c.getContext('2d').drawImage(img, (img.naturalWidth - s) / 2, (img.naturalHeight - s) / 2, s, s, 0, 0, out, out);
+    return c.toDataURL('image/jpeg', 0.88).split(',')[1];
+  }
+
+  async function saveAgent() {
+    const name = $('#a-name').value.trim();
+    if (!name) { msg('Vyplňte meno makléra.', 'err'); $('#a-name').focus(); return; }
+    const btn = $('#btn-ag-save'); btn.disabled = true;
+    try {
+      msg('Načítavam aktuálne dáta…');
+      const fresh = await getFile('makleri.json');
+      const list = Array.isArray(fresh.data) ? fresh.data : [];
+      let id = agEditing ? agEditing.id : (slug($('#a-id').value) || slug(name));
+      if (!agEditing) { const base = id; let n = 2; while (list.some(a => a.id === id)) id = base + '-' + n++; }
+      if (agPhoto && agPhoto.file) {
+        msg('Nahrávam fotku…');
+        const path = `img/makler-${id}-${Date.now()}.jpg`;
+        await putFile(path, await agentPhotoBase64(agPhoto.file), null, `Fotka makléra ${name}`);
+        agPhoto = {src: path};
+      }
+      const base = agEditing ? (list.find(a => a.id === agEditing.id) || agEditing) : {};
+      const a = {...base, id, name, role: $('#a-role').value.trim(), photo: agPhoto ? agPhoto.src : '',
+                 discord: $('#a-contact').value.trim(), phone: $('#a-phone').value.trim(), bio: $('#a-bio').value.trim()};
+      const idx = list.findIndex(x => x.id === id);
+      if (idx >= 0) list[idx] = a; else list.push(a);
+      msg('Ukladám makléra…');
+      await putFile('makleri.json', b64encode(JSON.stringify(list, null, 2) + '\n'), fresh.sha, (agEditing ? 'Úprava makléra: ' : 'Nový maklér: ') + name);
+      agents = list; renderAgents(); show('agents-view');
+      msg(`✓ Maklér „${esc(name)}“ je uložený. Na webe sa objaví o 1–2 minúty.`, 'ok');
+    } catch (e) { msg('Uloženie zlyhalo: ' + esc(e.message), 'err'); }
+    btn.disabled = false;
+  }
+
+  async function agentsWrite(change, label) {
+    try {
+      msg('Ukladám…');
+      const fresh = await getFile('makleri.json');
+      const list = change(Array.isArray(fresh.data) ? fresh.data : []);
+      await putFile('makleri.json', b64encode(JSON.stringify(list, null, 2) + '\n'), fresh.sha, label);
+      agents = list; renderAgents();
+      return true;
+    } catch (e) { msg('Uloženie zlyhalo: ' + esc(e.message), 'err'); return false; }
+  }
+  async function removeAgent(i) {
+    const a = agents[i], n = houses.filter(h => h.agent === a.id).length;
+    if (!confirm(`Naozaj zmazať makléra „${a.name}“?` + (n ? `\n\nMá priradené ponuky (${n}). Tie ostanú, len pri nich nebude uvedený maklér.` : ''))) return;
+    if (await agentsWrite(list => list.filter(x => x.id !== a.id), 'Zmazaný maklér: ' + a.name)) msg(`✓ Maklér „${esc(a.name)}“ bol zmazaný.`, 'ok');
+  }
+  async function moveAgent(i, dir) {
+    const id = agents[i].id;
+    if (await agentsWrite(list => {
+      const k = list.findIndex(x => x.id === id), j = k + dir;
+      if (k < 0 || j < 0 || j >= list.length) return list;
+      [list[k], list[j]] = [list[j], list[k]]; return list;
+    }, 'Poradie maklérov')) msg('✓ Poradie uložené.', 'ok');
+  }
+
+  $('#btn-new-agent').onclick = () => openAgentEditor(null);
+  $('#btn-ag-cancel').onclick = () => { show('agents-view'); msg(''); };
+  $('#btn-ag-save').onclick = saveAgent;
+  $('#a-name').addEventListener('input', () => { if (!agEditing) $('#a-id').value = slug($('#a-name').value); renderAgPhoto(); });
+  $('#a-file').addEventListener('change', e => { const f = e.target.files[0]; if (f) { agPhoto = {file: f, preview: URL.createObjectURL(f)}; renderAgPhoto(); } e.target.value = ''; });
+  $('#a-photo-del').onclick = () => { agPhoto = null; renderAgPhoto(); };
+  $('#agents-body').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b || b.disabled) return;
+    if (b.dataset.agEdit !== undefined) openAgentEditor(agents[Number(b.dataset.agEdit)]);
+    else if (b.dataset.agDel !== undefined) removeAgent(Number(b.dataset.agDel));
+    else if (b.dataset.agUp !== undefined) moveAgent(Number(b.dataset.agUp), -1);
+    else if (b.dataset.agDown !== undefined) moveAgent(Number(b.dataset.agDown), 1);
+  });
+  $('#tabs').addEventListener('click', e => {
+    const t = e.target.closest('[data-tab]'); if (!t) return;
+    msg(''); if (t.dataset.tab === 'agents-view') renderAgents(); else renderList();
+    show(t.dataset.tab);
+  });
+
   // ================= Štart =================
   async function connect() {
     try {
@@ -448,7 +637,7 @@
       try { const a = await getFile('makleri.json'); agents = Array.isArray(a.data) ? a.data : []; } catch (e) { agents = []; }
       $('#conn').innerHTML = `Pripojené k <b>${esc(cfg.owner)}/${esc(cfg.repo)}</b> (${esc(cfg.branch)}) · <button class="linkbtn" id="btn-logout" type="button">Odpojiť</button>`;
       $('#btn-logout').onclick = () => { try { localStorage.removeItem(LS); sessionStorage.removeItem(LS); } catch (e) {} location.reload(); };
-      renderList(); show('list-view'); msg('');
+      renderList(); renderAgents(); show('list-view'); msg('');
     } catch (e) {
       show('setup');
       msg('Pripojenie zlyhalo: ' + esc(e.message), 'err');
