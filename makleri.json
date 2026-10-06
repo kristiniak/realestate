@@ -1,8 +1,8 @@
 [
   {
     "id": "makler-1",
-    "name": "Meno Priezvisko",
-    "role": "Hlavný maklér",
+    "name": "Kyllikki Mäkinen",
+    "role": "CEO & Co-Owner",
     "photo": "",
     "discord": "meno.maklera",
     "phone": "555-0101",
@@ -10,8 +10,8 @@
   },
   {
     "id": "makler-2",
-    "name": "Druhý Maklér",
-    "role": "Maklér pre prenájmy",
+    "name": "Yrjö Mäkinen",
+    "role": "CEO & Co-Owner",
     "photo": "",
     "discord": "meno.maklera2",
     "phone": "555-0102",
