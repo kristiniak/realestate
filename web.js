@@ -50,6 +50,7 @@ function cardHtml(h) {
     </div>
     <div class="card-body">
       <div class="card-title">${esc(h.name)}</div>
+      ${h.street ? `<div class="card-street">${esc(h.street)}</div>` : ''}
       ${loc ? `<div class="card-loc">${esc(loc)}</div>` : ''}
       <div class="card-price">${fmtPrice(h.price)}</div>
       ${feats.length ? `<div class="card-feats">${feats.map(f => `<span>${esc(f)}</span>`).join('')}</div>` : ''}

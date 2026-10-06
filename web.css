@@ -67,6 +67,7 @@ body.page{margin:0;background:var(--panel);color:var(--text);font-family:var(--s
   font-size:11px;font-weight:500;letter-spacing:.12em;padding:3px 8px}
 .card-body{padding:18px 20px 20px;display:flex;flex-direction:column;gap:6px;flex:1}
 .card-title{font-family:var(--serif);font-size:28px;font-weight:600;line-height:1.05}
+.card-street{color:var(--muted);opacity:.75;font-size:14px;letter-spacing:.06em;margin-top:-2px}
 .card-loc{color:var(--muted);font-size:14px}
 .card-price{color:var(--pin);font-size:20px;font-weight:500;margin-top:auto;padding-top:10px}
 .card-feats{display:flex;flex-wrap:wrap;gap:6px 14px;color:var(--muted);font-size:13px;border-top:1px solid var(--line);padding-top:12px;margin-top:6px}

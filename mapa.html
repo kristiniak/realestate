@@ -46,6 +46,7 @@
   aside{background:var(--panel);overflow-y:auto;padding:28px;border-left:1px solid var(--pin)}
   h1,h2{font-family:'Cormorant Garamond',serif;font-weight:600;margin:0 0 10px;line-height:1.05}
   h1{font-size:46px;color:var(--pin)} h2{font-size:42px}
+  .street{margin:-2px 0 14px;color:var(--muted);opacity:.75;font-size:15px;letter-spacing:.06em}   /* názov ulice pod názvom domu */
   .muted{color:var(--muted);margin:0 0 18px}
   .list{list-style:none;margin:0;padding:0}
   .list button,.back{font:inherit;color:var(--text);cursor:pointer;border:0}
@@ -356,7 +357,7 @@
 
     $('#detail-view').innerHTML =
       `<button class="back" data-back>← Celá ponuka</button>
-       <h2>${esc(h.name)}</h2>${statusesOf(h).length ? `<div class="badges">${badgesHtml(h)}</div>` : ''}${gallery}${contact}${tour}${video}${details}<p class="desc">${esc(h.desc || '')}</p>`;
+       <h2>${esc(h.name)}</h2>${h.street ? `<p class="street">${esc(h.street)}</p>` : ''}${statusesOf(h).length ? `<div class="badges">${badgesHtml(h)}</div>` : ''}${gallery}${contact}${tour}${video}${details}<p class="desc">${esc(h.desc || '')}</p>`;
     $('#list-view').hidden = true;
     $('#detail-view').hidden = false;
     $('#panel').scrollTop = 0;
