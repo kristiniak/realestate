@@ -50,6 +50,19 @@
   .list button,.back{font:inherit;color:var(--text);cursor:pointer;border:0}
   .list button{width:100%;text-align:left;padding:12px 14px;margin-bottom:6px;background:var(--panel-2);border-radius:0;border:1px solid var(--line);letter-spacing:.04em;transition:border-color .15s,color .15s}
   .list button:hover{border-color:var(--pin);color:var(--pin)}
+  .list .item{display:grid;grid-template-columns:1fr auto;gap:6px 12px;align-items:center}
+  .it-name{font-weight:500}
+  .it-price{color:var(--pin);white-space:nowrap;font-size:14px}
+  .it-meta{grid-column:1 / -1;display:flex;flex-wrap:wrap;gap:6px;align-items:center;color:var(--muted);font-size:13px;letter-spacing:.02em}
+  .it-meta:empty{display:none}
+  .item.is-sold .it-name,.item.is-sold .it-price{opacity:.55}
+  /* Štítky stavu (Novinka, Zľava, Rezervované, Predané) */
+  .badge{display:inline-block;padding:2px 8px;font-size:11px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;
+    color:#fff;background:var(--b,#555);line-height:1.6}
+  .badges{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}
+  .sortbar{display:flex;justify-content:flex-end;align-items:center;gap:8px;margin:0 0 10px;color:var(--muted);font-size:14px}
+  .sortbar select{font:inherit;font-size:14px;color:var(--text);background:var(--panel-2);border:1px solid var(--line);padding:6px 8px;cursor:pointer}
+  .sortbar select:focus-visible{outline:2px solid var(--pin);outline-offset:2px}
   .back{background:none;color:var(--pin);padding:0;margin-bottom:14px;font-weight:500;text-transform:uppercase;letter-spacing:.16em;font-size:12px}
   button:focus-visible{outline:2px solid var(--pin);outline-offset:2px}
   .main-photo{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:0;background:var(--panel-2);display:block}
@@ -125,6 +138,9 @@
   .pin span{display:block;width:26px;height:26px;background:var(--pin);border:3px solid var(--panel);
     border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:0 2px 6px rgba(0,0,0,.4);transition:transform .15s,background .15s}
   .pin.active span{background:#f3ecdc;transform:rotate(-45deg) scale(1.3)}
+  .pin.st-rezervovane span{background:#e0962b}
+  .pin.st-predane span{background:#6f6a62;opacity:.8}
+  .pin.active.st-rezervovane span,.pin.active.st-predane span{background:#f3ecdc;opacity:1}
   .leaflet-marker-icon{cursor:pointer}
   .coords{position:absolute;left:12px;bottom:12px;z-index:500;background:var(--panel);color:var(--text);
     padding:6px 10px;border-radius:0;font-size:14px;display:none}
@@ -153,6 +169,13 @@
       <p class="muted">Klikni na pin v mape alebo vyber dom zo zoznamu. Filtre ti ukážu len domy, ktoré hľadáš.</p>
       <div class="filters" id="filters"></div>
       <div class="count"><span id="count"></span><button class="reset" id="reset" hidden>Zrušiť filtre</button></div>
+      <div class="sortbar"><label for="sort">Zoradiť:</label>
+        <select id="sort">
+          <option value="">Predvolené</option>
+          <option value="asc">Cena: od najlacnejšieho</option>
+          <option value="desc">Cena: od najdrahšieho</option>
+        </select>
+      </div>
       <ul class="list" id="list"></ul>
     </div>
     <div id="detail-view" hidden></div>
@@ -206,16 +229,35 @@
     {key: 'area', title: 'Lokalita', open: true, options: [
       ['vinewood-hills', 'Vinewood Hills'], ['sandy-shores', 'Sandy Shores'], ['paleto-bay', 'Paleto Bay'],
       ['mirror-park', 'Mirror Park'], ['plaz', 'Pláž']]},
-    {key: 'type', title: 'Typ', open: true, options: [
+    {key: 'offer', title: 'Typ', open: true, options: [
+      ['predaj', 'Predaj'], ['prenajom', 'Prenájom'], ['kupa', 'Kúpa']]},
+    {key: 'type', title: 'Druh nehnuteľnosti', open: true, options: [
       ['vila', 'Vily a luxusné domy'], ['dom', 'Bežné domy a bungalovy'], ['apartman', 'Apartmány a byty'],
       ['farma', 'Farmy a chaty'], ['biznis', 'Kancelárie alebo biznis']]},
     {key: 'price', title: 'Cena', options: [
       ['do500k', 'do 500 000 $'], ['500k-2m', '500 000 – 2 mil. $'], ['2m-5m', '2 – 5 mil. $'], ['nad5m', 'nad 5 mil. $']]},
+    // Počet izieb: ukážu sa len čísla, ktoré má aspoň jeden dom (onlyUsed)
+    {key: 'rooms', title: 'Počet izieb', onlyUsed: true, options: [
+      ['1', '1'], ['2', '2'], ['3', '3'], ['4', '4'], ['5', '5'], ['6', '6'], ['7', '7'], ['8', '8'], ['9', '9'], ['10', '10']]},
     {key: 'pool', title: 'Bazén', options: [['true', 'S bazénom'], ['false', 'Bez bazéna']]},
     {key: 'view', title: 'Výhľad', options: [['more', 'Na more'], ['mesto', 'Na mesto'], ['priroda', 'Na prírodu a hory']]}
   ];
   const active = {};
   FILTERS.forEach(f => active[f.key] = new Set());
+
+  // ===== ŠTÍTKY STAVU =====
+  // V data.json daj domu napr. "status": "novinka"  (alebo viac naraz: "status": ["novinka", "zlava"])
+  // Kód : [text na stránke, farba]
+  const STATUSES = {
+    novinka:     ['Novinka',     '#3c9a5f'],
+    zlava:       ['Zľava',       '#c0392b'],
+    rezervovane: ['Rezervované', '#d4881f'],
+    predane:     ['Predané',     '#6f6a62']
+  };
+  const normKey = v => String(v).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+  const statusesOf = h => [].concat(h.status || []).map(normKey).filter(k => STATUSES[k]);
+  const badgesHtml = h => statusesOf(h).map(k =>
+    `<span class="badge" style="--b:${STATUSES[k][1]}">${esc(STATUSES[k][0])}</span>`).join('');
 
   const priceRange = p => p < 500000 ? 'do500k' : p < 2000000 ? '500k-2m' : p <= 5000000 ? '2m-5m' : 'nad5m';
   const optLabel = (key, val) => {
@@ -233,17 +275,32 @@
   // V rámci jednej skupiny stačí splniť aspoň jednu možnosť, medzi skupinami musia platiť všetky
   const matches = h => FILTERS.every(f => !active[f.key].size || valuesOf(h, f.key).some(v => active[f.key].has(v)));
 
+  // Možnosti filtra; pri "onlyUsed" len tie, ktoré má aspoň jeden dom
+  function optionsOf(f) {
+    if (!f.onlyUsed) return f.options;
+    const used = new Set(houses.flatMap(h => valuesOf(h, f.key)));
+    return f.options.filter(([v]) => used.has(v));
+  }
   function buildFilters() {
-    $('#filters').innerHTML = FILTERS.map(f =>
-      `<details class="fgroup"${f.open ? ' open' : ''}>
+    $('#filters').innerHTML = FILTERS.map(f => {
+      const opts = optionsOf(f);
+      if (!opts.length) return '';                          // skupina bez možností sa neukáže
+      return `<details class="fgroup"${f.open ? ' open' : ''}>
          <summary><span>${esc(f.title)}<span class="n" data-n="${f.key}"></span></span></summary>
-         <div class="chips">${f.options.map(([v, l]) =>
-           `<button class="chip" data-f="${f.key}" data-v="${esc(v)}" aria-pressed="false">${esc(l)}</button>`).join('')}</div>
-       </details>`).join('');
+         <div class="chips">${opts.map(([v, l]) =>
+           `<button class="chip" data-f="${f.key}" data-v="${esc(v)}" aria-pressed="${active[f.key].has(v)}">${esc(l)}</button>`).join('')}</div>
+       </details>`;
+    }).join('');
   }
 
   function applyFilters() {
     const shown = houses.filter(matches);
+    const sort = $('#sort').value;                          // zoradenie podľa ceny (domy bez ceny idú na koniec)
+    if (sort) shown.sort((a, b) => {
+      const pa = typeof a.price === 'number' ? a.price : null, pb = typeof b.price === 'number' ? b.price : null;
+      if (pa === null || pb === null) return (pa === null) - (pb === null);
+      return sort === 'asc' ? pa - pb : pb - pa;
+    });
     const ids = new Set(shown.map(h => h.id));
     houses.forEach(h => {
       const m = markers[h.id];
@@ -252,7 +309,15 @@
       else if (map.hasLayer(m)) map.removeLayer(m);
     });
     $('#list').innerHTML = shown.length
-      ? shown.map(h => `<li><button data-id="${esc(h.id)}">${esc(h.name)}</button></li>`).join('')
+      ? shown.map(h => {
+          const meta = [badgesHtml(h), h.offer ? esc(optLabel('offer', h.offer)) : '',
+                        h.rooms ? esc(h.rooms + ' ' + (h.rooms == 1 ? 'izba' : h.rooms < 5 ? 'izby' : 'izieb')) : '']
+                       .filter(Boolean).join(' <span aria-hidden="true">·</span> ');
+          return `<li><button class="item${statusesOf(h).includes('predane') ? ' is-sold' : ''}" data-id="${esc(h.id)}">
+            <span class="it-name">${esc(h.name)}</span>
+            <span class="it-price">${typeof h.price === 'number' ? h.price.toLocaleString('sk-SK') + ' $' : ''}</span>
+            <span class="it-meta">${meta}</span></button></li>`;
+        }).join('')
       : '<li class="nomatch">Žiadny dom nezodpovedá výberu.</li>';
     const any = FILTERS.some(f => active[f.key].size);
     $('#count').textContent = any ? `Zobrazené: ${shown.length} z ${houses.length}` : `Domov: ${houses.length}`;
@@ -291,8 +356,10 @@
 
     // Údaje o dome: najprv tie z filtrov, potom ďalšie z "details"
     const rows = [];
+    if (h.offer) rows.push(['Typ', optLabel('offer', h.offer)]);
     if (h.area) rows.push(['Lokalita', optLabel('area', h.area)]);
-    if (h.type) rows.push(['Typ', optLabel('type', h.type)]);
+    if (h.type) rows.push(['Druh nehnuteľnosti', optLabel('type', h.type)]);
+    if (h.rooms) rows.push(['Počet izieb', String(h.rooms)]);
     if (typeof h.price === 'number') rows.push(['Cena', h.price.toLocaleString('sk-SK') + ' $']);
     if (typeof h.pool === 'boolean') rows.push(['Bazén', h.pool ? 'Áno' : 'Nie']);
     if (h.view) rows.push(['Výhľad', [].concat(h.view).map(v => optLabel('view', v)).join(', ')]);
@@ -316,7 +383,7 @@
 
     $('#detail-view').innerHTML =
       `<button class="back" data-back>← Celá ponuka</button>
-       <h2>${esc(h.name)}</h2>${gallery}${contact}${tour}${video}${details}<p class="desc">${esc(h.desc || '')}</p>`;
+       <h2>${esc(h.name)}</h2>${statusesOf(h).length ? `<div class="badges">${badgesHtml(h)}</div>` : ''}${gallery}${contact}${tour}${video}${details}<p class="desc">${esc(h.desc || '')}</p>`;
     $('#list-view').hidden = true;
     $('#detail-view').hidden = false;
     $('#panel').scrollTop = 0;
@@ -491,6 +558,7 @@
     }
   });
   buildFilters();
+  $('#sort').addEventListener('change', applyFilters);
 
   // Kliky vo veľkom zobrazení: šípky, zavrieť, tmavé pozadie
   $('#lightbox').addEventListener('click', e => {
@@ -664,11 +732,14 @@
       .then(data => {
         houses = data;
         houses.forEach(h => {
-          markers[h.id] = L.marker(toLatLng(h), {icon: L.divIcon({className: 'pin', html: '<span></span>', iconSize: [26, 26], iconAnchor: [13, 26]}), title: h.name})
+          const st = statusesOf(h).find(k => k === 'predane' || k === 'rezervovane');   // predané = sivý pin, rezervované = oranžový
+          const tip = esc(h.name) + (statusesOf(h).length ? ' ' + badgesHtml(h) : '');
+          markers[h.id] = L.marker(toLatLng(h), {icon: L.divIcon({className: 'pin' + (st ? ' st-' + st : ''), html: '<span></span>', iconSize: [26, 26], iconAnchor: [13, 26]}), title: h.name})
             .addTo(map)
-            .bindTooltip(h.name, {direction: 'top', offset: [0, -26]})   // pri nabehnutí myšou
+            .bindTooltip(tip, {direction: 'top', offset: [0, -26]})   // pri nabehnutí myšou
             .on('click', () => showHouse(h.id));                          // po kliknutí sa otvorí detail
         });
+        buildFilters();                                     // znova, aby „Počet izieb“ ukázal len použité čísla
         applyFilters();
         location.hash ? showHouse(location.hash.slice(1)) : showList();
         // 360° body z ulíc (súbor body.json je nepovinný)
