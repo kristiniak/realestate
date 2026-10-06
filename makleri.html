@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Makléri – Real Estate</title>
+<link rel="icon" href="img/onyx_logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Jost:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="web.css">
+<style>
+  .page-top{padding:48px 0 28px;border-bottom:1px solid var(--line)}
+  .page-top h1{font-size:clamp(48px,6vw,76px);color:var(--pin);margin:0 0 10px}
+  .agents{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:22px;padding:36px 0 72px}
+  .agent{background:var(--panel-2);border:1px solid var(--line);display:flex;flex-direction:column}
+  .agent-photo{aspect-ratio:1/1;background:#1e1d22 center/cover no-repeat;display:grid;place-items:center}
+  .agent-photo .initials{font-family:var(--serif);font-size:96px;color:var(--pin);font-weight:600}
+  .agent-body{padding:20px 22px 22px;display:flex;flex-direction:column;gap:6px;flex:1}
+  .agent-name{font-family:var(--serif);font-size:32px;font-weight:600;line-height:1}
+  .agent-role{color:var(--pin);font-size:13px;font-weight:500;letter-spacing:.14em;text-transform:uppercase}
+  .agent-bio{color:var(--muted);margin:8px 0 0}
+  .agent-contact{border-top:1px solid var(--line);margin-top:14px;padding-top:14px;display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:14px}
+  .agent-contact dt{color:var(--muted)} .agent-contact dd{margin:0;text-align:right}
+  .agent-actions{display:flex;gap:8px;margin-top:auto;padding-top:18px}
+  .agent-actions .btn{flex:1;padding:12px 10px}
+</style>
+</head>
+<body class="page">
+<header id="site-header"></header>
+<script src="nastavenia.js"></script>
+
+<main class="wrap">
+  <div class="page-top">
+    <h1>Makléri</h1>
+    <p class="lead">Ľudia, ktorí ti pomôžu nájsť, kúpiť alebo prenajať nehnuteľnosť v Los Santos.</p>
+  </div>
+  <div class="agents" id="agents"><p class="empty">Načítavam…</p></div>
+</main>
+
+<footer id="site-footer"></footer>
+<script src="web.js"></script>
+<script>
+  const initials = n => String(n).split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('');
+
+  Promise.all([loadJSON('makleri.json', []), loadJSON('data.json', [])]).then(([agents, houses]) => {
+    if (!Array.isArray(agents) || !agents.length) {
+      $('#agents').innerHTML = '<p class="empty">Zatiaľ tu nie sú žiadni makléri. Pridaj ich do súboru makleri.json.</p>';
+      return;
+    }
+    $('#agents').innerHTML = agents.map(a => {
+      const count = houses.filter(h => h.agent === a.id && !statusesOf(h).includes('predane')).length;
+      const rows = [['Discord', a.discord], ['Telefón', a.phone]].filter(([, v]) => v);
+      return `<article class="agent">
+        <div class="agent-photo"${a.photo ? ` style="background-image:url('${esc(a.photo)}')"` : ''}>
+          ${a.photo ? '' : `<span class="initials">${esc(initials(a.name))}</span>`}
+        </div>
+        <div class="agent-body">
+          <div class="agent-name">${esc(a.name)}</div>
+          ${a.role ? `<div class="agent-role">${esc(a.role)}</div>` : ''}
+          ${a.bio ? `<p class="agent-bio">${esc(a.bio)}</p>` : ''}
+          ${rows.length ? `<dl class="agent-contact">${rows.map(([k, v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join('')}</dl>` : ''}
+          <div class="agent-actions">
+            <a class="btn btn-line" href="ponuka.html?makler=${encodeURIComponent(a.id)}">Ponuka (${count})</a>
+            <a class="btn btn-gold" href="${esc(a.contact || DISCORD)}" target="_blank" rel="noopener">Kontakt</a>
+          </div>
+        </div>
+      </article>`;
+    }).join('');
+  });
+</script>
+</body>
+</html>

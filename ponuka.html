@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ponuka – Real Estate</title>
+<link rel="icon" href="img/onyx_logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Jost:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="web.css">
+<style>
+  .page-top{padding:48px 0 28px;border-bottom:1px solid var(--line)}
+  .page-top h1{font-size:clamp(48px,6vw,76px);color:var(--pin);margin:0 0 10px}
+  .layout{display:grid;grid-template-columns:280px 1fr;gap:36px;padding:32px 0 72px;align-items:start}
+  .filters-box{position:sticky;top:20px}
+  .filters-box > summary{display:none}
+  .fgroup{border-top:1px solid var(--line);padding:14px 0}
+  .fgroup summary{cursor:pointer;font-weight:500;text-transform:uppercase;letter-spacing:.14em;font-size:13px;list-style:none;
+    display:flex;justify-content:space-between;align-items:center}
+  .fgroup summary::-webkit-details-marker{display:none}
+  .fgroup summary::after{content:'▾';color:var(--muted)}
+  .fgroup[open] summary::after{content:'▴'}
+  .fgroup .n{color:var(--pin)}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+  .chip{font:inherit;font-size:14px;color:var(--text);background:var(--panel-2);border:1px solid var(--line);padding:6px 12px;cursor:pointer}
+  .chip:hover{border-color:var(--pin)}
+  .chip[aria-pressed="true"]{background:var(--pin);color:var(--panel);border-color:var(--pin);font-weight:500}
+  .toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 20px;color:var(--muted)}
+  .toolbar-right{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .toolbar select{font:inherit;font-size:14px;color:var(--text);background:var(--panel-2);border:1px solid var(--line);padding:8px 10px;cursor:pointer}
+  .reset{font:inherit;background:none;border:0;color:var(--pin);cursor:pointer;padding:0;font-size:14px}
+  .agent-note{display:flex;align-items:center;gap:12px;background:var(--panel-2);border:1px solid var(--pin);padding:10px 14px;margin:0 0 20px}
+  .agent-note[hidden]{display:none}
+  @media (max-width:900px){
+    .layout{grid-template-columns:1fr;gap:20px}
+    .filters-box{position:static;border:1px solid var(--line);padding:0 14px}
+    .filters-box > summary{display:flex;justify-content:space-between;cursor:pointer;list-style:none;padding:14px 0;
+      font-weight:500;text-transform:uppercase;letter-spacing:.14em;font-size:13px;color:var(--pin)}
+    .filters-box > summary::-webkit-details-marker{display:none}
+  }
+</style>
+</head>
+<body class="page">
+<header id="site-header"></header>
+<script src="nastavenia.js"></script>
+
+<main class="wrap">
+  <div class="page-top">
+    <h1>Ponuka</h1>
+    <p class="lead">Všetky nehnuteľnosti na jednom mieste. Klikni na kartu a otvorí sa detail priamo na mape.</p>
+  </div>
+
+  <div class="layout">
+    <details class="filters-box" id="filters-box" open>
+      <summary>Filtre <span id="fcount"></span></summary>
+      <div id="filters"></div>
+    </details>
+
+    <section>
+      <div class="agent-note" id="agent-note" hidden></div>
+      <div class="toolbar">
+        <span><span id="count"></span> <button class="reset" id="reset" hidden>· Zrušiť filtre</button></span>
+        <div class="toolbar-right">
+          <label for="sort">Zoradiť:</label>
+          <select id="sort">
+            <option value="">Predvolené</option>
+            <option value="asc">Cena: od najlacnejšieho</option>
+            <option value="desc">Cena: od najdrahšieho</option>
+          </select>
+          <a class="btn btn-line" href="mapa.html" style="padding:9px 14px">Zobraziť na mape</a>
+        </div>
+      </div>
+      <div class="grid" id="grid"><p class="empty">Načítavam…</p></div>
+    </section>
+  </div>
+</main>
+
+<footer id="site-footer"></footer>
+<script src="web.js"></script>
+<script>
+  let houses = [], agents = [];
+  const active = {};
+  FILTERS.forEach(f => active[f.key] = new Set());
+  const agentFilter = new URLSearchParams(location.search).get('makler');   // ponuka.html?makler=id
+
+  function optionsOf(f) {
+    if (!f.onlyUsed) return f.options;
+    const used = new Set(houses.flatMap(h => valuesOf(h, f.key)));
+    return f.options.filter(([v]) => used.has(v));
+  }
+  function buildFilters() {
+    $('#filters').innerHTML = FILTERS.map(f => {
+      const opts = optionsOf(f);
+      if (!opts.length) return '';
+      return `<details class="fgroup"${f.open ? ' open' : ''}>
+        <summary><span>${esc(f.title)}<span class="n" data-n="${f.key}"></span></span></summary>
+        <div class="chips">${opts.map(([v, l]) =>
+          `<button class="chip" data-f="${f.key}" data-v="${esc(v)}" aria-pressed="${active[f.key].has(v)}">${esc(l)}</button>`).join('')}</div>
+      </details>`;
+    }).join('');
+  }
+
+  function render() {
+    let shown = houses.filter(h => matchesFilters(h, active) && (!agentFilter || h.agent === agentFilter));
+    const sort = $('#sort').value;
+    if (sort) shown = shown.slice().sort((a, b) => {
+      const pa = typeof a.price === 'number' ? a.price : null, pb = typeof b.price === 'number' ? b.price : null;
+      if (pa === null || pb === null) return (pa === null) - (pb === null);
+      return sort === 'asc' ? pa - pb : pb - pa;
+    });
+    $('#grid').innerHTML = shown.length ? shown.map(cardHtml).join('') : '<p class="empty">Žiadna nehnuteľnosť nezodpovedá výberu.</p>';
+    const n = FILTERS.reduce((s, f) => s + active[f.key].size, 0);
+    $('#count').textContent = `${shown.length} ${shown.length === 1 ? 'nehnuteľnosť' : shown.length < 5 && shown.length > 0 ? 'nehnuteľnosti' : 'nehnuteľností'}`;
+    $('#reset').hidden = !n;
+    $('#fcount').textContent = n ? `(${n})` : '';
+    FILTERS.forEach(f => {
+      const b = document.querySelector(`[data-n="${f.key}"]`);
+      if (b) b.textContent = active[f.key].size ? ` (${active[f.key].size})` : '';
+    });
+  }
+
+  $('#filters').addEventListener('click', e => {
+    const chip = e.target.closest('[data-f]');
+    if (!chip) return;
+    const set = active[chip.dataset.f], v = chip.dataset.v;
+    set.has(v) ? set.delete(v) : set.add(v);
+    chip.setAttribute('aria-pressed', String(set.has(v)));
+    render();
+  });
+  $('#reset').addEventListener('click', () => { FILTERS.forEach(f => active[f.key].clear()); buildFilters(); render(); });
+  $('#sort').addEventListener('change', render);
+  if (matchMedia('(max-width:900px)').matches) $('#filters-box').open = false;   // na mobile sú filtre zbalené
+
+  Promise.all([loadJSON('data.json', []), loadJSON('makleri.json', [])]).then(([h, a]) => {
+    houses = Array.isArray(h) ? h : [];
+    agents = Array.isArray(a) ? a : [];
+    if (agentFilter) {
+      const ag = agents.find(x => x.id === agentFilter);
+      $('#agent-note').hidden = false;
+      $('#agent-note').innerHTML = `Ponuka makléra <b>${esc(ag ? ag.name : agentFilter)}</b> <a class="link-more" href="ponuka.html" style="margin-left:auto">Celá ponuka ✕</a>`;
+    }
+    buildFilters();
+    render();
+  });
+</script>
+</body>
+</html>

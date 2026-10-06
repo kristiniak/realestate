@@ -3,771 +3,104 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ONYX Real Estate</title>
+<title>Real Estate</title>
 <link rel="icon" href="img/onyx_logo.png">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Jost:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="web.css">
 <style>
-  :root{
-    --sea:#12406b; --panel:#0d0d0f; --panel-2:#17161a; --line:#2a2822;
-    --text:#f3ecdc; --muted:#a69f90; --pin:#c9a961;
-  }
-  *{box-sizing:border-box}
-  html,body{margin:0;height:100%}
-  body{font-family:'Jost',system-ui,sans-serif;background:var(--panel);color:var(--text)}
-  .app{display:grid;grid-template-columns:1fr 380px;height:100vh;height:100dvh}
-  .map-wrap{position:relative;min-height:0}
-  #map{background:var(--sea);outline:none;position:absolute;inset:0}
-
-  /* Panáčik na 360° pohľad (ako v Google Maps) */
-  .pegman{position:absolute;right:14px;bottom:14px;z-index:800;height:58px;padding:8px 16px 8px 12px;gap:12px;
-    font:inherit;font-size:13px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--pin);
-    background:var(--panel);border:1px solid var(--pin);cursor:grab;touch-action:none;display:flex;align-items:center}
-  .pegman[hidden]{display:none}
-  .pegman svg{height:40px;width:24px;flex:none;fill:var(--pin);transition:transform .15s}
-  .pegman .peg-label{white-space:nowrap}
-  .pegman:hover svg{transform:translateY(-3px)}
-  .pegman.on{background:var(--pin);color:var(--panel)} .pegman.on svg{fill:var(--panel)}
-  @media (max-width:500px){.pegman{font-size:11px;letter-spacing:.06em;padding:8px 12px 8px 10px}}
-  .peg-ghost{position:fixed;z-index:3000;width:30px;height:48px;pointer-events:none;transform:translate(-50%,-100%);
-    filter:drop-shadow(0 4px 6px rgba(0,0,0,.5))}
-  .peg-ghost svg{width:100%;height:100%;fill:var(--pin)}
-  .peg-ghost.hit svg{fill:#4aa3ff}
-  .peg-hint{position:absolute;left:50%;top:14px;transform:translateX(-50%);z-index:800;background:var(--panel);
-    color:var(--text);border:1px solid #4aa3ff;padding:8px 14px;font-size:14px;letter-spacing:.04em;pointer-events:none}
-  .peg-hint[hidden]{display:none}
-  .sv-dot{width:18px;height:18px;border-radius:50%;background:#4aa3ff;border:3px solid #fff;
-    box-shadow:0 0 0 4px rgba(74,163,255,.35);transition:transform .12s}
-  .sv-dot.hot{transform:scale(1.5)}
-  .sv-dot.house{background:var(--pin);box-shadow:0 0 0 4px rgba(201,169,97,.35)}
-  aside{background:var(--panel);overflow-y:auto;padding:28px;border-left:1px solid var(--pin)}
-  h1,h2{font-family:'Cormorant Garamond',serif;font-weight:600;margin:0 0 10px;line-height:1.05}
-  h1{font-size:46px;color:var(--pin)} h2{font-size:42px}
-  .muted{color:var(--muted);margin:0 0 18px}
-  .list{list-style:none;margin:0;padding:0}
-  .list button,.back{font:inherit;color:var(--text);cursor:pointer;border:0}
-  .list button{width:100%;text-align:left;padding:12px 14px;margin-bottom:6px;background:var(--panel-2);border-radius:0;border:1px solid var(--line);letter-spacing:.04em;transition:border-color .15s,color .15s}
-  .list button:hover{border-color:var(--pin);color:var(--pin)}
-  .list .item{display:grid;grid-template-columns:1fr auto;gap:6px 12px;align-items:center}
-  .it-name{font-weight:500}
-  .it-price{color:var(--pin);white-space:nowrap;font-size:14px}
-  .it-meta{grid-column:1 / -1;display:flex;flex-wrap:wrap;gap:6px;align-items:center;color:var(--muted);font-size:13px;letter-spacing:.02em}
-  .it-meta:empty{display:none}
-  .item.is-sold .it-name,.item.is-sold .it-price{opacity:.55}
-  /* Štítky stavu (Novinka, Zľava, Rezervované, Predané) */
-  .badge{display:inline-block;padding:2px 8px;font-size:11px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;
-    color:#fff;background:var(--b,#555);line-height:1.6}
-  .badges{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}
-  .sortbar{display:flex;justify-content:flex-end;align-items:center;gap:8px;margin:0 0 10px;color:var(--muted);font-size:14px}
-  .sortbar select{font:inherit;font-size:14px;color:var(--text);background:var(--panel-2);border:1px solid var(--line);padding:6px 8px;cursor:pointer}
-  .sortbar select:focus-visible{outline:2px solid var(--pin);outline-offset:2px}
-  .back{background:none;color:var(--pin);padding:0;margin-bottom:14px;font-weight:500;text-transform:uppercase;letter-spacing:.16em;font-size:12px}
-  button:focus-visible{outline:2px solid var(--pin);outline-offset:2px}
-  .main-photo{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:0;background:var(--panel-2);display:block}
-  .empty-photo{aspect-ratio:4/3;border-radius:0;background:var(--panel-2);display:grid;place-items:center;color:var(--muted)}
-  .thumbs{display:flex;gap:6px;margin:8px 0 16px;flex-wrap:wrap}
-  .thumbs button{padding:0;border:1px solid transparent;border-radius:0;background:none;cursor:pointer;overflow:hidden}
-  .thumbs button.on{border-color:var(--pin)}
-  .thumbs img{width:64px;height:48px;object-fit:cover;display:block}
-  dl{display:grid;grid-template-columns:auto 1fr;gap:0 16px;margin:0 0 18px}
-  dt,dd{padding:10px 0;border-bottom:1px solid var(--line)}
-  dt{color:var(--muted)} dd{margin:0;text-align:right}
-  .desc{line-height:1.65;margin:0;max-width:60ch;color:var(--muted)}
-  .main-photo{cursor:zoom-in}
-  .video-link{display:inline-flex;align-items:center;gap:8px;width:100%;justify-content:center;margin:4px 0 18px;padding:14px 16px;border-radius:0;background:transparent;border:1px solid var(--pin);color:var(--pin);text-decoration:none;font-weight:500;text-transform:uppercase;letter-spacing:.16em;font-size:13px;transition:background .15s,color .15s}
-  .video-link:hover{background:var(--pin);color:var(--panel)}
-  .contact-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;margin:0 0 18px;padding:16px;
-    background:var(--pin);color:var(--panel);text-decoration:none;font-weight:500;text-transform:uppercase;
-    letter-spacing:.16em;font-size:14px;border:1px solid var(--pin);transition:background .15s,color .15s}
-  .contact-btn:hover{background:transparent;color:var(--pin)}
-  .contact-btn svg{width:22px;height:22px;fill:currentColor;flex:none}
-  .contact-note{margin:-12px 0 18px;text-align:center;color:var(--muted);font-size:13px}
-  button.video-link{font-family:inherit;cursor:pointer}
-
-  /* 360° prehliadka interiéru */
-  .tour{position:fixed;inset:0;z-index:2100;background:#000}
-  .tour[hidden]{display:none}
-  #pano{width:100%;height:100%}
-  .tour .lb-close{z-index:10}
-  .tour-coords{position:absolute;left:50%;transform:translateX(-50%);max-width:calc(100% - 32px);bottom:12px;z-index:10;background:var(--panel);color:var(--text);
-    padding:6px 10px;font-size:14px;display:none;border:1px solid var(--pin)}
-  .tour-warn{position:absolute;left:50%;top:14px;transform:translateX(-50%);z-index:10;max-width:calc(100% - 140px);
-    background:#5a1a12;color:#fff;border:1px solid #ff8a70;padding:8px 14px;font-size:14px}
-  .tour-warn[hidden]{display:none}
-  .pnlm-container{font-family:'Jost',sans-serif}
-  .pnlm-panorama-info{border-radius:0;background:rgba(13,13,15,.8)}
-  .pnlm-title-box{font-family:'Cormorant Garamond',serif;font-size:26px;color:var(--pin)}
-  .go-arrow{width:44px;height:44px;border-radius:50%;cursor:pointer;border:2px solid #fff;
-    background:rgba(13,13,15,.55) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 4l8 9h-5v7H9v-7H4z' fill='%23c9a961'/%3E%3C/svg%3E") center/26px no-repeat;
-    box-shadow:0 2px 10px rgba(0,0,0,.5);transition:transform .15s}
-  .go-arrow:hover{transform:scale(1.15)}
-  .pnlm-tooltip span{border-radius:0;background:var(--panel);border:1px solid var(--pin);color:var(--text);font-family:'Jost',sans-serif}
-  .pnlm-tooltip span:after{border-color:var(--pin) transparent transparent transparent}
-
-  /* Filtre */
-  .filters{margin:0 0 12px}
-  .fgroup{border-top:1px solid var(--line);padding:12px 0}
-  .fgroup summary{cursor:pointer;font-weight:500;text-transform:uppercase;letter-spacing:.14em;font-size:13px;list-style:none;display:flex;justify-content:space-between;align-items:center}
-  .fgroup summary::-webkit-details-marker{display:none}
-  .fgroup summary::after{content:'▾';color:var(--muted)}
-  .fgroup[open] summary::after{content:'▴'}
-  .fgroup .n{color:var(--pin)}
-  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
-  .chip{font:inherit;font-size:14px;color:var(--text);background:var(--panel-2);border:1px solid transparent;
-    border-radius:0;border-color:var(--line);padding:6px 12px;cursor:pointer}
-  .chip:hover{border-color:var(--pin)}
-  .chip[aria-pressed="true"]{background:var(--pin);color:var(--panel);font-weight:500}
-  .count{display:flex;justify-content:space-between;align-items:center;margin:0 0 10px;color:var(--muted)}
-  .reset{font:inherit;background:none;border:0;color:var(--pin);cursor:pointer;padding:0}
-  .nomatch{color:var(--muted);padding:8px 0}
-
-  /* Veľké zobrazenie fotky v strede obrazovky */
-  .lightbox{position:fixed;inset:0;z-index:2000;background:rgba(6,6,8,.95);display:flex;align-items:center;justify-content:center}
-  .lightbox[hidden],.lb-nav[hidden]{display:none}
-  #lb-img{max-width:min(92vw,1400px);max-height:86vh;object-fit:contain;border-radius:0;display:block}
-  .lb-nav,.lb-close{position:absolute;border:0;background:rgba(201,169,97,.18);color:var(--pin);cursor:pointer;
-    border-radius:50%;width:48px;height:48px;font-size:30px;line-height:1;display:grid;place-items:center;padding:0}
-  .lb-nav:hover,.lb-close:hover{background:rgba(201,169,97,.4)}
-  .lb-prev{left:20px;top:50%;transform:translateY(-50%)}
-  .lb-next{right:20px;top:50%;transform:translateY(-50%)}
-  .lb-close{top:20px;right:20px;font-size:22px}
-  .lb-count{position:absolute;bottom:18px;left:0;right:0;text-align:center;color:var(--muted);pointer-events:none}
-
-  .pin span{display:block;width:26px;height:26px;background:var(--pin);border:3px solid var(--panel);
-    border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:0 2px 6px rgba(0,0,0,.4);transition:transform .15s,background .15s}
-  .pin.active span{background:#f3ecdc;transform:rotate(-45deg) scale(1.3)}
-  .pin.st-rezervovane span{background:#e0962b}
-  .pin.st-predane span{background:#6f6a62;opacity:.8}
-  .pin.active.st-rezervovane span,.pin.active.st-predane span{background:#f3ecdc;opacity:1}
-  .leaflet-marker-icon{cursor:pointer}
-  .coords{position:absolute;left:12px;bottom:12px;z-index:500;background:var(--panel);color:var(--text);
-    padding:6px 10px;border-radius:0;font-size:14px;display:none}
-  .leaflet-tooltip{font-family:'Jost',sans-serif;font-weight:500;background:var(--panel);color:var(--text);border:1px solid var(--pin);border-radius:0;box-shadow:none}
-  .leaflet-tooltip-top:before{border-top-color:var(--pin)}
-
-  @media (max-width:800px){
-    .app{grid-template-columns:1fr;grid-template-rows:55vh 1fr;grid-template-rows:55dvh 1fr}
-  }
+  .hero{position:relative;min-height:min(78vh,760px);display:flex;align-items:flex-end;padding:120px 0 64px;
+    background:linear-gradient(180deg,rgba(13,13,15,.35) 0%,rgba(13,13,15,.75) 55%,var(--panel) 100%),
+               url('mapa.jpg') center 40%/cover no-repeat, var(--sea)}
+  .hero .wrap{width:100%}
+  .hero h1{font-size:clamp(52px,8vw,112px);color:var(--text);margin:0 0 20px;max-width:12ch}
+  .hero .lead{font-size:clamp(17px,1.6vw,20px);color:#d8d1c2}
+  .hero-ctas{display:flex;flex-wrap:wrap;gap:12px;margin:32px 0 0}
+  .stats{display:flex;flex-wrap:wrap;gap:0;margin:56px 0 0;border-top:1px solid rgba(201,169,97,.4)}
+  .stat{padding:22px 40px 0 0;margin-right:40px}
+  .stat b{display:block;font-family:var(--serif);font-size:48px;font-weight:600;color:var(--pin);line-height:1}
+  .stat span{color:var(--muted);font-size:13px;letter-spacing:.14em;text-transform:uppercase}
+  .steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:0;border-top:1px solid var(--line)}
+  .step{padding:32px 32px 8px 0}
+  .step .num{font-family:var(--serif);font-size:64px;color:var(--pin);line-height:1;display:block;margin-bottom:12px}
+  .step h3{font-size:30px;margin:0 0 10px}
+  .step p{color:var(--muted);margin:0;max-width:34ch}
+  .band{background:var(--panel-2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .band .wrap{display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap;padding-top:48px;padding-bottom:48px}
+  .band h2{font-size:clamp(32px,4vw,46px)}
+  .band p{color:var(--muted);margin:8px 0 0}
+  @media (max-width:760px){.hero{padding-top:72px}.stat{padding-right:0;margin-right:32px}.section{padding:52px 0}}
 </style>
 </head>
-<body>
-<div class="app">
-  <div class="map-wrap">
-    <div id="map" role="application" aria-label="Mapa GTA 5"></div>
-    <button class="pegman" id="pegman" hidden aria-label="360° pohľad – potiahni panáčika na modrý bod v mape"
-      title="Potiahni ma na modrý bod v mape">
-      <svg viewBox="0 0 24 40" aria-hidden="true"><circle cx="12" cy="6" r="5"/><path d="M5 14h14l-1.5 13H15l-1 12h-4l-1-12H6.5z"/></svg>
-      <span class="peg-label" id="peg-label">Poobzeraj sa po lokalitách</span>
-    </button>
-    <div class="peg-hint" id="peg-hint" hidden>Klikni na modrý bod (alebo naň potiahni panáčika)</div>
-  </div>
-  <aside id="panel">
-    <div id="list-view">
-      <h1>Ponuka</h1>
-      <p class="muted">Klikni na pin v mape alebo vyber dom zo zoznamu. Filtre ti ukážu len domy, ktoré hľadáš.</p>
-      <div class="filters" id="filters"></div>
-      <div class="count"><span id="count"></span><button class="reset" id="reset" hidden>Zrušiť filtre</button></div>
-      <div class="sortbar"><label for="sort">Zoradiť:</label>
-        <select id="sort">
-          <option value="">Predvolené</option>
-          <option value="asc">Cena: od najlacnejšieho</option>
-          <option value="desc">Cena: od najdrahšieho</option>
-        </select>
+<body class="page">
+<header id="site-header"></header>
+<script src="nastavenia.js"></script>
+
+<main>
+  <section class="hero">
+    <div class="wrap">
+      <p class="eyebrow" id="eyebrow"></p>
+      <h1 id="hero-title"></h1>
+      <p class="lead" id="tagline"></p>
+      <div class="hero-ctas">
+        <a class="btn btn-gold" href="ponuka.html">Prezrieť ponuku</a>
+        <a class="btn btn-line" href="mapa.html">Otvoriť mapu</a>
       </div>
-      <ul class="list" id="list"></ul>
+      <div class="stats" id="stats"></div>
     </div>
-    <div id="detail-view" hidden></div>
-  </aside>
-</div>
-<div class="coords" id="coords"></div>
+  </section>
 
-<div class="lightbox" id="lightbox" hidden role="dialog" aria-modal="true" aria-label="Fotka">
-  <button class="lb-close" data-lb="close" aria-label="Zavrieť">✕</button>
-  <button class="lb-nav lb-prev" data-lb="prev" aria-label="Predchádzajúca fotka">‹</button>
-  <img id="lb-img" alt="">
-  <button class="lb-nav lb-next" data-lb="next" aria-label="Ďalšia fotka">›</button>
-  <div class="lb-count" id="lb-count"></div>
-</div>
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head">
+        <div><p class="eyebrow">Vybrané z ponuky</p><h2>Najnovšie nehnuteľnosti</h2></div>
+        <a class="link-more" href="ponuka.html">Celá ponuka →</a>
+      </div>
+      <div class="grid" id="featured"><p class="empty">Načítavam…</p></div>
+    </div>
+  </section>
 
-<div class="tour" id="tour" hidden role="dialog" aria-modal="true" aria-label="360° prehliadka">
-  <div id="pano"></div>
-  <button class="lb-close" data-tour-close aria-label="Zavrieť prehliadku">✕</button>
-  <div class="tour-coords" id="tour-coords"></div>
-  <div class="tour-warn" id="tour-warn" hidden></div>
-</div>
+  <section class="section" style="padding-top:0">
+    <div class="wrap">
+      <div class="section-head"><div><p class="eyebrow">Ako to u nás funguje</p><h2>Od výberu po kľúče</h2></div></div>
+      <div class="steps">
+        <div class="step"><span class="num">01</span><h3>Vyber si</h3><p>Filtruj ponuku podľa lokality, ceny, typu či počtu izieb, alebo hľadaj priamo na mape.</p></div>
+        <div class="step"><span class="num">02</span><h3>Prejdi sa ňou</h3><p>Pri vybraných domoch nájdeš 360° prehliadku interiéru a cez panáčika na mape aj pohľad z ulice.</p></div>
+        <div class="step"><span class="num">03</span><h3>Ozvi sa</h3><p>Klikni na „Mám záujem“ a s maklérom sa dohodneš na Discorde.</p></div>
+      </div>
+    </div>
+  </section>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
+  <section class="band">
+    <div class="wrap">
+      <div><h2>Hľadáš niečo konkrétne?</h2><p>Napíš nám, čo hľadáš, a dáme ti vedieť, keď sa objaví.</p></div>
+      <a class="btn btn-gold" id="band-cta" target="_blank" rel="noopener">Napísať na Discord</a>
+    </div>
+  </section>
+</main>
+
+<footer id="site-footer"></footer>
+<script src="web.js"></script>
 <script>
-  // Názov obrázka mapy. Rozmery sa zistia automaticky, nemusíš ich nikde zadávať.
-  const IMG = 'mapa.jpg';
+  // Staré odkazy na dom (index.html#id-domu) presmeruje na mapu s detailom
+  if (location.hash.length > 1) location.replace('mapa.html' + location.hash);
 
-  // ===== DISCORD =====
-  // Sem vlož pozvánku na váš Discord. Tlačidlo „Mám záujem“ sa ukáže pri každom dome.
-  // (Ak chceš pri niektorom dome iný odkaz, daj mu v data.json "contact": "https://...")
-  const DISCORD = 'https://discord.gg/PrrqcxaUy7';
-  const CONTACT_LABEL = 'Mám záujem';
+  $('#eyebrow').textContent = AGENCY.eyebrow;
+  $('#hero-title').textContent = AGENCY.name;
+  $('#tagline').textContent = AGENCY.tagline;
+  $('#band-cta').href = DISCORD;
 
-  const $ = s => document.querySelector(s);
-  const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  Promise.all([loadJSON('data.json', []), loadJSON('makleri.json', [])]).then(([houses, agents]) => {
+    const available = houses.filter(h => !statusesOf(h).includes('predane'));
+    const areas = new Set(houses.map(h => h.area).filter(Boolean));
+    const stats = [[available.length, 'v ponuke'], [areas.size, 'lokalít'], [agents.length, 'maklérov']].filter(([n]) => n > 0);
+    $('#stats').innerHTML = stats.map(([n, t]) => `<div class="stat"><b>${n}</b><span>${t}</span></div>`).join('');
 
-  let MAP_W, MAP_H, map, houses = [], markers = {}, currentId = null, photoIdx = 0;
-  const toLatLng = h => [MAP_H - h.y, h.x];   // y počítame zhora ako v obrázku
-
-  function setActive(id) {
-    Object.entries(markers).forEach(([k, m]) => {
-      const el = m.getElement();
-      if (el) el.classList.toggle('active', k === id);
-    });
-  }
-
-  // ===== FILTRE =====
-  // Tu môžeš upraviť názvy kategórií. Prvá hodnota je „kód“, ktorý píšeš do data.json, druhá je text na stránke.
-  const FILTERS = [
-    {key: 'area', title: 'Lokalita', open: true, options: [
-      ['vinewood-hills', 'Vinewood Hills'], ['sandy-shores', 'Sandy Shores'], ['paleto-bay', 'Paleto Bay'],
-      ['mirror-park', 'Mirror Park'], ['plaz', 'Pláž']]},
-    {key: 'offer', title: 'Typ', open: true, options: [
-      ['predaj', 'Predaj'], ['prenajom', 'Prenájom'], ['kupa', 'Kúpa']]},
-    {key: 'type', title: 'Druh nehnuteľnosti', open: true, options: [
-      ['vila', 'Vily a luxusné domy'], ['dom', 'Bežné domy a bungalovy'], ['apartman', 'Apartmány a byty'],
-      ['farma', 'Farmy a chaty'], ['biznis', 'Kancelárie alebo biznis']]},
-    {key: 'price', title: 'Cena', options: [
-      ['do500k', 'do 500 000 $'], ['500k-2m', '500 000 – 2 mil. $'], ['2m-5m', '2 – 5 mil. $'], ['nad5m', 'nad 5 mil. $']]},
-    // Počet izieb: ukážu sa len čísla, ktoré má aspoň jeden dom (onlyUsed)
-    {key: 'rooms', title: 'Počet izieb', onlyUsed: true, options: [
-      ['1', '1'], ['2', '2'], ['3', '3'], ['4', '4'], ['5', '5'], ['6', '6'], ['7', '7'], ['8', '8'], ['9', '9'], ['10', '10']]},
-    {key: 'pool', title: 'Bazén', options: [['true', 'S bazénom'], ['false', 'Bez bazéna']]},
-    {key: 'view', title: 'Výhľad', options: [['more', 'Na more'], ['mesto', 'Na mesto'], ['priroda', 'Na prírodu a hory']]}
-  ];
-  const active = {};
-  FILTERS.forEach(f => active[f.key] = new Set());
-
-  // ===== ŠTÍTKY STAVU =====
-  // V data.json daj domu napr. "status": "novinka"  (alebo viac naraz: "status": ["novinka", "zlava"])
-  // Kód : [text na stránke, farba]
-  const STATUSES = {
-    novinka:     ['Novinka',     '#3c9a5f'],
-    zlava:       ['Zľava',       '#c0392b'],
-    rezervovane: ['Rezervované', '#d4881f'],
-    predane:     ['Predané',     '#6f6a62']
-  };
-  const normKey = v => String(v).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
-  const statusesOf = h => [].concat(h.status || []).map(normKey).filter(k => STATUSES[k]);
-  const badgesHtml = h => statusesOf(h).map(k =>
-    `<span class="badge" style="--b:${STATUSES[k][1]}">${esc(STATUSES[k][0])}</span>`).join('');
-
-  const priceRange = p => p < 500000 ? 'do500k' : p < 2000000 ? '500k-2m' : p <= 5000000 ? '2m-5m' : 'nad5m';
-  const optLabel = (key, val) => {
-    const f = FILTERS.find(x => x.key === key);
-    const o = f && f.options.find(o => o[0] === String(val));
-    return o ? o[1] : String(val);
-  };
-  // Hodnoty domu pre daný filter (cena sa automaticky zaradí do pásma)
-  function valuesOf(h, key) {
-    if (key === 'price') return typeof h.price === 'number' ? [priceRange(h.price)] : [];
-    const v = h[key];
-    if (v === undefined || v === null) return [];
-    return (Array.isArray(v) ? v : [v]).map(String);
-  }
-  // V rámci jednej skupiny stačí splniť aspoň jednu možnosť, medzi skupinami musia platiť všetky
-  const matches = h => FILTERS.every(f => !active[f.key].size || valuesOf(h, f.key).some(v => active[f.key].has(v)));
-
-  // Možnosti filtra; pri "onlyUsed" len tie, ktoré má aspoň jeden dom
-  function optionsOf(f) {
-    if (!f.onlyUsed) return f.options;
-    const used = new Set(houses.flatMap(h => valuesOf(h, f.key)));
-    return f.options.filter(([v]) => used.has(v));
-  }
-  function buildFilters() {
-    $('#filters').innerHTML = FILTERS.map(f => {
-      const opts = optionsOf(f);
-      if (!opts.length) return '';                          // skupina bez možností sa neukáže
-      return `<details class="fgroup"${f.open ? ' open' : ''}>
-         <summary><span>${esc(f.title)}<span class="n" data-n="${f.key}"></span></span></summary>
-         <div class="chips">${opts.map(([v, l]) =>
-           `<button class="chip" data-f="${f.key}" data-v="${esc(v)}" aria-pressed="${active[f.key].has(v)}">${esc(l)}</button>`).join('')}</div>
-       </details>`;
-    }).join('');
-  }
-
-  function applyFilters() {
-    const shown = houses.filter(matches);
-    const sort = $('#sort').value;                          // zoradenie podľa ceny (domy bez ceny idú na koniec)
-    if (sort) shown.sort((a, b) => {
-      const pa = typeof a.price === 'number' ? a.price : null, pb = typeof b.price === 'number' ? b.price : null;
-      if (pa === null || pb === null) return (pa === null) - (pb === null);
-      return sort === 'asc' ? pa - pb : pb - pa;
-    });
-    const ids = new Set(shown.map(h => h.id));
-    houses.forEach(h => {
-      const m = markers[h.id];
-      if (!m) return;
-      if (ids.has(h.id)) { if (!map.hasLayer(m)) m.addTo(map); }
-      else if (map.hasLayer(m)) map.removeLayer(m);
-    });
-    $('#list').innerHTML = shown.length
-      ? shown.map(h => {
-          const meta = [badgesHtml(h), h.offer ? esc(optLabel('offer', h.offer)) : '',
-                        h.rooms ? esc(h.rooms + ' ' + (h.rooms == 1 ? 'izba' : h.rooms < 5 ? 'izby' : 'izieb')) : '']
-                       .filter(Boolean).join(' <span aria-hidden="true">·</span> ');
-          return `<li><button class="item${statusesOf(h).includes('predane') ? ' is-sold' : ''}" data-id="${esc(h.id)}">
-            <span class="it-name">${esc(h.name)}</span>
-            <span class="it-price">${typeof h.price === 'number' ? h.price.toLocaleString('sk-SK') + ' $' : ''}</span>
-            <span class="it-meta">${meta}</span></button></li>`;
-        }).join('')
-      : '<li class="nomatch">Žiadny dom nezodpovedá výberu.</li>';
-    const any = FILTERS.some(f => active[f.key].size);
-    $('#count').textContent = any ? `Zobrazené: ${shown.length} z ${houses.length}` : `Domov: ${houses.length}`;
-    $('#reset').hidden = !any;
-    FILTERS.forEach(f => {
-      const n = active[f.key].size;
-      const badge = document.querySelector(`[data-n="${f.key}"]`);
-      if (badge) badge.textContent = n ? ` (${n})` : '';
-    });
-    setActive(currentId);
-  }
-
-  function showList() {
-    currentId = null;
-    setActive(null);
-    history.replaceState(null, '', location.pathname);
-    $('#detail-view').hidden = true;
-    $('#list-view').hidden = false;
-    $('#panel').scrollTop = 0;
-  }
-
-  function showHouse(id) {
-    const h = houses.find(x => x.id === id);
-    if (!h) return showList();
-    currentId = id;
-    photoIdx = 0;
-    setActive(id);
-    history.replaceState(null, '', '#' + id);
-
-    const photos = h.photos || [];
-    const gallery = photos.length
-      ? `<img class="main-photo" id="main-photo" src="${esc(photos[0])}" alt="${esc(h.name)}">
-         <div class="thumbs">${photos.map((p, i) =>
-           `<button data-photo="${i}" class="${i === 0 ? 'on' : ''}" aria-label="Fotka ${i + 1}"><img src="${esc(p)}" alt=""></button>`).join('')}</div>`
-      : `<div class="empty-photo">Zatiaľ bez fotiek</div><div class="thumbs"></div>`;
-
-    // Údaje o dome: najprv tie z filtrov, potom ďalšie z "details"
-    const rows = [];
-    if (h.offer) rows.push(['Typ', optLabel('offer', h.offer)]);
-    if (h.area) rows.push(['Lokalita', optLabel('area', h.area)]);
-    if (h.type) rows.push(['Druh nehnuteľnosti', optLabel('type', h.type)]);
-    if (h.rooms) rows.push(['Počet izieb', String(h.rooms)]);
-    if (typeof h.price === 'number') rows.push(['Cena', h.price.toLocaleString('sk-SK') + ' $']);
-    if (typeof h.pool === 'boolean') rows.push(['Bazén', h.pool ? 'Áno' : 'Nie']);
-    if (h.view) rows.push(['Výhľad', [].concat(h.view).map(v => optLabel('view', v)).join(', ')]);
-    Object.entries(h.details || {}).forEach(([k, v]) => {
-      if ((k === 'Cena' && typeof h.price === 'number') || (k === 'Štvrť' && h.area)) return;   // aby sa to neopakovalo
-      rows.push([k, v]);
-    });
-    const details = rows.length
-      ? `<dl>${rows.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl>` : '';
-
-    const video = h.video
-      ? `<a class="video-link" href="${esc(h.video)}" target="_blank" rel="noopener">▶ Videoprehliadka</a>` : '';
-    const link = h.contact || DISCORD;
-    const contact = link
-      ? `<a class="contact-btn" href="${esc(link)}" target="_blank" rel="noopener">
-           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 3h16a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H9l-5 4v-4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zm3 6.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm5 0a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm5 0a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z"/></svg>
-           ${esc(CONTACT_LABEL)}</a>
-         ` : '';
-    const tour = h.tour && h.tour.scenes && Object.keys(h.tour.scenes).length
-      ? `<button class="video-link" data-tour>⟳ 360° prehliadka</button>` : '';
-
-    $('#detail-view').innerHTML =
-      `<button class="back" data-back>← Celá ponuka</button>
-       <h2>${esc(h.name)}</h2>${statusesOf(h).length ? `<div class="badges">${badgesHtml(h)}</div>` : ''}${gallery}${contact}${tour}${video}${details}<p class="desc">${esc(h.desc || '')}</p>`;
-    $('#list-view').hidden = true;
-    $('#detail-view').hidden = false;
-    $('#panel').scrollTop = 0;
-  }
-
-  // Prepnutie fotky (v paneli aj vo veľkom zobrazení)
-  function setPhoto(i) {
-    const h = houses.find(x => x.id === currentId);
-    if (!h || !h.photos || !h.photos.length) return;
-    photoIdx = (i + h.photos.length) % h.photos.length;
-    const main = $('#main-photo');
-    if (main) main.src = h.photos[photoIdx];
-    document.querySelectorAll('.thumbs button').forEach(b => b.classList.toggle('on', Number(b.dataset.photo) === photoIdx));
-    if (!$('#lightbox').hidden) renderLightbox();
-  }
-
-  function renderLightbox() {
-    const h = houses.find(x => x.id === currentId);
-    $('#lb-img').src = h.photos[photoIdx];
-    $('#lb-img').alt = h.name;
-    $('#lb-count').textContent = `${photoIdx + 1} / ${h.photos.length}`;
-    document.querySelectorAll('.lb-nav').forEach(b => b.hidden = h.photos.length < 2);
-  }
-  const openLightbox = () => { $('#lightbox').hidden = false; renderLightbox(); };
-  const closeLightbox = () => { $('#lightbox').hidden = true; };
-
-  // ===== 360° PREHLIADKA =====
-  // Všetky 360° fotky (miestnosti domov z data.json + body z ulíc z body.json) tvoria jednu sieť,
-  // takže šípka môže viesť z miestnosti do miestnosti, z ulice do domu aj z domu von na ulicu.
-  let viewer = null;
-  function openTour() {
-    const h = houses.find(x => x.id === currentId);
-    if (h) openPano(h.id);
-  }
-
-  // Zistí rozmery fotky z prvých pár kB súboru (bez sťahovania celej fotky)
-  const dimsCache = {};
-  function jpegDims(buf) {
-    const d = new DataView(buf);
-    if (d.getUint16(0) !== 0xFFD8) return null;
-    let i = 2;
-    while (i + 9 < d.byteLength) {
-      if (d.getUint8(i) !== 0xFF) { i++; continue; }
-      const m = d.getUint8(i + 1);
-      if (m >= 0xC0 && m <= 0xCF && m !== 0xC4 && m !== 0xC8 && m !== 0xCC)
-        return {h: d.getUint16(i + 5), w: d.getUint16(i + 7)};
-      i += 2 + d.getUint16(i + 2);
-    }
-    return null;
-  }
-  function imgDims(url) {
-    if (!dimsCache[url]) dimsCache[url] =
-      fetch(url, {headers: {Range: 'bytes=0-131071'}})
-        .then(r => r.arrayBuffer()).then(jpegDims).catch(() => null)
-        .then(d => d || new Promise(res => {               // záloha: načíta celý obrázok
-          const im = new Image();
-          im.onload = () => res({w: im.naturalWidth, h: im.naturalHeight});
-          im.onerror = () => res(null);
-          im.src = url;
-        }));
-    return dimsCache[url];
-  }
-
-  // Poskladá všetky scény. Miestnosti domov majú meno "idDomu/miestnost", body z ulíc svoje id.
-  function allScenes() {
-    const scenes = {}, houseStart = {};
-    houses.forEach(h => {
-      const t = h.tour;
-      if (!t || !t.scenes) return;
-      const keys = Object.keys(t.scenes).filter(k => t.scenes[k] && t.scenes[k].photo);
-      if (!keys.length) return;
-      keys.forEach(k => { scenes[h.id + '/' + k] = {...t.scenes[k], title: t.scenes[k].title || k, house: h.id}; });
-      houseStart[h.id] = h.id + '/' + (keys.includes(t.start) ? t.start : keys[0]);
-    });
-    streetPoints.forEach(p => { scenes[p.id] = {...p, title: p.title || p.name || p.id, house: null}; });
-    return {scenes, houseStart};
-  }
-  // Kam vedie šípka "to": najprv miestnosť v tom istom dome, potom bod na ulici, potom iný dom (jeho prvá miestnosť)
-  function resolveLink(to, from, all) {
-    if (from.house && all.scenes[from.house + '/' + to]) return from.house + '/' + to;
-    if (all.scenes[to] && !all.scenes[to].house) return to;
-    if (all.houseStart[to]) return all.houseStart[to];
-    if (all.scenes[to]) return to;                          // celé meno "dom/miestnost"
-    return null;
-  }
-
-  // start = id bodu na ulici, id domu, alebo "dom/miestnost"
-  async function openPano(start) {
-    if (typeof pannellum === 'undefined') return;
-    const all = allScenes();
-    const first = all.scenes[start] ? start : all.houseStart[start];
-    if (!first) return;
-    if (viewer) { viewer.destroy(); viewer = null; }
-    $('#tour').hidden = false;
-    const ids = Object.keys(all.scenes);
-    const dims = await Promise.all(ids.map(id => imgDims(all.scenes[id].photo)));
-    if ($('#tour').hidden) return;                          // medzitým zavreté
-    const scenes = {}, problems = [];
-    ids.forEach((id, i) => {
-      const s = all.scenes[id], d = dims[i];
-      const hotSpots = [];
-      (s.links || []).forEach(l => {
-        const target = resolveLink(l.to, s, all);
-        if (!target) { problems.push(`„${s.title}“ → „${l.to}“`); return; }
-        hotSpots.push({type: 'scene', sceneId: target, yaw: Number(l.yaw) || 0, pitch: Number(l.pitch) || 0,
-          text: l.text || all.scenes[target].title || '', cssClass: 'go-arrow'});
-      });
-      scenes[id] = {title: s.title || '', panorama: s.photo, yaw: s.yaw || 0, pitch: s.pitch || 0, hfov: 100, hotSpots};
-      // Fotka, ktorá nie je presne 2:1 (chýba strop/podlaha): zobrazí sa bez natiahnutia
-      const ratio = d ? d.w / d.h : 2;
-      if (s.vaov || ratio > 2.03) {
-        const vaov = s.vaov || Math.round(36000 * d.h / d.w) / 100, vOff = s.vOffset || 0;
-        Object.assign(scenes[id], {
-          haov: s.haov || 360, vaov, vOffset: vOff,
-          minPitch: vOff - vaov / 2, maxPitch: vOff + vaov / 2,  // nedá sa pozrieť nad/pod fotku
-          maxHfov: Math.min(100, vaov)                           // ani oddialiť tak, aby bolo vidieť okraj
-        });
-      }
-    });
-    // Šípky, ktorých cieľ neexistuje (preklep v "to", chýbajúca fotka…), sa vypíšu na obrazovku
-    const warn = $('#tour-warn');
-    warn.hidden = !problems.length;
-    if (problems.length) {
-      warn.textContent = '⚠ Šípka nevedie nikam – taký bod/miestnosť neexistuje (skontroluj "to"): ' + problems.join(', ');
-      console.warn('Neplatné šípky:', problems);
-    }
-    viewer = pannellum.viewer('pano', {
-      default: {firstScene: first, autoLoad: true, sceneFadeDuration: 800, showFullscreenCtrl: false, compass: false},
-      scenes
-    });
-  }
-  function closeTour() {
-    if (viewer) { viewer.destroy(); viewer = null; }
-    $('#tour').hidden = true;
-    $('#tour-coords').style.display = 'none';
-    $('#tour-warn').hidden = true;
-  }
-  $('#tour').addEventListener('click', e => { if (e.target.closest('[data-tour-close]')) closeTour(); });
-
-  // Pomocník na zisťovanie pozície šípok: klikni do 360° fotky (bez ťahania) a ukáže sa yaw/pitch
-  let downAt = null;
-  $('#pano').addEventListener('pointerdown', e => { downAt = [e.clientX, e.clientY]; });
-  $('#pano').addEventListener('pointerup', e => {
-    if (!viewer || !downAt || Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) > 5) return;
-    if (e.target.closest('.pnlm-hotspot-base, .pnlm-controls')) return;
-    const [pitch, yaw] = viewer.mouseEventToCoords(e).map(n => Math.round(n));
-    const box = $('#tour-coords');
-    box.textContent = `scéna: ${viewer.getScene()} · yaw: ${yaw}, pitch: ${pitch}`;
-    box.style.display = 'block';
-    console.log(`"yaw": ${yaw}, "pitch": ${pitch}`);
+    // Najprv novinky, potom ostatné dostupné; max. 3
+    const featured = [...available.filter(h => statusesOf(h).includes('novinka')),
+                      ...available.filter(h => !statusesOf(h).includes('novinka'))].slice(0, 3);
+    $('#featured').innerHTML = featured.length ? featured.map(cardHtml).join('') : '<p class="empty">Ponuku práve pripravujeme.</p>';
   });
-
-  // Kliky v bočnom paneli
-  $('#panel').addEventListener('click', e => {
-    const item = e.target.closest('[data-id]');
-    const thumb = e.target.closest('[data-photo]');
-    const chip = e.target.closest('[data-f]');
-    if (item) showHouse(item.dataset.id);
-    else if (e.target.closest('[data-back]')) showList();
-    else if (thumb) setPhoto(Number(thumb.dataset.photo));
-    else if (e.target.closest('#main-photo')) openLightbox();   // klik na veľkú fotku
-    else if (e.target.closest('[data-tour]')) openTour();       // 360° prehliadka
-    else if (chip) {                                            // klik na filter
-      const set = active[chip.dataset.f], v = chip.dataset.v;
-      if (set.has(v)) set.delete(v); else set.add(v);
-      chip.setAttribute('aria-pressed', String(set.has(v)));
-      applyFilters();
-    } else if (e.target.closest('#reset')) {                    // zrušiť všetky filtre
-      FILTERS.forEach(f => active[f.key].clear());
-      document.querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', 'false'));
-      applyFilters();
-    }
-  });
-  buildFilters();
-  $('#sort').addEventListener('change', applyFilters);
-
-  // Kliky vo veľkom zobrazení: šípky, zavrieť, tmavé pozadie
-  $('#lightbox').addEventListener('click', e => {
-    const act = e.target.closest('[data-lb]');
-    if (act) {
-      if (act.dataset.lb === 'close') closeLightbox();
-      else setPhoto(photoIdx + (act.dataset.lb === 'next' ? 1 : -1));
-    } else if (e.target.id !== 'lb-img') closeLightbox();
-  });
-
-  // Potiahnutie prstom doľava/doprava na mobile
-  let touchX = null;
-  $('#lightbox').addEventListener('touchstart', e => { touchX = e.touches[0].clientX; }, {passive: true});
-  $('#lightbox').addEventListener('touchend', e => {
-    if (touchX === null) return;
-    const dx = e.changedTouches[0].clientX - touchX;
-    touchX = null;
-    if (Math.abs(dx) > 50) setPhoto(photoIdx + (dx < 0 ? 1 : -1));
-  });
-
-  // Klávesnica: Esc zavrie, šípky prepínajú fotky
-  document.addEventListener('keydown', e => {
-    if (pegMode && e.key === 'Escape') { setPegMode(false); return; }
-    if (!$('#tour').hidden) {
-      if (e.key === 'Escape') closeTour();
-      return;
-    }
-    if (!$('#lightbox').hidden) {
-      if (e.key === 'Escape') closeLightbox();
-      else if (e.key === 'ArrowRight') setPhoto(photoIdx + 1);
-      else if (e.key === 'ArrowLeft') setPhoto(photoIdx - 1);
-      return;
-    }
-    if (e.key === 'Escape' && map) showList();
-  });
-
-  // ===== PANÁČIK (360° pohľad z ulice) =====
-  // Body sa berú z body.json (360° fotky z ulíc) + z domov, ktoré majú 360° prehliadku.
-  let streetPoints = [], svLayer = null, pegMode = false, hotPoint = null;
-  const PEG_SVG = $('#pegman svg').outerHTML;
-  const PEG_TEXT = 'Poobzeraj sa po lokalitách', PEG_TEXT_ON = 'Skryť body';   // texty pri panáčikovi
-
-  // Všetky body, kam sa dá panáčik položiť
-  function allPoints() {
-    const onMap = p => Number.isFinite(Number(p.x)) && Number.isFinite(Number(p.y));
-    const pts = streetPoints.filter(onMap).map(p => ({...p, x: Number(p.x), y: Number(p.y), kind: 'street'}));   // body bez x/y nie sú v mape, ide sa na ne len šípkou
-    return pts;   // panáčik ukazuje len body z body.json (prehliadky domov sa otvárajú tlačidlom v detaile domu)
-  }
-
-  // Zobrazí/skryje modré body v mape
-  function setPegMode(on) {
-    pegMode = on;
-    $('#peg-label').textContent = on ? PEG_TEXT_ON : PEG_TEXT;
-    // Piny domov sa pri prezeraní lokalít skryjú, aby sa nebili s modrými bodmi
-    if (on) Object.values(markers).forEach(m => { if (map.hasLayer(m)) map.removeLayer(m); });
-    else applyFilters();
-    $('#pegman').classList.toggle('on', on);
-    $('#peg-hint').hidden = !on;
-    if (svLayer) { map.removeLayer(svLayer); svLayer = null; }
-    hotPoint = null;
-    if (!on) return;
-    svLayer = L.layerGroup().addTo(map);
-    allPoints().forEach(p => {
-      p.marker = L.marker(toLatLng(p), {
-        icon: L.divIcon({className: '', html: `<div class="sv-dot ${p.kind === 'house' ? 'house' : ''}"></div>`,
-          iconSize: [18, 18], iconAnchor: [9, 9]}),
-        zIndexOffset: 1000
-      }).bindTooltip(p.name || '360° pohľad', {direction: 'top', offset: [0, -10]})
-        .on('click', () => dropOn(p))
-        .addTo(svLayer);
-      p.marker._pt = p;
-    });
-  }
-
-  // Najbližší bod k miestu na obrazovke (do 40 px)
-  function pointNear(clientX, clientY) {
-    if (!svLayer) return null;
-    const r = map.getContainer().getBoundingClientRect();
-    if (clientX < r.left || clientX > r.right || clientY < r.top || clientY > r.bottom) return null;
-    let best = null, bestD = 60;
-    svLayer.eachLayer(m => {
-      const s = map.latLngToContainerPoint(m.getLatLng());
-      const d = Math.hypot(s.x + r.left - clientX, s.y + r.top - clientY);
-      if (d < bestD) { bestD = d; best = m._pt; }
-    });
-    return best;
-  }
-  function highlight(p) {
-    if (hotPoint === p) return;
-    if (hotPoint && hotPoint.marker.getElement()) hotPoint.marker.getElement().firstChild.classList.remove('hot');
-    hotPoint = p;
-    if (p && p.marker.getElement()) p.marker.getElement().firstChild.classList.add('hot');
-  }
-
-  // Panáčik položený na bod → otvorí sa 360° fotka
-  function dropOn(p) {
-    setPegMode(false);
-    if (p.kind === 'house') { showHouse(p.house.id); openPano(p.house.id); return; }
-    openPano(p.id);
-  }
-
-  // Ťahanie panáčika myšou aj prstom
-  function initPegman() {
-    const btn = $('#pegman');
-    btn.hidden = !allPoints().length;
-    let ghost = null, start = null, dragging = false;
-    btn.addEventListener('pointerdown', e => {
-      e.preventDefault();
-      btn.setPointerCapture(e.pointerId);
-      start = [e.clientX, e.clientY]; dragging = false;
-    });
-    btn.addEventListener('pointermove', e => {
-      if (!start) return;
-      if (!dragging && Math.hypot(e.clientX - start[0], e.clientY - start[1]) > 6) {
-        dragging = true;
-        if (!pegMode) setPegMode(true);
-        ghost = document.createElement('div');
-        ghost.className = 'peg-ghost';
-        ghost.innerHTML = PEG_SVG;
-        document.body.appendChild(ghost);
-      }
-      if (!dragging) return;
-      ghost.style.left = e.clientX + 'px'; ghost.style.top = e.clientY + 'px';
-      const p = pointNear(e.clientX, e.clientY);
-      highlight(p);
-      ghost.classList.toggle('hit', !!p);
-    });
-    const end = e => {
-      if (!start) return;
-      const wasDrag = dragging;
-      start = null; dragging = false;
-      if (ghost) { ghost.remove(); ghost = null; }
-      if (!wasDrag) { setPegMode(!pegMode); return; }       // obyčajný klik: zapne/vypne body (na mobile ťukni potom na bod)
-      const p = e.type === 'pointerup' ? pointNear(e.clientX, e.clientY) : null;
-      if (p) dropOn(p); else setPegMode(false);
-    };
-    btn.addEventListener('pointerup', end);
-    btn.addEventListener('pointercancel', end);
-  }
-
-  function start() {
-    // Približovanie je zapnuté. Pri celej mape sa nič nehýbe, po priblížení sa dá mapa posúvať,
-    // ale nikdy nie mimo jej okrajov (takže po stranách nevznikne prázdno).
-    map = L.map('map', {
-      crs: L.CRS.Simple, minZoom: -6, maxZoom: 2, zoomSnap: 0, attributionControl: false,
-      maxBoundsViscosity: 1.0, keyboard: false
-    });
-    const bounds = [[0, 0], [MAP_H, MAP_W]];
-    L.imageOverlay(IMG, bounds).addTo(map);
-    map.setMaxBounds(bounds);
-
-    // Najmenšie zobrazenie = celá mapa v okne (aj po zmene veľkosti okna)
-    let wasFit = true;
-    const fit = () => { map.setMinZoom(map.getBoundsZoom(bounds)); map.fitBounds(bounds, {animate: false}); };
-    fit();
-    map.on('zoomend', () => { wasFit = map.getZoom() <= map.getMinZoom() + 0.01; });
-    map.on('resize', () => { if (wasFit) fit(); else map.setMinZoom(map.getBoundsZoom(bounds)); });
-
-    // Pomocník na zisťovanie súradníc pre nové domy: klikni do mapy
-    map.on('click', e => {
-      const x = Math.round(e.latlng.lng), y = Math.round(MAP_H - e.latlng.lat);
-      const box = $('#coords');
-      box.textContent = `x: ${x}, y: ${y}`;
-      box.style.display = 'block';
-      console.log(`"x": ${x}, "y": ${y}`);
-    });
-
-    // Dáta sa načítajú vždy čerstvé, aby sa zmeny v data.json prejavili hneď
-    fetch('data.json?v=' + Date.now(), {cache: 'no-store'})
-      .then(r => r.json())
-      .then(data => {
-        houses = data;
-        houses.forEach(h => {
-          const st = statusesOf(h).find(k => k === 'predane' || k === 'rezervovane');   // predané = sivý pin, rezervované = oranžový
-          const tip = esc(h.name) + (statusesOf(h).length ? ' ' + badgesHtml(h) : '');
-          markers[h.id] = L.marker(toLatLng(h), {icon: L.divIcon({className: 'pin' + (st ? ' st-' + st : ''), html: '<span></span>', iconSize: [26, 26], iconAnchor: [13, 26]}), title: h.name})
-            .addTo(map)
-            .bindTooltip(tip, {direction: 'top', offset: [0, -26]})   // pri nabehnutí myšou
-            .on('click', () => showHouse(h.id));                          // po kliknutí sa otvorí detail
-        });
-        buildFilters();                                     // znova, aby „Počet izieb“ ukázal len použité čísla
-        applyFilters();
-        location.hash ? showHouse(location.hash.slice(1)) : showList();
-        // 360° body z ulíc (súbor body.json je nepovinný)
-        fetch('body.json?v=' + Date.now(), {cache: 'no-store'})
-          .then(r => r.ok ? r.json() : [])
-          .catch(() => [])
-          .then(pts => { streetPoints = Array.isArray(pts) ? pts.filter(p => p.id && p.photo) : []; initPegman(); });
-      })
-      .catch(() => {
-        $('#list-view').innerHTML = '<h1>Dáta sa nenačítali</h1><p class="muted">Skontroluj súbor data.json.</p>';
-      });
-  }
-
-  // Najprv sa načíta obrázok, zistia sa jeho rozmery a až potom sa spustí mapa
-  const probe = new Image();
-  probe.onload = () => {
-    MAP_W = probe.naturalWidth; MAP_H = probe.naturalHeight;
-    // Okolie mapy (ak sa nezmestí presne do okna) sa zafarbí farbou z rohu obrázka
-    try {
-      const c = document.createElement('canvas'); c.width = c.height = 8;
-      const ctx = c.getContext('2d'); ctx.drawImage(probe, 0, 0, 8, 8);
-      const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
-      $('#map').style.background = `rgb(${r},${g},${b})`;
-    } catch (e) {}
-    start();
-  };
-  probe.onerror = () => { $('#map').textContent = 'Obrázok ' + IMG + ' sa nenašiel.'; };
-  probe.src = IMG;
 </script>
 </body>
 </html>

@@ -1,0 +1,20 @@
+[
+  {
+    "id": "makler-1",
+    "name": "Meno Priezvisko",
+    "role": "Hlavný maklér",
+    "photo": "",
+    "discord": "discord_nick",
+    "phone": "555-0101",
+    "bio": "Krátky popis makléra – na čo sa špecializuje, napr. luxusné vily vo Vinewood Hills."
+  },
+  {
+    "id": "makler-2",
+    "name": "Druhý Maklér",
+    "role": "Maklér pre prenájmy",
+    "photo": "",
+    "discord": "discord_nick2",
+    "phone": "555-0102",
+    "bio": "Byty a apartmány v meste, prenájmy na kratšie aj dlhšie obdobie."
+  }
+]
