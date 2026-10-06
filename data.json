@@ -19,7 +19,10 @@
     "video": "https://www.youtube.com/watch?v=g4T0_Qx9I2k",
     "area": "vinewood-hills",
     "type": "vila",
-    "offer": "predaj",
+    "offer": [
+      "predaj",
+      "prenajom"
+    ],
     "rooms": 5,
     "status": "novinka",
     "price": 5000000,
@@ -89,7 +92,9 @@
         }
       }
     },
-    "agent": "makler-1"
+    "agent": "makler-1",
+    "rent": 2500,
+    "rentPeriod": "tyzden"
   },
   {
     "id": "plaz-dom",
