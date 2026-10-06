@@ -10,8 +10,10 @@
     "video": "https://www.youtube.com/watch?v=g4T0_Qx9I2k",
     "area": "vinewood-hills",
     "type": "vila",
+    "offer": "predaj",
+    "rooms": 5,
+    "status": "novinka",
     "price": 5000000,
-    "tax": true,
     "pool": true,
         "view": "mesto",
     "tour": {
