@@ -32,7 +32,7 @@
 <main class="wrap">
   <div class="page-top">
     <h1>Makléri</h1>
-    <p class="lead">Ľudia, ktorí ti pomôžu nájsť, kúpiť alebo prenajať nehnuteľnosť v Los Santos.</p>
+    <p class="lead">Ľudia, ktorí vám pomôžu nájsť, kúpiť alebo prenajať nehnuteľnosť v Los Santos.</p>
   </div>
   <div class="agents" id="agents"><p class="empty">Načítavam…</p></div>
 </main>
@@ -44,12 +44,12 @@
 
   Promise.all([loadJSON('makleri.json', []), loadJSON('data.json', [])]).then(([agents, houses]) => {
     if (!Array.isArray(agents) || !agents.length) {
-      $('#agents').innerHTML = '<p class="empty">Zatiaľ tu nie sú žiadni makléri. Pridaj ich do súboru makleri.json.</p>';
+      $('#agents').innerHTML = '<p class="empty">Zoznam maklérov pripravujeme.</p>';
       return;
     }
     $('#agents').innerHTML = agents.map(a => {
       const count = houses.filter(h => h.agent === a.id && !statusesOf(h).includes('predane')).length;
-      const rows = [['Discord', a.discord], ['Telefón', a.phone]].filter(([, v]) => v);
+      const rows = [['Kontakt', a.discord], ['Telefón', a.phone]].filter(([, v]) => v);
       return `<article class="agent">
         <div class="agent-photo"${a.photo ? ` style="background-image:url('${esc(a.photo)}')"` : ''}>
           ${a.photo ? '' : `<span class="initials">${esc(initials(a.name))}</span>`}

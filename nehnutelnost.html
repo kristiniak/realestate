@@ -186,7 +186,7 @@
             ${agent.photo ? '' : esc(String(agent.name).split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase())}</div>
           <div><b>${esc(agent.name)}</b>${agent.role ? `<small>${esc(agent.role)}</small>` : ''}</div>
         </div>
-        <dl class="agent-rows">${[['Discord', agent.discord], ['Telefón', agent.phone]].filter(([, v]) => v)
+        <dl class="agent-rows">${[['Kontakt', agent.discord], ['Telefón', agent.phone]].filter(([, v]) => v)
           .map(([k, v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join('')}</dl>
       </div>` : '';
 

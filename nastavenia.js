@@ -11,7 +11,7 @@ const AGENCY = {
   heroTitle: 'ONYX',
   heroSubtitle: 'Real Estate',
   eyebrow: 'Realitná kancelária · Los Santos',
-  tagline: 'Domy, vily a byty v Los Santos a okolí. Prezri si ponuku, prejdi sa nimi v 360° a ozvi sa nám na Discorde.',
+  tagline: 'Domy, vily a byty v Los Santos a okolí. Prezrite si ponuku, prejdite sa nimi v 360° a neváhajte nás kontaktovať.',
   // Pozadie úvodnej stránky: nechaj prázdne '' = zlatá kresba vily,
   // alebo daj cestu k fotke, napr. 'img/uvod.jpg' (ideálne široká fotka z hry, aspoň 1920 px)
   heroPhoto: ''

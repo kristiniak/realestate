@@ -64,5 +64,5 @@ function cardHtml(h) {
   if (!el) return;
   el.className = 'site-footer';
   el.innerHTML = `<div class="wrap"><span>© ${new Date().getFullYear()} ${esc(AGENCY.name)}</span>
-    <a href="${esc(DISCORD)}" target="_blank" rel="noopener">Napíš nám na Discorde →</a></div>`;
+    <a href="${esc(DISCORD)}" target="_blank" rel="noopener">Kontaktujte nás →</a></div>`;
 })();

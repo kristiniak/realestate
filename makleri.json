@@ -4,7 +4,7 @@
     "name": "Meno Priezvisko",
     "role": "Hlavný maklér",
     "photo": "",
-    "discord": "discord_nick",
+    "discord": "meno.maklera",
     "phone": "555-0101",
     "bio": "Krátky popis makléra – na čo sa špecializuje, napr. luxusné vily vo Vinewood Hills."
   },
@@ -13,7 +13,7 @@
     "name": "Druhý Maklér",
     "role": "Maklér pre prenájmy",
     "photo": "",
-    "discord": "discord_nick2",
+    "discord": "meno.maklera2",
     "phone": "555-0102",
     "bio": "Byty a apartmány v meste, prenájmy na kratšie aj dlhšie obdobie."
   }

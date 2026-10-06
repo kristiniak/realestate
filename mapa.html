@@ -160,17 +160,17 @@
 <div class="app">
   <div class="map-wrap">
     <div id="map" role="application" aria-label="Mapa GTA 5"></div>
-    <button class="pegman" id="pegman" hidden aria-label="360° pohľad – potiahni panáčika na modrý bod v mape"
-      title="Potiahni ma na modrý bod v mape">
+    <button class="pegman" id="pegman" hidden aria-label="360° pohľad – kliknite alebo potiahnite panáčika na modrý bod v mape"
+      title="Kliknite alebo ma potiahnite na modrý bod v mape">
       <svg viewBox="0 0 24 40" aria-hidden="true"><circle cx="12" cy="6" r="5"/><path d="M5 14h14l-1.5 13H15l-1 12h-4l-1-12H6.5z"/></svg>
-      <span class="peg-label" id="peg-label">Poobzeraj sa po lokalitách</span>
+      <span class="peg-label" id="peg-label">Poobzerajte sa po lokalitách</span>
     </button>
-    <div class="peg-hint" id="peg-hint" hidden>Klikni na modrý bod (alebo naň potiahni panáčika)</div>
+    <div class="peg-hint" id="peg-hint" hidden>Kliknite na modrý bod (alebo naň potiahnite panáčika)</div>
   </div>
   <aside id="panel">
     <div id="list-view">
       <h1>Ponuka</h1>
-      <p class="muted">Klikni na pin v mape alebo vyber dom zo zoznamu. Filtre ti ukážu len domy, ktoré hľadáš.</p>
+      <p class="muted">Kliknite na pin v mape alebo vyberte dom zo zoznamu. Filtre vám ukážu len domy, ktoré hľadáte.</p>
       <div class="filters" id="filters"></div>
       <div class="count"><span id="count"></span><button class="reset" id="reset" hidden>Zrušiť filtre</button></div>
       <div class="sortbar"><label for="sort">Zoradiť:</label>
@@ -333,7 +333,7 @@
     if (h.type) rows.push(['Druh nehnuteľnosti', optLabel('type', h.type)]);
     if (h.rooms) rows.push(['Počet izieb', String(h.rooms)]);
     const ag = h.agent && agents.find(a => a.id === h.agent);
-    if (ag) rows.push(['Maklér', ag.name + (ag.discord ? ' (' + ag.discord + ')' : '')]);
+    if (ag) rows.push(['Maklér', ag.name]);
     if (typeof h.price === 'number') rows.push(['Cena', h.price.toLocaleString('sk-SK') + ' $']);
     if (typeof h.pool === 'boolean') rows.push(['Bazén', h.pool ? 'Áno' : 'Nie']);
     if (h.view) rows.push(['Výhľad', [].concat(h.view).map(v => optLabel('view', v)).join(', ')]);
@@ -482,7 +482,7 @@
     const warn = $('#tour-warn');
     warn.hidden = !problems.length;
     if (problems.length) {
-      warn.textContent = '⚠ Šípka nevedie nikam – taký bod/miestnosť neexistuje (skontroluj "to"): ' + problems.join(', ');
+      warn.textContent = '⚠ Šípka nevedie nikam – taký bod/miestnosť neexistuje (skontrolujte "to"): ' + problems.join(', ');
       console.warn('Neplatné šípky:', problems);
     }
     viewer = pannellum.viewer('pano', {
@@ -574,7 +574,7 @@
   // Body sa berú z body.json (360° fotky z ulíc) + z domov, ktoré majú 360° prehliadku.
   let streetPoints = [], svLayer = null, pegMode = false, hotPoint = null;
   const PEG_SVG = $('#pegman svg').outerHTML;
-  const PEG_TEXT = 'Poobzeraj sa po lokalitách', PEG_TEXT_ON = 'Skryť body';   // texty pri panáčikovi
+  const PEG_TEXT = 'Poobzerajte sa po lokalitách', PEG_TEXT_ON = 'Skryť body';   // texty pri panáčikovi
 
   // Všetky body, kam sa dá panáčik položiť
   function allPoints() {
@@ -733,7 +733,7 @@
           });
       })
       .catch(() => {
-        $('#list-view').innerHTML = '<h1>Dáta sa nenačítali</h1><p class="muted">Skontroluj súbor data.json.</p>';
+        $('#list-view').innerHTML = '<h1>Dáta sa nenačítali</h1><p class="muted">Skúste stránku obnoviť o chvíľu.</p>';
       });
   }
 
