@@ -32,7 +32,7 @@ function loadJSON(url, fallback) {
 
 const hasTour = h => !!(h.tour && h.tour.scenes && Object.keys(h.tour.scenes).length);
 
-// Karta domu – klik otvorí dom na mape s detailom
+// Karta domu – klik otvorí stránku inzerátu (nehnutelnost.html)
 function cardHtml(h) {
   const photo = (h.photos || [])[0];
   const loc = [h.area && optLabel('area', h.area), h.type && optLabel('type', h.type)].filter(Boolean).join(' · ');
@@ -42,7 +42,7 @@ function cardHtml(h) {
     h.pool === true && 'Bazén',
     h.view && 'Výhľad ' + [].concat(h.view).map(v => optLabel('view', v).toLowerCase()).join(', ')
   ].filter(Boolean);
-  return `<a class="card${statusesOf(h).includes('predane') ? ' is-sold' : ''}" href="mapa.html#${encodeURIComponent(h.id)}">
+  return `<a class="card${statusesOf(h).includes('predane') ? ' is-sold' : ''}" href="nehnutelnost.html?id=${encodeURIComponent(h.id)}">
     <div class="card-img"${photo ? ` style="background-image:url('${esc(photo)}')"` : ''}>
       ${photo ? '' : 'Zatiaľ bez fotiek'}
       <div class="card-badges">${badgesHtml(h)}</div>

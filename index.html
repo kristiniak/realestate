@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ONYX Real Estate</title>
+<title>Real Estate</title>
 <link rel="icon" href="img/onyx_logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Jost:wght@400;500&display=swap" rel="stylesheet">
@@ -134,7 +134,7 @@
 <script src="web.js"></script>
 <script>
   // Staré odkazy na dom (index.html#id-domu) presmeruje na mapu s detailom
-  if (location.hash.length > 1) location.replace('mapa.html' + location.hash);
+  if (location.hash.length > 1) location.replace('nehnutelnost.html?id=' + location.hash.slice(1));
 
   $('#eyebrow').textContent = AGENCY.eyebrow;
   $('#hero-title').textContent = AGENCY.heroTitle || AGENCY.name;

@@ -352,12 +352,13 @@
            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 3h16a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H9l-5 4v-4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zm3 6.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm5 0a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm5 0a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z"/></svg>
            ${esc(CONTACT_LABEL)}</a>
          ` : '';
+    const fullAd = `<a class="video-link" href="nehnutelnost.html?id=${encodeURIComponent(h.id)}">Celý inzerát →</a>`;
     const tour = h.tour && h.tour.scenes && Object.keys(h.tour.scenes).length
       ? `<button class="video-link" data-tour>⟳ 360° prehliadka</button>` : '';
 
     $('#detail-view').innerHTML =
       `<button class="back" data-back>← Celá ponuka</button>
-       <h2>${esc(h.name)}</h2>${h.street ? `<p class="street">${esc(h.street)}</p>` : ''}${statusesOf(h).length ? `<div class="badges">${badgesHtml(h)}</div>` : ''}${gallery}${contact}${tour}${video}${details}<p class="desc">${esc(h.desc || '')}</p>`;
+       <h2>${esc(h.name)}</h2>${h.street ? `<p class="street">${esc(h.street)}</p>` : ''}${statusesOf(h).length ? `<div class="badges">${badgesHtml(h)}</div>` : ''}${gallery}${contact}${fullAd}${tour}${video}${details}<p class="desc">${esc(h.desc || '')}</p>`;
     $('#list-view').hidden = true;
     $('#detail-view').hidden = false;
     $('#panel').scrollTop = 0;
@@ -724,7 +725,12 @@
         fetch('body.json?v=' + Date.now(), {cache: 'no-store'})
           .then(r => r.ok ? r.json() : [])
           .catch(() => [])
-          .then(pts => { streetPoints = Array.isArray(pts) ? pts.filter(p => p.id && p.photo) : []; initPegman(); });
+          .then(pts => {
+            streetPoints = Array.isArray(pts) ? pts.filter(p => p.id && p.photo) : [];
+            initPegman();
+            // z inzerátu: mapa.html?prehliadka=1#id-domu otvorí rovno 360° prehliadku
+            if (new URLSearchParams(location.search).has('prehliadka') && currentId) openTour();
+          });
       })
       .catch(() => {
         $('#list-view').innerHTML = '<h1>Dáta sa nenačítali</h1><p class="muted">Skontroluj súbor data.json.</p>';
