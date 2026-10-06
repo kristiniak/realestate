@@ -1,14 +1,5 @@
 [
   {
-    "id": "makler-1",
-    "name": "Kyllikki Mäkinen",
-    "role": "CEO & Co-Owner",
-    "photo": "",
-    "discord": "lolo",
-    "phone": "(879) 850-9659",
-    "bio": "Krátky popis makléra – na čo sa špecializuje, napr. luxusné vily vo Vinewood Hills."
-  },
-  {
     "id": "makler-2",
     "name": "Yrjö Mäkinen",
     "role": "CEO & Co-Owner",
@@ -16,6 +7,15 @@
     "discord": "lolo",
     "phone": "(972) 482-8229",
     "bio": "Byty a apartmány v meste, prenájmy na kratšie aj dlhšie obdobie."
+  },
+  {
+    "id": "makler-1",
+    "name": "Kyllikki Mäkinen",
+    "role": "CEO & Co-Owner",
+    "photo": "",
+    "discord": "lolo",
+    "phone": "(879) 850-9659",
+    "bio": "Krátky popis makléra – na čo sa špecializuje, napr. luxusné vily vo Vinewood Hills."
   },
   {
     "id": "makler-3",
