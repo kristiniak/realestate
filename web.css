@@ -76,6 +76,6 @@ body.page{margin:0;background:var(--panel);color:var(--text);font-family:var(--s
 
 /* Pätička */
 .site-footer{border-top:1px solid var(--line);padding:32px 0;color:var(--muted);font-size:14px}
-.site-footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.site-footer .wrap{display:flex;justify-content:center;text-align:center;gap:16px;flex-wrap:wrap}
 .site-footer a{color:var(--pin);text-decoration:none}
 .empty{color:var(--muted);padding:24px 0}

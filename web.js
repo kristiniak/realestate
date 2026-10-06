@@ -63,6 +63,5 @@ function cardHtml(h) {
   const el = document.getElementById('site-footer');
   if (!el) return;
   el.className = 'site-footer';
-  el.innerHTML = `<div class="wrap"><span>© ${new Date().getFullYear()} ${esc(AGENCY.name)}</span>
-    <a href="${esc(DISCORD)}" target="_blank" rel="noopener">Kontaktujte nás →</a></div>`;
+  el.innerHTML = `<div class="wrap"><span>© ${new Date().getFullYear()} ${esc(AGENCY.name)}</span></div>`;
 })();
