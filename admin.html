@@ -88,6 +88,19 @@
   #st-map{height:340px;border:1px solid var(--line);background:var(--sea)}
   .tagline{display:inline-block;font-size:12px;padding:2px 8px;border:1px solid var(--line);color:var(--muted)}
   .tagline.on{border-color:#4aa3ff;color:#9ccfff}
+  .st-group{border:1px solid var(--line);background:var(--panel-2);margin:0 0 10px}
+  .st-group[open]{border-color:var(--pin)}
+  .st-group > summary{list-style:none;display:flex;align-items:center;gap:14px;padding:14px 16px;cursor:pointer;user-select:none}
+  .st-group > summary::-webkit-details-marker{display:none}
+  .st-group > summary::before{content:'▸';color:var(--pin);font-size:16px;transition:transform .15s;width:12px}
+  .st-group[open] > summary::before{transform:rotate(90deg)}
+  .st-group .g-name{font-family:var(--serif);font-size:24px;font-weight:600;color:var(--pin);line-height:1.1}
+  .st-group .g-name.none{color:var(--muted)}
+  .st-group .g-cnt{color:var(--muted);font-size:13px}
+  .st-group .g-act{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
+  .st-group .g-body{padding:0 16px 12px}
+  .st-group .list td{padding:10px 8px}
+  .st-group .list tr:last-child td{border-bottom:0}
 
   /* Editor šípok (celá obrazovka) */
   .pe{position:fixed;inset:0;z-index:3000;background:var(--panel);display:grid;grid-template-columns:1fr 380px;grid-template-rows:auto 1fr}
@@ -245,11 +258,13 @@
 
   <!-- ULICE 360°: ZOZNAM -->
   <section id="streets-view" hidden>
-    <table class="list" style="margin-top:24px">
-      <thead><tr><th></th><th>Názov bodu</th><th>Na mape</th><th>Šípky</th><th></th></tr></thead>
-      <tbody id="streets-body"></tbody>
-    </table>
-    <p class="hint">Body na ulici sú 360° fotky, ktoré návštevník otvorí panáčikom na mape. Body bez polohy na mape sú dostupné len cez šípky (napr. dvor za bránkou).</p>
+    <div class="toolbar" style="margin:24px 0 12px">
+      <button class="btn btn-line small" id="st-new-group" type="button">+ Nová kategória</button>
+      <button class="btn btn-line small" id="st-open-all" type="button">Rozbaliť všetko</button>
+      <button class="btn btn-line small" id="st-close-all" type="button">Zbaliť všetko</button>
+    </div>
+    <div id="streets-body"></div>
+    <p class="hint">Body na ulici sú 360° fotky, ktoré návštevník otvorí panáčikom na mape. Body bez polohy na mape sú dostupné len cez šípky (napr. dvor za bránkou). Kategórie slúžia len na prehľad v administrácii – na webe sa nezobrazujú.</p>
   </section>
 
   <!-- ULICE 360°: EDITOR -->
@@ -259,6 +274,12 @@
       <div class="row">
         <div class="field"><label for="s-name">Názov *</label><input type="text" id="s-name" placeholder="napr. North Conker Avenue"></div>
         <div class="field"><label for="s-id">ID</label><input type="text" id="s-id"><p class="hint" id="s-id-hint">Vytvorí sa automaticky z názvu.</p></div>
+      </div>
+      <div class="row">
+        <div class="field"><label for="s-group">Kategória</label>
+          <input type="text" id="s-group" list="s-groups" placeholder="napr. Okolie – Vinewood Vila" autocomplete="off">
+          <datalist id="s-groups"></datalist>
+          <p class="hint">Vyberte existujúcu kategóriu alebo napíšte novú.</p></div>
       </div>
       <div class="sec"><h3>360° fotka</h3>
         <div class="st-photo" id="s-photo-prev">Zatiaľ bez fotky</div>
@@ -837,7 +858,7 @@
       const k = b.dataset.roomArrows, sc = tourState.scenes[k];
       const options = [
         ...Object.keys(tourState.scenes).filter(x => x !== k).map(x => ({value: x, label: 'Miestnosť: ' + (tourState.scenes[x].title || x)})),
-        ...streets.map(p => ({value: p.id, label: 'Ulica: ' + (p.name || p.id)}))
+        ...streets.map(p => ({value: p.id, label: 'Ulica: ' + (groupOf(p) ? groupOf(p) + ' › ' : '') + (p.name || p.id)}))
       ];
       openPanoEditor(sc, options, 'Šípky – ' + (sc.title || k), renderRooms);
     }
@@ -846,25 +867,91 @@
   // ================= Ulice 360° (body.json) =================
   let stEditing = null, stState = null, stMap = null, stMarker = null;
 
+  const NO_GROUP = 'Bez kategórie';
+  const openGroups = new Set();
+  let emptyGroups = [];          // nové kategórie, ktoré ešte nemajú žiadny bod
+  const groupOf = p => (p.group || '').trim();
+  function streetGroups() {
+    const names = [];
+    streets.forEach(p => { const g = groupOf(p); if (g && !names.includes(g)) names.push(g); });
+    emptyGroups = emptyGroups.filter(g => !names.includes(g));
+    return [...names, ...emptyGroups];
+  }
   function renderStreets() {
-    $('#streets-body').innerHTML = streets.length ? streets.map((p, i) => {
-      const onMap = Number.isFinite(Number(p.x)) && Number.isFinite(Number(p.y)) && p.x !== '' && p.y !== '';
-      return `<tr>
-        <td><span class="thumb" style="width:110px;${p.photo ? `background-image:url('${esc(p.photo)}')` : ''}"></span></td>
-        <td><b>${esc(p.name || p.id)}</b><div class="hint" style="margin:2px 0 0">${esc(p.id)}</div></td>
-        <td><span class="tagline${onMap ? ' on' : ''}">${onMap ? 'áno' : 'len cez šípky'}</span></td>
-        <td>${(p.links || []).length}</td>
-        <td class="act">
-          <button class="btn btn-line small" data-st-edit="${i}" type="button">Upraviť</button>
-          <button class="btn btn-danger small" data-st-del="${i}" type="button">Zmazať</button>
-        </td></tr>`;
-    }).join('') : `<tr><td colspan="5" class="empty">Zatiaľ žiadne body. Kliknite na „+ Nový bod na ulici“.</td></tr>`;
+    const groups = streetGroups();
+    $('#s-groups').innerHTML = groups.map(g => `<option value="${esc(g)}">`).join('');
+    const sections = groups.map(g => [g, streets.map((p, i) => [p, i]).filter(([p]) => groupOf(p) === g)]);
+    const loose = streets.map((p, i) => [p, i]).filter(([p]) => !groupOf(p));
+    if (loose.length) sections.push(['', loose]);
+    if (!sections.length) {
+      $('#streets-body').innerHTML = `<p class="empty">Zatiaľ žiadne body. Kliknite na „+ Nový bod na ulici“.</p>`;
+      return;
+    }
+    $('#streets-body').innerHTML = sections.map(([g, items]) => {
+      const key = g || '\u0000';
+      const rows = items.map(([p, i]) => {
+        const onMap = Number.isFinite(Number(p.x)) && Number.isFinite(Number(p.y)) && p.x !== '' && p.y !== '' && p.x !== undefined;
+        return `<tr>
+          <td style="width:126px"><span class="thumb" style="width:110px;${p.photo ? `background-image:url('${esc(p.photo)}')` : ''}"></span></td>
+          <td><b>${esc(p.name || p.id)}</b><div class="hint" style="margin:2px 0 0">${esc(p.id)}</div></td>
+          <td><span class="tagline${onMap ? ' on' : ''}">${onMap ? 'na mape' : 'len cez šípky'}</span></td>
+          <td class="hint" style="white-space:nowrap">Šípky: ${(p.links || []).length}</td>
+          <td class="act">
+            <button class="btn btn-line small" data-st-edit="${i}" type="button">Upraviť</button>
+            <button class="btn btn-danger small" data-st-del="${i}" type="button">Zmazať</button>
+          </td></tr>`;
+      }).join('');
+      return `<details class="st-group" data-group="${esc(key)}"${openGroups.has(key) ? ' open' : ''}>
+        <summary>
+          <span class="g-name${g ? '' : ' none'}">${esc(g || NO_GROUP)}</span>
+          <span class="g-cnt">${items.length} ${items.length === 1 ? 'bod' : items.length > 1 && items.length < 5 ? 'body' : 'bodov'}</span>
+          <span class="g-act">
+            <button class="btn btn-line small" data-g-add="${esc(g)}" type="button">+ Pridať bod sem</button>
+            ${g ? `<button class="btn btn-line small" data-g-rename="${esc(g)}" type="button">Premenovať</button>` : ''}
+            ${g && !items.length ? `<button class="btn btn-danger small" data-g-del="${esc(g)}" type="button">Zmazať</button>` : ''}
+          </span>
+        </summary>
+        <div class="g-body">${items.length
+          ? `<table class="list"><tbody>${rows}</tbody></table>`
+          : `<p class="hint" style="margin:0 0 6px">Prázdna kategória – pridajte do nej prvý bod. (Kým v nej nie je bod, neuloží sa.)</p>`}</div>
+      </details>`;
+    }).join('');
+  }
+  $('#streets-body').addEventListener('toggle', e => {
+    const d = e.target; if (!d.classList || !d.classList.contains('st-group')) return;
+    d.open ? openGroups.add(d.dataset.group) : openGroups.delete(d.dataset.group);
+  }, true);
+  $('#st-open-all').onclick = () => document.querySelectorAll('.st-group').forEach(d => d.open = true);
+  $('#st-close-all').onclick = () => document.querySelectorAll('.st-group').forEach(d => d.open = false);
+  $('#st-new-group').onclick = () => {
+    const name = (prompt('Názov novej kategórie (napr. „Okolie – Vinewood Vila“):') || '').trim();
+    if (!name) return;
+    if (!streetGroups().includes(name)) emptyGroups.push(name);
+    openGroups.add(name); renderStreets();
+  };
+  async function renameGroup(oldName) {
+    const name = (prompt(`Nový názov kategórie „${oldName}“:`, oldName) || '').trim();
+    if (!name || name === oldName) return;
+    if (emptyGroups.includes(oldName) && !streets.some(p => groupOf(p) === oldName)) {
+      emptyGroups = emptyGroups.map(g => g === oldName ? name : g);
+      openGroups.add(name); renderStreets(); return;
+    }
+    try {
+      msg('Premenúvam kategóriu…');
+      const fresh = await getFile('body.json');
+      const list = Array.isArray(fresh.data) ? fresh.data : [];
+      list.forEach(p => { if (groupOf(p) === oldName) p.group = name; });
+      await putFile('body.json', b64encode(JSON.stringify(list, null, 2) + '\n'), fresh.sha, `Kategória: ${oldName} → ${name}`);
+      streets = list;
+      if (openGroups.delete(oldName)) openGroups.add(name);
+      renderStreets(); msg(`✓ Kategória premenovaná na „${esc(name)}“.`, 'ok');
+    } catch (e) { msg('Premenovanie zlyhalo: ' + esc(e.message), 'err'); }
   }
 
   function stStreetOptions() {
     const self = stState.id || '';
     return [
-      ...streets.filter(p => p.id !== self).map(p => ({value: p.id, label: 'Ulica: ' + (p.name || p.id)})),
+      ...streets.filter(p => p.id !== self).map(p => ({value: p.id, label: 'Ulica: ' + (groupOf(p) ? groupOf(p) + ' › ' : '') + (p.name || p.id)})),
       ...houses.filter(h => h.tour && h.tour.scenes && Object.keys(h.tour.scenes).length)
                .map(h => ({value: h.id, label: 'Dom: ' + h.name + ' (vstup dnu)'}))
     ];
@@ -877,9 +964,10 @@
     $('#s-arrows-cnt').textContent = src ? `Šípky: ${(stState.links || []).length}` : 'Najprv vyberte 360° fotku.';
     $('#s-map-wrap').hidden = !$('#s-onmap').checked;
   }
-  function openStreetEditor(p) {
+  function openStreetEditor(p, presetGroup) {
     stEditing = p ? {...p} : null;
     stState = p ? JSON.parse(JSON.stringify(p)) : {id: '', name: '', photo: '', links: []};
+    $('#s-group').value = p ? groupOf(p) : (presetGroup || '');
     $('#st-title').textContent = p ? 'Upraviť: ' + (p.name || p.id) : 'Nový bod na ulici';
     $('#s-name').value = stState.name || '';
     $('#s-id').value = stState.id || '';
@@ -950,11 +1038,13 @@
       const {_file, _preview, ...clean} = stState;
       const p = {...base, ...clean, id, name};
       if (onMap) { p.x = Number($('#s-x').value); p.y = Number($('#s-y').value); } else { delete p.x; delete p.y; }
+      const group = $('#s-group').value.trim();
+      if (group) p.group = group; else delete p.group;
       const idx = list.findIndex(x => x.id === id);
       if (idx >= 0) list[idx] = p; else list.push(p);
       msg('Ukladám…');
       await putFile('body.json', b64encode(JSON.stringify(list, null, 2) + '\n'), fresh.sha, (stEditing ? 'Úprava bodu: ' : 'Nový bod na ulici: ') + name);
-      streets = list; renderStreets(); show('streets-view');
+      streets = list; openGroups.add(group || '\u0000'); renderStreets(); show('streets-view');
       msg(`✓ Bod „${esc(name)}“ je uložený. Na webe sa objaví o 1–2 minúty.`, 'ok');
     } catch (e) { msg('Uloženie zlyhalo: ' + esc(e.message), 'err'); }
     btn.disabled = false;
@@ -979,6 +1069,9 @@
     const b = e.target.closest('button'); if (!b) return;
     if (b.dataset.stEdit !== undefined) openStreetEditor(streets[Number(b.dataset.stEdit)]);
     if (b.dataset.stDel !== undefined) removeStreet(Number(b.dataset.stDel));
+    if (b.dataset.gAdd !== undefined) { e.preventDefault(); openStreetEditor(null, b.dataset.gAdd); }
+    if (b.dataset.gRename !== undefined) { e.preventDefault(); renameGroup(b.dataset.gRename); }
+    if (b.dataset.gDel !== undefined) { e.preventDefault(); emptyGroups = emptyGroups.filter(g => g !== b.dataset.gDel); renderStreets(); }
   });
 
   // ================= Editor šípok =================
