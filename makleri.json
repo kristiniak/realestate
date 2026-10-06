@@ -4,7 +4,7 @@
     "name": "Kyllikki Mäkinen",
     "role": "CEO & Co-Owner",
     "photo": "",
-    "Tel. číslo": "555-0101",
+    "phone": "555-0101",
     "bio": "Krátky popis makléra – na čo sa špecializuje, napr. luxusné vily vo Vinewood Hills."
   },
   {
@@ -12,9 +12,9 @@
     "name": "Yrjö Mäkinen",
     "role": "CEO & Co-Owner",
     "photo": "",
-    "Tel. číslo": "555-0102",
+    "phone": "555-0102",
     "bio": "Byty a apartmány v meste, prenájmy na kratšie aj dlhšie obdobie."
-  }
+  },
   {
     "id": "makler-3",
     "name": "H. van Daal",
