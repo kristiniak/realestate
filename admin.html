@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Správa ponuky – Real Estate</title>
+<link rel="icon" href="img/onyx_logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Jost:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="web.css">
+<style>
+  .adm-top{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;padding:40px 0 20px;border-bottom:1px solid var(--line)}
+  .adm-top h1{font-size:clamp(40px,5vw,60px);color:var(--pin)}
+  .conn{color:var(--muted);font-size:14px}
+  .conn b{color:var(--text);font-weight:500}
+  .linkbtn{font:inherit;background:none;border:0;color:var(--pin);cursor:pointer;padding:0;text-decoration:underline}
+  .panel{background:var(--panel-2);border:1px solid var(--line);padding:24px;margin:28px 0}
+  .panel h2{font-size:30px;color:var(--pin);margin:0 0 14px}
+  .help{color:var(--muted);font-size:14px;line-height:1.7}
+  .help ol{padding-left:20px;margin:8px 0}
+  .help summary{cursor:pointer;color:var(--pin)}
+
+  label{display:block;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+  input[type=text],input[type=number],input[type=password],input[type=url],select,textarea{width:100%;font:inherit;font-size:15px;
+    color:var(--text);background:var(--panel);border:1px solid var(--line);padding:10px 12px}
+  textarea{min-height:150px;resize:vertical;line-height:1.6}
+  input:focus,select:focus,textarea:focus{outline:2px solid var(--pin);outline-offset:0;border-color:var(--pin)}
+  .row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin:0 0 16px}
+  .field{min-width:0}
+  .hint{color:var(--muted);font-size:13px;margin:6px 0 0}
+  .checks{display:flex;flex-wrap:wrap;gap:8px}
+  .checks label{display:flex;align-items:center;gap:8px;margin:0;padding:8px 12px;border:1px solid var(--line);background:var(--panel);
+    font-size:14px;letter-spacing:0;text-transform:none;color:var(--text);cursor:pointer}
+  .checks input{accent-color:var(--pin)}
+  .sec{border-top:1px solid var(--line);padding:22px 0 6px}
+  .sec > h3{font-size:24px;color:var(--pin);margin:0 0 14px}
+
+  .list{width:100%;border-collapse:collapse}
+  .list th{text-align:left;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:500;padding:10px 8px;border-bottom:1px solid var(--pin)}
+  .list td{padding:12px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+  .list td.act{text-align:right;white-space:nowrap}
+  .list .thumb{width:72px;height:54px;background:#1e1d22 center/cover;display:block}
+  .small{padding:8px 12px;font-size:12px}
+  .btn-danger{background:transparent;color:#e07b6a;border-color:#e07b6a}
+  .btn-danger:hover{background:#e07b6a;color:var(--panel)}
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+
+  .photos{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 12px}
+  .ph{position:relative;width:150px;height:112px;background:#1e1d22 center/cover;border:1px solid var(--line)}
+  .ph.new{border-color:var(--pin)}
+  .ph .tag{position:absolute;left:6px;top:6px;background:var(--pin);color:var(--panel);font-size:10px;font-weight:500;letter-spacing:.1em;padding:2px 6px}
+  .ph .ctrl{position:absolute;right:4px;bottom:4px;display:flex;gap:4px}
+  .ph .ctrl button{width:28px;height:28px;border:0;background:rgba(13,13,15,.85);color:var(--text);cursor:pointer;font-size:14px}
+  .ph .ctrl button:hover{background:var(--pin);color:var(--panel)}
+  .kv{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;margin:0 0 8px}
+  #pick-map{height:380px;border:1px solid var(--line);background:var(--sea)}
+  .pick-pin span{display:block;width:26px;height:26px;background:var(--pin);border:3px solid var(--panel);border-radius:50% 50% 50% 0;transform:rotate(-45deg)}
+  .other-pin{width:10px;height:10px;border-radius:50%;background:rgba(243,236,220,.5);border:1px solid var(--panel)}
+
+  .bar{position:sticky;bottom:0;z-index:600;background:var(--panel);border-top:1px solid var(--pin);padding:14px 0;margin-top:20px;
+    display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+  .msg{padding:12px 16px;margin:20px 0 0;border:1px solid var(--line);background:var(--panel-2)}
+  .msg.ok{border-color:#3c9a5f;color:#9fe0b4} .msg.err{border-color:#e07b6a;color:#f2b3a8} .msg.info{border-color:var(--pin);color:var(--text)}
+  [hidden]{display:none !important}
+</style>
+</head>
+<body class="page">
+<header id="site-header"></header>
+<script src="nastavenia.js"></script>
+
+<main class="wrap">
+  <div class="adm-top">
+    <div><h1>Správa ponuky</h1><div class="conn" id="conn">Nepripojené</div></div>
+    <div class="toolbar" id="top-actions" hidden>
+      <button class="btn btn-gold" id="btn-new" type="button">+ Nová ponuka</button>
+    </div>
+  </div>
+  <div id="msg"></div>
+
+  <!-- PRIPOJENIE -->
+  <section class="panel" id="setup" hidden>
+    <h2>Pripojenie k webu</h2>
+    <p class="help">Stránka ukladá zmeny priamo do vášho GitHub repozitára. Raz zadajte prístupový kľúč (token) a prehliadač si ho zapamätá.</p>
+    <div class="row">
+      <div class="field"><label for="f-owner">Používateľ / organizácia na GitHube</label><input type="text" id="f-owner" autocomplete="off"></div>
+      <div class="field"><label for="f-repo">Repozitár</label><input type="text" id="f-repo" autocomplete="off"></div>
+      <div class="field"><label for="f-branch">Vetva (branch)</label><input type="text" id="f-branch" value="main" autocomplete="off"></div>
+    </div>
+    <div class="row">
+      <div class="field"><label for="f-token">Token</label><input type="password" id="f-token" autocomplete="off" placeholder="github_pat_…"></div>
+    </div>
+    <div class="checks" style="margin-bottom:18px"><label><input type="checkbox" id="f-remember" checked> Zapamätať v tomto prehliadači</label></div>
+    <button class="btn btn-gold" id="btn-connect" type="button">Pripojiť</button>
+    <details class="help" style="margin-top:22px">
+      <summary>Ako získať token (stačí raz)</summary>
+      <ol>
+        <li>Na GitHube kliknite vpravo hore na svoj profil → <b>Settings</b>.</li>
+        <li>Úplne dole vľavo <b>Developer settings</b> → <b>Personal access tokens</b> → <b>Fine-grained tokens</b> → <b>Generate new token</b>.</li>
+        <li>Pomenujte ho (napr. „web admin“) a nastavte platnosť.</li>
+        <li><b>Repository access</b>: <i>Only select repositories</i> → vyberte repozitár s webom.</li>
+        <li><b>Permissions → Repository permissions → Contents</b>: <i>Read and write</i>.</li>
+        <li>Kliknite <b>Generate token</b>, skopírujte ho a vložte sem. Nikomu ho neposielajte.</li>
+      </ol>
+    </details>
+  </section>
+
+  <!-- ZOZNAM -->
+  <section id="list-view" hidden>
+    <table class="list" style="margin-top:24px">
+      <thead><tr><th></th><th>Názov</th><th>Cena</th><th>Typ</th><th>Štítky</th><th></th></tr></thead>
+      <tbody id="list-body"></tbody>
+    </table>
+  </section>
+
+  <!-- EDITOR -->
+  <section id="editor" hidden>
+    <div class="panel">
+      <h2 id="ed-title">Nová ponuka</h2>
+
+      <div class="sec" style="border-top:0;padding-top:0">
+        <div class="row">
+          <div class="field"><label for="e-name">Názov *</label><input type="text" id="e-name" placeholder="napr. Vinewood vila"></div>
+          <div class="field"><label for="e-street">Ulica</label><input type="text" id="e-street" placeholder="napr. North Conker Avenue"></div>
+          <div class="field"><label for="e-id">ID (adresa inzerátu)</label><input type="text" id="e-id"><p class="hint" id="id-hint">Vytvorí sa automaticky z názvu.</p></div>
+        </div>
+      </div>
+
+      <div class="sec"><h3>Cena a parametre</h3>
+        <div class="row">
+          <div class="field"><label for="e-price">Cena ($)</label><input type="number" id="e-price" min="0" step="1000"></div>
+          <div class="field"><label for="e-offer">Typ</label><select id="e-offer"></select></div>
+          <div class="field"><label for="e-type">Druh nehnuteľnosti</label><select id="e-type"></select></div>
+          <div class="field"><label for="e-area">Lokalita</label><select id="e-area"></select></div>
+        </div>
+        <div class="row">
+          <div class="field"><label for="e-rooms">Počet izieb</label><input type="number" id="e-rooms" min="0" max="50"></div>
+          <div class="field"><label for="e-pool">Bazén</label><select id="e-pool"><option value="">—</option><option value="true">Áno</option><option value="false">Nie</option></select></div>
+          <div class="field"><label for="e-agent">Maklér</label><select id="e-agent"></select></div>
+        </div>
+        <div class="field" style="margin-bottom:16px"><label>Výhľad</label><div class="checks" id="e-view"></div></div>
+        <div class="field" style="margin-bottom:16px"><label>Štítky</label><div class="checks" id="e-status"></div></div>
+      </div>
+
+      <div class="sec"><h3>Fotky</h3>
+        <div class="photos" id="e-photos"></div>
+        <label class="btn btn-line small" style="display:inline-flex;cursor:pointer;color:var(--pin);letter-spacing:.16em">+ Pridať fotky
+          <input type="file" id="e-files" accept="image/*" multiple hidden></label>
+        <p class="hint">Prvá fotka je hlavná. Nové fotky sa nahrajú pri uložení (automaticky sa zmenšia na max. 2000 px).</p>
+      </div>
+
+      <div class="sec"><h3>Popis</h3>
+        <textarea id="e-desc" placeholder="Každý nový riadok bude na stránke ako nový odsek."></textarea>
+        <div class="row" style="margin-top:16px">
+          <div class="field"><label for="e-video">Odkaz na videoprehliadku (YouTube)</label><input type="url" id="e-video" placeholder="https://www.youtube.com/watch?v=…"></div>
+        </div>
+      </div>
+
+      <div class="sec"><h3>Ďalšie parametre</h3>
+        <p class="hint" style="margin:-6px 0 12px">Napr. Garáž → 10 áut, Rozloha → 450 m². Zobrazia sa v časti Parametre.</p>
+        <div id="e-details"></div>
+        <button class="btn btn-line small" id="btn-add-detail" type="button">+ Pridať parameter</button>
+      </div>
+
+      <div class="sec"><h3>Poloha na mape</h3>
+        <p class="hint" style="margin:-6px 0 12px">Kliknite do mapy na miesto domu (pin sa dá aj potiahnuť).</p>
+        <div id="pick-map"></div>
+        <div class="row" style="margin-top:12px;max-width:420px">
+          <div class="field"><label for="e-x">X</label><input type="number" id="e-x"></div>
+          <div class="field"><label for="e-y">Y</label><input type="number" id="e-y"></div>
+        </div>
+        <p class="hint" id="tour-note" hidden>Táto ponuka má 360° prehliadku – ostane zachovaná (upravuje sa v data.json).</p>
+      </div>
+
+      <div class="bar">
+        <button class="btn btn-line" id="btn-cancel" type="button">← Späť na zoznam</button>
+        <button class="btn btn-gold" id="btn-save" type="button">Uložiť ponuku</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="web.js"></script>
+<script>
+  // ================= GitHub pripojenie =================
+  const LS = 'onyx-admin';
+  let cfg = null;               // {owner, repo, branch, token}
+  let houses = [], agents = [], editing = null, photos = [], pickMap = null, pickMarker = null;
+
+  const loadCfg = () => { try { return JSON.parse(localStorage.getItem(LS) || sessionStorage.getItem(LS) || 'null'); } catch (e) { return null; } };
+  const saveCfg = (c, remember) => {
+    try { localStorage.removeItem(LS); sessionStorage.removeItem(LS); (remember ? localStorage : sessionStorage).setItem(LS, JSON.stringify(c)); } catch (e) {}
+  };
+  // Na adrese meno.github.io/repozitar sa vyplní automaticky
+  function guessRepo() {
+    const h = location.hostname, seg = location.pathname.split('/').filter(Boolean);
+    if (!h.endsWith('.github.io')) return {owner: '', repo: ''};
+    const owner = h.split('.')[0];
+    return {owner, repo: seg.length && !seg[0].includes('.') ? seg[0] : owner + '.github.io'};
+  }
+
+  const api = (path, opts = {}) => fetch(`https://api.github.com/repos/${cfg.owner}/${cfg.repo}/${path}`, {
+    ...opts, headers: {'Authorization': 'Bearer ' + cfg.token, 'Accept': 'application/vnd.github+json', ...(opts.headers || {})}
+  });
+  const b64encode = str => { const bytes = new TextEncoder().encode(str); let bin = ''; bytes.forEach(b => bin += String.fromCharCode(b)); return btoa(bin); };
+  const b64decode = b64 => new TextDecoder().decode(Uint8Array.from(atob(b64.replace(/\s/g, '')), c => c.charCodeAt(0)));
+
+  async function getFile(path) {
+    const r = await api(`contents/${path}?ref=${encodeURIComponent(cfg.branch)}&t=${Date.now()}`);
+    if (r.status === 404) return {data: null, sha: null};
+    if (!r.ok) throw new Error(errText(r.status));
+    const j = await r.json();
+    return {data: JSON.parse(b64decode(j.content)), sha: j.sha};
+  }
+  async function putFile(path, base64, sha, message) {
+    const r = await api(`contents/${path}`, {method: 'PUT', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({message, content: base64, branch: cfg.branch, ...(sha ? {sha} : {})})});
+    if (!r.ok) throw new Error(r.status === 409 ? 'Súbor medzitým zmenil niekto iný – načítajte stránku znova.' : errText(r.status));
+    return r.json();
+  }
+  const errText = s => s === 401 ? 'Token je neplatný alebo vypršal.' :
+                       s === 403 ? 'Token nemá oprávnenie zapisovať (Contents: Read and write).' :
+                       s === 404 ? 'Repozitár alebo súbor sa nenašiel – skontrolujte meno a vetvu.' : 'Chyba GitHubu (' + s + ').';
+
+  // ================= UI pomocníci =================
+  function msg(text, type = 'info') { $('#msg').innerHTML = text ? `<div class="msg ${type}">${text}</div>` : ''; }
+  function show(view) {
+    ['setup', 'list-view', 'editor'].forEach(id => $('#' + id).hidden = id !== view);
+    $('#top-actions').hidden = view !== 'list-view';
+    window.scrollTo(0, 0);
+  }
+  const slug = s => String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'ponuka';
+  const opt = (v, l, sel) => `<option value="${esc(v)}"${sel ? ' selected' : ''}>${esc(l)}</option>`;
+  const filterOpts = key => (FILTERS.find(f => f.key === key) || {options: []}).options;
+
+  // ================= Zoznam =================
+  function renderList() {
+    $('#list-body').innerHTML = houses.length ? houses.map((h, i) => `<tr>
+      <td><span class="thumb" style="${(h.photos || [])[0] ? `background-image:url('${esc(h.photos[0])}')` : ''}"></span></td>
+      <td><b>${esc(h.name || '(bez názvu)')}</b>${h.street ? `<div class="hint" style="margin:2px 0 0">${esc(h.street)}</div>` : ''}</td>
+      <td>${typeof h.price === 'number' ? h.price.toLocaleString('sk-SK') + ' $' : '—'}</td>
+      <td>${h.offer ? esc(optLabel('offer', h.offer)) : '—'}</td>
+      <td>${badgesHtml(h) || '—'}</td>
+      <td class="act">
+        <a class="btn btn-line small" href="nehnutelnost.html?id=${encodeURIComponent(h.id)}" target="_blank" rel="noopener">Zobraziť</a>
+        <button class="btn btn-line small" data-edit="${i}" type="button">Upraviť</button>
+        <button class="btn btn-danger small" data-del="${i}" type="button">Zmazať</button>
+      </td></tr>`).join('') : `<tr><td colspan="6" class="empty">Zatiaľ žiadne ponuky. Kliknite na „+ Nová ponuka“.</td></tr>`;
+  }
+
+  // ================= Editor =================
+  function openEditor(h) {
+    editing = h ? {...h} : null;
+    const d = h || {};
+    $('#ed-title').textContent = h ? 'Upraviť: ' + (h.name || '') : 'Nová ponuka';
+    $('#e-name').value = d.name || '';
+    $('#e-street').value = d.street || '';
+    $('#e-id').value = d.id || '';
+    $('#e-id').readOnly = !!h;
+    $('#id-hint').textContent = h ? 'ID existujúcej ponuky sa nemení (odkazy na ňu by prestali fungovať).' : 'Vytvorí sa automaticky z názvu.';
+    $('#e-price').value = typeof d.price === 'number' ? d.price : '';
+    $('#e-offer').innerHTML = opt('', '—') + filterOpts('offer').map(([v, l]) => opt(v, l, d.offer === v)).join('');
+    $('#e-type').innerHTML = opt('', '—') + filterOpts('type').map(([v, l]) => opt(v, l, d.type === v)).join('');
+    $('#e-area').innerHTML = opt('', '—') + filterOpts('area').map(([v, l]) => opt(v, l, d.area === v)).join('');
+    $('#e-rooms').value = d.rooms || '';
+    $('#e-pool').value = typeof d.pool === 'boolean' ? String(d.pool) : '';
+    $('#e-agent').innerHTML = opt('', '—') + agents.map(a => opt(a.id, a.name, d.agent === a.id)).join('');
+    const views = [].concat(d.view || []);
+    $('#e-view').innerHTML = filterOpts('view').map(([v, l]) =>
+      `<label><input type="checkbox" value="${esc(v)}"${views.includes(v) ? ' checked' : ''}> ${esc(l)}</label>`).join('');
+    const sts = statusesOf(d);
+    $('#e-status').innerHTML = Object.entries(STATUSES).map(([k, [l, c]]) =>
+      `<label><input type="checkbox" value="${k}"${sts.includes(k) ? ' checked' : ''}> <span class="badge" style="--b:${c}">${esc(l)}</span></label>`).join('');
+    $('#e-desc').value = d.desc || '';
+    $('#e-video').value = d.video || '';
+    $('#e-details').innerHTML = '';
+    Object.entries(d.details || {}).forEach(([k, v]) => addDetail(k, v));
+    photos = (d.photos || []).map(p => ({src: p}));
+    renderPhotos();
+    $('#e-x').value = typeof d.x === 'number' ? d.x : '';
+    $('#e-y').value = typeof d.y === 'number' ? d.y : '';
+    $('#tour-note').hidden = !(d.tour && d.tour.scenes);
+    msg('');
+    show('editor');
+    initPickMap();
+  }
+
+  function addDetail(k = '', v = '') {
+    const row = document.createElement('div');
+    row.className = 'kv';
+    row.innerHTML = `<input type="text" placeholder="Názov (napr. Garáž)" value="${esc(k)}"><input type="text" placeholder="Hodnota (napr. 10 áut)" value="${esc(v)}">
+      <button class="btn btn-danger small" type="button" aria-label="Odstrániť">✕</button>`;
+    row.querySelector('button').onclick = () => row.remove();
+    $('#e-details').appendChild(row);
+  }
+
+  function renderPhotos() {
+    $('#e-photos').innerHTML = photos.map((p, i) => `<div class="ph${p.file ? ' new' : ''}" style="background-image:url('${esc(p.preview || p.src)}')">
+      ${i === 0 ? '<span class="tag">HLAVNÁ</span>' : p.file ? '<span class="tag">NOVÁ</span>' : ''}
+      <div class="ctrl">
+        ${i > 0 ? `<button type="button" data-ph-left="${i}" aria-label="Posunúť doľava">←</button>` : ''}
+        ${i < photos.length - 1 ? `<button type="button" data-ph-right="${i}" aria-label="Posunúť doprava">→</button>` : ''}
+        <button type="button" data-ph-del="${i}" aria-label="Odstrániť fotku">✕</button>
+      </div></div>`).join('') || '<p class="hint">Zatiaľ žiadne fotky.</p>';
+  }
+  $('#e-photos').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    const i = Number(b.dataset.phLeft ?? b.dataset.phRight ?? b.dataset.phDel);
+    if (b.dataset.phDel !== undefined) photos.splice(i, 1);
+    else { const j = b.dataset.phLeft !== undefined ? i - 1 : i + 1; [photos[i], photos[j]] = [photos[j], photos[i]]; }
+    renderPhotos();
+  });
+  $('#e-files').addEventListener('change', e => {
+    [...e.target.files].forEach(f => photos.push({file: f, preview: URL.createObjectURL(f)}));
+    e.target.value = '';
+    renderPhotos();
+  });
+
+  // Výber polohy na mape
+  function initPickMap() {
+    if (pickMap) { pickMap.remove(); pickMap = null; pickMarker = null; }
+    if (typeof L === 'undefined') return;
+    const probe = new Image();
+    probe.onload = () => {
+      const W = probe.naturalWidth, H = probe.naturalHeight, bounds = [[0, 0], [H, W]];
+      pickMap = L.map('pick-map', {crs: L.CRS.Simple, minZoom: -6, maxZoom: 2, zoomSnap: 0.25, attributionControl: false, maxBounds: bounds});
+      L.imageOverlay('mapa.jpg', bounds).addTo(pickMap);
+      pickMap.fitBounds(bounds);
+      houses.filter(h => !editing || h.id !== editing.id).forEach(h => {
+        if (typeof h.x === 'number') L.marker([H - h.y, h.x], {interactive: false,
+          icon: L.divIcon({className: '', html: '<div class="other-pin"></div>', iconSize: [10, 10]})}).addTo(pickMap);
+      });
+      const place = (x, y, pan) => {
+        x = Math.round(x); y = Math.round(y);
+        $('#e-x').value = x; $('#e-y').value = y;
+        if ($('#msg').textContent.includes('polohu')) msg('');
+        const ll = [H - y, x];
+        if (!pickMarker) {
+          pickMarker = L.marker(ll, {draggable: true, icon: L.divIcon({className: 'pick-pin', html: '<span></span>', iconSize: [26, 26], iconAnchor: [13, 26]})}).addTo(pickMap);
+          pickMarker.on('dragend', () => { const p = pickMarker.getLatLng(); place(p.lng, H - p.lat); });
+        } else pickMarker.setLatLng(ll);
+        if (pan) pickMap.setView(ll, Math.max(pickMap.getZoom(), -1));
+      };
+      pickMap.on('click', e => place(e.latlng.lng, H - e.latlng.lat));
+      const sync = () => { const x = Number($('#e-x').value), y = Number($('#e-y').value);
+        if ($('#e-x').value !== '' && $('#e-y').value !== '') place(x, y, true); };
+      $('#e-x').onchange = $('#e-y').onchange = sync;
+      sync();
+    };
+    probe.src = 'mapa.jpg';
+  }
+
+  // Zmenšenie fotky pred nahratím (max 2000 px, JPEG)
+  async function fileToJpegBase64(file) {
+    const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = URL.createObjectURL(file); });
+    const scale = Math.min(1, 2000 / Math.max(img.naturalWidth, img.naturalHeight));
+    const c = document.createElement('canvas');
+    c.width = Math.round(img.naturalWidth * scale); c.height = Math.round(img.naturalHeight * scale);
+    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+    return c.toDataURL('image/jpeg', 0.86).split(',')[1];
+  }
+
+  // ================= Uloženie =================
+  async function save() {
+    const name = $('#e-name').value.trim();
+    if (!name) { msg('Vyplňte názov ponuky.', 'err'); $('#e-name').focus(); return; }
+    if ($('#e-x').value === '' || $('#e-y').value === '') { msg('Vyberte polohu domu na mape (kliknite do mapy).', 'err'); $('#pick-map').scrollIntoView({block: 'center'}); return; }
+    const btn = $('#btn-save'); btn.disabled = true;
+    try {
+      // Vždy pracujeme s čerstvou verziou data.json, aby sa neprepísali iné zmeny
+      msg('Načítavam aktuálne dáta…');
+      const fresh = await getFile('data.json');
+      const list = Array.isArray(fresh.data) ? fresh.data : [];
+      let id = editing ? editing.id : (slug($('#e-id').value) || slug(name));
+      if (!editing) { const base = id; let n = 2; while (list.some(h => h.id === id)) id = base + '-' + n++; }
+
+      // Nahratie nových fotiek
+      const newOnes = photos.filter(p => p.file);
+      const stamp = Date.now();
+      for (let i = 0; i < newOnes.length; i++) {
+        msg(`Nahrávam fotku ${i + 1} / ${newOnes.length}…`);
+        const path = `img/${id}-${stamp}-${i + 1}.jpg`;
+        await putFile(path, await fileToJpegBase64(newOnes[i].file), null, `Fotka pre ${name}`);
+        newOnes[i].src = path; delete newOnes[i].file;
+      }
+
+      // Poskladanie ponuky (polia, ktoré editor nepozná – napr. 360° prehliadka – ostanú zachované)
+      const base = editing ? (list.find(h => h.id === editing.id) || editing) : {};
+      const h = {...base, id, name};
+      const setOrDel = (k, v) => { if (v === '' || v === null || v === undefined || (Array.isArray(v) && !v.length)) delete h[k]; else h[k] = v; };
+      setOrDel('street', $('#e-street').value.trim());
+      setOrDel('price', $('#e-price').value === '' ? '' : Number($('#e-price').value));
+      setOrDel('offer', $('#e-offer').value);
+      setOrDel('type', $('#e-type').value);
+      setOrDel('area', $('#e-area').value);
+      setOrDel('rooms', $('#e-rooms').value === '' ? '' : Number($('#e-rooms').value));
+      setOrDel('pool', $('#e-pool').value === '' ? '' : $('#e-pool').value === 'true');
+      setOrDel('agent', $('#e-agent').value);
+      const views = [...document.querySelectorAll('#e-view input:checked')].map(i => i.value);
+      setOrDel('view', views.length === 1 ? views[0] : views);
+      const sts = [...document.querySelectorAll('#e-status input:checked')].map(i => i.value);
+      setOrDel('status', sts.length === 1 ? sts[0] : sts);
+      setOrDel('desc', $('#e-desc').value.trim());
+      setOrDel('video', $('#e-video').value.trim());
+      const det = {};
+      document.querySelectorAll('#e-details .kv').forEach(r => { const [k, v] = r.querySelectorAll('input'); if (k.value.trim()) det[k.value.trim()] = v.value.trim(); });
+      setOrDel('details', Object.keys(det).length ? det : '');
+      h.photos = photos.map(p => p.src);
+      setOrDel('x', $('#e-x').value === '' ? '' : Number($('#e-x').value));
+      setOrDel('y', $('#e-y').value === '' ? '' : Number($('#e-y').value));
+
+      const idx = list.findIndex(x => x.id === id);
+      if (idx >= 0) list[idx] = h; else list.push(h);
+      msg('Ukladám ponuku…');
+      await putFile('data.json', b64encode(JSON.stringify(list, null, 2) + '\n'), fresh.sha, (editing ? 'Úprava: ' : 'Nová ponuka: ') + name);
+      houses = list;
+      renderList();
+      show('list-view');
+      msg(`✓ Ponuka „${esc(name)}“ je uložená. Na webe sa objaví o 1–2 minúty.`, 'ok');
+    } catch (e) {
+      msg('Uloženie zlyhalo: ' + esc(e.message), 'err');
+    }
+    btn.disabled = false;
+  }
+
+  async function removeHouse(i) {
+    const h = houses[i];
+    if (!confirm(`Naozaj zmazať ponuku „${h.name}“?`)) return;
+    try {
+      msg('Mažem…');
+      const fresh = await getFile('data.json');
+      const list = (fresh.data || []).filter(x => x.id !== h.id);
+      await putFile('data.json', b64encode(JSON.stringify(list, null, 2) + '\n'), fresh.sha, 'Zmazaná ponuka: ' + h.name);
+      houses = list; renderList();
+      msg(`✓ Ponuka „${esc(h.name)}“ bola zmazaná.`, 'ok');
+    } catch (e) { msg('Mazanie zlyhalo: ' + esc(e.message), 'err'); }
+  }
+
+  // ================= Štart =================
+  async function connect() {
+    try {
+      msg('Pripájam sa…');
+      const {data, sha} = await getFile('data.json');
+      if (!sha) throw new Error('V repozitári sa nenašiel súbor data.json.');
+      houses = Array.isArray(data) ? data : [];
+      try { const a = await getFile('makleri.json'); agents = Array.isArray(a.data) ? a.data : []; } catch (e) { agents = []; }
+      $('#conn').innerHTML = `Pripojené k <b>${esc(cfg.owner)}/${esc(cfg.repo)}</b> (${esc(cfg.branch)}) · <button class="linkbtn" id="btn-logout" type="button">Odpojiť</button>`;
+      $('#btn-logout').onclick = () => { try { localStorage.removeItem(LS); sessionStorage.removeItem(LS); } catch (e) {} location.reload(); };
+      renderList(); show('list-view'); msg('');
+    } catch (e) {
+      show('setup');
+      msg('Pripojenie zlyhalo: ' + esc(e.message), 'err');
+    }
+  }
+
+  $('#btn-connect').onclick = () => {
+    cfg = {owner: $('#f-owner').value.trim(), repo: $('#f-repo').value.trim(), branch: $('#f-branch').value.trim() || 'main', token: $('#f-token').value.trim()};
+    if (!cfg.owner || !cfg.repo || !cfg.token) { msg('Vyplňte používateľa, repozitár a token.', 'err'); return; }
+    saveCfg(cfg, $('#f-remember').checked);
+    connect();
+  };
+  $('#btn-new').onclick = () => openEditor(null);
+  $('#btn-cancel').onclick = () => { show('list-view'); msg(''); };
+  $('#btn-save').onclick = save;
+  $('#btn-add-detail').onclick = () => addDetail();
+  $('#e-name').addEventListener('input', () => { if (!editing) $('#e-id').value = slug($('#e-name').value); });
+  $('#list-body').addEventListener('click', e => {
+    const ed = e.target.closest('[data-edit]'), del = e.target.closest('[data-del]');
+    if (ed) openEditor(houses[Number(ed.dataset.edit)]);
+    if (del) removeHouse(Number(del.dataset.del));
+  });
+
+  cfg = loadCfg();
+  if (cfg && cfg.token) connect();
+  else {
+    const g = guessRepo();
+    $('#f-owner').value = g.owner; $('#f-repo').value = g.repo;
+    show('setup');
+  }
+</script>
+</body>
+</html>
