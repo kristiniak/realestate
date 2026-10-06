@@ -231,6 +231,14 @@
   const badgesHtml = h => statusesOf(h).map(k =>
     `<span class="badge" style="--b:${STATUSES[k][1]}">${esc(STATUSES[k][0])}</span>`).join('');
 
+  // Predaj / prenájom (rovnako ako vo web.js)
+  const RENT_PERIODS = {den: 'deň', tyzden: 'týždeň', mesiac: 'mesiac'};
+  const offersOf = h => [].concat(h.offer || []).map(String);
+  const offerText = h => offersOf(h).map(o => optLabel('offer', o)).join(' · ');
+  const fmtMoney = n => n.toLocaleString('sk-SK') + ' $';
+  const rentText = h => typeof h.rent === 'number' ? fmtMoney(h.rent) + ' / ' + (RENT_PERIODS[h.rentPeriod] || 'mesiac') : '';
+  const sortPrice = h => typeof h.price === 'number' ? h.price : typeof h.rent === 'number' ? h.rent : null;
+
   const priceRange = p => p < 500000 ? 'do500k' : p < 2000000 ? '500k-2m' : p <= 5000000 ? '2m-5m' : 'nad5m';
   const optLabel = (key, val) => {
     const f = FILTERS.find(x => x.key === key);
@@ -269,7 +277,7 @@
     const shown = houses.filter(matches);
     const sort = $('#sort').value;                          // zoradenie podľa ceny (domy bez ceny idú na koniec)
     if (sort) shown.sort((a, b) => {
-      const pa = typeof a.price === 'number' ? a.price : null, pb = typeof b.price === 'number' ? b.price : null;
+      const pa = sortPrice(a), pb = sortPrice(b);
       if (pa === null || pb === null) return (pa === null) - (pb === null);
       return sort === 'asc' ? pa - pb : pb - pa;
     });
@@ -282,12 +290,12 @@
     });
     $('#list').innerHTML = shown.length
       ? shown.map(h => {
-          const meta = [badgesHtml(h), h.offer ? esc(optLabel('offer', h.offer)) : '',
+          const meta = [badgesHtml(h), offersOf(h).length ? esc(offerText(h)) : '',
                         h.rooms ? esc(h.rooms + ' ' + (h.rooms == 1 ? 'izba' : h.rooms < 5 ? 'izby' : 'izieb')) : '']
                        .filter(Boolean).join(' <span aria-hidden="true">·</span> ');
           return `<li><button class="item${statusesOf(h).includes('predane') ? ' is-sold' : ''}" data-id="${esc(h.id)}">
             <span class="it-name">${esc(h.name)}</span>
-            <span class="it-price">${typeof h.price === 'number' ? h.price.toLocaleString('sk-SK') + ' $' : ''}</span>
+            <span class="it-price">${typeof h.price === 'number' ? fmtMoney(h.price) : esc(rentText(h))}</span>
             <span class="it-meta">${meta}</span></button></li>`;
         }).join('')
       : '<li class="nomatch">Žiadny dom nezodpovedá výberu.</li>';
@@ -328,13 +336,14 @@
 
     // Údaje o dome: najprv tie z filtrov, potom ďalšie z "details"
     const rows = [];
-    if (h.offer) rows.push(['Typ', optLabel('offer', h.offer)]);
+    if (offersOf(h).length) rows.push(['Typ', offerText(h)]);
     if (h.area) rows.push(['Lokalita', optLabel('area', h.area)]);
     if (h.type) rows.push(['Druh nehnuteľnosti', optLabel('type', h.type)]);
     if (h.rooms) rows.push(['Počet izieb', String(h.rooms)]);
     const ag = h.agent && agents.find(a => a.id === h.agent);
     if (ag) rows.push(['Maklér', ag.name]);
-    if (typeof h.price === 'number') rows.push(['Cena', h.price.toLocaleString('sk-SK') + ' $']);
+    if (typeof h.price === 'number') rows.push([typeof h.rent === 'number' ? 'Cena (predaj)' : 'Cena', fmtMoney(h.price)]);
+    if (typeof h.rent === 'number') rows.push(['Cena prenájmu', rentText(h)]);
     if (typeof h.pool === 'boolean') rows.push(['Bazén', h.pool ? 'Áno' : 'Nie']);
     if (h.view) rows.push(['Výhľad', [].concat(h.view).map(v => optLabel('view', v)).join(', ')]);
     Object.entries(h.details || {}).forEach(([k, v]) => {

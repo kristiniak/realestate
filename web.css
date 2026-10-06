@@ -73,6 +73,7 @@ body.page{margin:0;background:var(--panel);color:var(--text);font-family:var(--s
 .card-feats{display:flex;flex-wrap:wrap;gap:6px 14px;color:var(--muted);font-size:13px;border-top:1px solid var(--line);padding-top:12px;margin-top:6px}
 .card.is-sold .card-img{filter:grayscale(.85) brightness(.7)}
 .card.is-sold .card-price{color:var(--muted);text-decoration:line-through}
+.card-rent{display:block;color:var(--muted);font-size:14px;font-weight:400;margin-top:2px}   /* „alebo prenájom …“ */
 
 /* Pätička */
 .site-footer{border-top:1px solid var(--line);padding:32px 0;color:var(--muted);font-size:14px}

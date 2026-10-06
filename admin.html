@@ -144,8 +144,6 @@
 
       <div class="sec"><h3>Cena a parametre</h3>
         <div class="row">
-          <div class="field"><label for="e-price">Cena ($)</label><input type="number" id="e-price" min="0" step="1000"></div>
-          <div class="field"><label for="e-offer">Typ</label><select id="e-offer"></select></div>
           <div class="field"><label for="e-type">Druh nehnuteľnosti</label><select id="e-type"></select></div>
           <div class="field"><label for="e-area">Lokalita</label><select id="e-area"></select></div>
         </div>
@@ -153,6 +151,12 @@
           <div class="field"><label for="e-rooms">Počet izieb</label><input type="number" id="e-rooms" min="0" max="50"></div>
           <div class="field"><label for="e-pool">Bazén</label><select id="e-pool"><option value="">—</option><option value="true">Áno</option><option value="false">Nie</option></select></div>
           <div class="field"><label for="e-agent">Maklér</label><select id="e-agent"></select></div>
+        </div>
+        <div class="field" style="margin-bottom:16px"><label>Typ ponuky (môžete zaškrtnúť aj viac)</label><div class="checks" id="e-offer"></div></div>
+        <div class="row">
+          <div class="field" id="f-price"><label for="e-price">Cena predaja ($)</label><input type="number" id="e-price" min="0" step="1000"></div>
+          <div class="field" id="f-rent"><label for="e-rent">Cena prenájmu ($)</label><input type="number" id="e-rent" min="0" step="100"></div>
+          <div class="field" id="f-period"><label for="e-period">Za obdobie</label><select id="e-period"></select></div>
         </div>
         <div class="field" style="margin-bottom:16px"><label>Výhľad</label><div class="checks" id="e-view"></div></div>
         <div class="field" style="margin-bottom:16px"><label>Štítky</label><div class="checks" id="e-status"></div></div>
@@ -300,8 +304,8 @@
     $('#list-body').innerHTML = houses.length ? houses.map((h, i) => `<tr>
       <td><span class="thumb" style="${(h.photos || [])[0] ? `background-image:url('${esc(h.photos[0])}')` : ''}"></span></td>
       <td><b>${esc(h.name || '(bez názvu)')}</b>${h.street ? `<div class="hint" style="margin:2px 0 0">${esc(h.street)}</div>` : ''}</td>
-      <td>${typeof h.price === 'number' ? h.price.toLocaleString('sk-SK') + ' $' : '—'}</td>
-      <td>${h.offer ? esc(optLabel('offer', h.offer)) : '—'}</td>
+      <td>${[typeof h.price === 'number' ? fmtMoney(h.price) : '', rentText(h)].filter(Boolean).map(esc).join('<br>') || '—'}</td>
+      <td>${offersOf(h).length ? esc(offerText(h)) : '—'}</td>
       <td>${badgesHtml(h) || '—'}</td>
       <td class="act">
         <a class="btn btn-line small" href="nehnutelnost.html?id=${encodeURIComponent(h.id)}" target="_blank" rel="noopener">Zobraziť</a>
@@ -321,7 +325,12 @@
     $('#e-id').readOnly = !!h;
     $('#id-hint').textContent = h ? 'ID existujúcej ponuky sa nemení (odkazy na ňu by prestali fungovať).' : 'Vytvorí sa automaticky z názvu.';
     $('#e-price').value = typeof d.price === 'number' ? d.price : '';
-    $('#e-offer').innerHTML = opt('', '—') + filterOpts('offer').map(([v, l]) => opt(v, l, d.offer === v)).join('');
+    const offers = offersOf(d);
+    $('#e-offer').innerHTML = filterOpts('offer').map(([v, l]) =>
+      `<label><input type="checkbox" value="${esc(v)}"${offers.includes(v) ? ' checked' : ''}> ${esc(l)}</label>`).join('');
+    $('#e-rent').value = typeof d.rent === 'number' ? d.rent : '';
+    $('#e-period').innerHTML = Object.entries(RENT_PERIODS).map(([v, l]) => opt(v, 'za ' + l, (d.rentPeriod || 'mesiac') === v)).join('');
+    syncOfferFields();
     $('#e-type').innerHTML = opt('', '—') + filterOpts('type').map(([v, l]) => opt(v, l, d.type === v)).join('');
     $('#e-area').innerHTML = opt('', '—') + filterOpts('area').map(([v, l]) => opt(v, l, d.area === v)).join('');
     $('#e-rooms').value = d.rooms || '';
@@ -346,6 +355,13 @@
     show('editor');
     initPickMap();
   }
+
+  // Pole „Cena prenájmu“ sa ukáže len pri zaškrtnutom Prenájme
+  function syncOfferFields() {
+    const renting = !!document.querySelector('#e-offer input[value="prenajom"]:checked');
+    $('#f-rent').hidden = $('#f-period').hidden = !renting;
+  }
+  $('#e-offer').addEventListener('change', syncOfferFields);
 
   function addDetail(k = '', v = '') {
     const row = document.createElement('div');
@@ -452,7 +468,11 @@
       const setOrDel = (k, v) => { if (v === '' || v === null || v === undefined || (Array.isArray(v) && !v.length)) delete h[k]; else h[k] = v; };
       setOrDel('street', $('#e-street').value.trim());
       setOrDel('price', $('#e-price').value === '' ? '' : Number($('#e-price').value));
-      setOrDel('offer', $('#e-offer').value);
+      const offers = [...document.querySelectorAll('#e-offer input:checked')].map(i => i.value);
+      setOrDel('offer', offers.length === 1 ? offers[0] : offers);
+      const renting = offers.includes('prenajom') && $('#e-rent').value !== '';
+      setOrDel('rent', renting ? Number($('#e-rent').value) : '');
+      setOrDel('rentPeriod', renting ? $('#e-period').value : '');
       setOrDel('type', $('#e-type').value);
       setOrDel('area', $('#e-area').value);
       setOrDel('rooms', $('#e-rooms').value === '' ? '' : Number($('#e-rooms').value));

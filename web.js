@@ -30,6 +30,24 @@ function loadJSON(url, fallback) {
     .then(r => r.ok ? r.json() : fallback).catch(() => fallback);
 }
 
+// ===== Predaj / prenájom =====
+// "offer" môže byť jeden typ ("predaj") alebo viac naraz (["predaj", "prenajom"]).
+// Prenájom má vlastnú cenu "rent" a obdobie "rentPeriod" (den / tyzden / mesiac).
+const RENT_PERIODS = {den: 'deň', tyzden: 'týždeň', mesiac: 'mesiac'};
+const offersOf = h => [].concat(h.offer || []).map(String);
+const offerText = h => offersOf(h).map(o => optLabel('offer', o)).join(' · ');
+const fmtMoney = n => n.toLocaleString('sk-SK') + ' $';
+const rentText = h => typeof h.rent === 'number' ? fmtMoney(h.rent) + ' / ' + (RENT_PERIODS[h.rentPeriod] || 'mesiac') : '';
+// Cena na zoradenie: predajná, a keď nie je, tak cena prenájmu
+const sortPrice = h => typeof h.price === 'number' ? h.price : typeof h.rent === 'number' ? h.rent : null;
+// Hlavná cena + prípadne druhý riadok s prenájmom
+function priceParts(h) {
+  const rent = rentText(h);
+  if (typeof h.price === 'number') return {main: fmtMoney(h.price), sub: rent ? 'alebo prenájom ' + rent : ''};
+  if (rent) return {main: rent, sub: ''};
+  return {main: 'Cena na vyžiadanie', sub: ''};
+}
+
 const hasTour = h => !!(h.tour && h.tour.scenes && Object.keys(h.tour.scenes).length);
 
 // Karta domu – klik otvorí stránku inzerátu (nehnutelnost.html)
@@ -37,7 +55,7 @@ function cardHtml(h) {
   const photo = (h.photos || [])[0];
   const loc = [h.area && optLabel('area', h.area), h.type && optLabel('type', h.type)].filter(Boolean).join(' · ');
   const feats = [
-    h.offer && optLabel('offer', h.offer),
+    offersOf(h).length && offerText(h),
     h.rooms && roomsText(h.rooms),
     h.pool === true && 'Bazén',
     h.view && 'Výhľad ' + [].concat(h.view).map(v => optLabel('view', v).toLowerCase()).join(', ')
@@ -52,7 +70,7 @@ function cardHtml(h) {
       <div class="card-title">${esc(h.name)}</div>
       ${h.street ? `<div class="card-street">${esc(h.street)}</div>` : ''}
       ${loc ? `<div class="card-loc">${esc(loc)}</div>` : ''}
-      <div class="card-price">${fmtPrice(h.price)}</div>
+      <div class="card-price">${esc(priceParts(h).main)}${priceParts(h).sub ? `<span class="card-rent">${esc(priceParts(h).sub)}</span>` : ''}</div>
       ${feats.length ? `<div class="card-feats">${feats.map(f => `<span>${esc(f)}</span>`).join('')}</div>` : ''}
     </div>
   </a>`;

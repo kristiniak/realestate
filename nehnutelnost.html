@@ -20,6 +20,8 @@
   .head-price{text-align:right}
   .head-price b{display:block;font-family:var(--serif);font-size:clamp(34px,4vw,48px);color:var(--pin);font-weight:600;line-height:1}
   .head-price span{color:var(--muted);font-size:13px;letter-spacing:.14em;text-transform:uppercase}
+  .head-price .hp + .hp{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+  .head-price .hp-rent b{font-size:clamp(26px,3vw,34px)}
   .is-sold .head-price b{color:var(--muted);text-decoration:line-through}
 
   /* Galéria */
@@ -159,7 +161,7 @@
 
     // Hlavné údaje
     const facts = [
-      ['Typ', h.offer && optLabel('offer', h.offer)],
+      ['Typ', offerText(h)],
       ['Druh', h.type && optLabel('type', h.type)],
       ['Lokalita', h.area && optLabel('area', h.area)],
       ['Izby', h.rooms],
@@ -169,7 +171,8 @@
 
     // Všetky parametre (vrátane "details" z data.json)
     const params = [...facts];
-    if (typeof h.price === 'number') params.push(['Cena', fmtPrice(h.price)]);
+    if (typeof h.price === 'number') params.push([typeof h.rent === 'number' ? 'Cena (predaj)' : 'Cena', fmtPrice(h.price)]);
+    if (typeof h.rent === 'number') params.push(['Cena prenájmu', rentText(h)]);
     Object.entries(h.details || {}).forEach(([k, v]) => {
       if ((k === 'Cena' && typeof h.price === 'number') || (k === 'Štvrť' && h.area)) return;
       params.push([k, v]);
@@ -199,7 +202,7 @@
             ${h.street ? `<p class="street">${esc(h.street)}</p>` : ''}
             ${statusesOf(h).length ? `<div class="badges">${badgesHtml(h)}</div>` : ''}
           </div>
-          <div class="head-price"><b>${fmtPrice(h.price)}</b>${h.offer ? `<span>${esc(optLabel('offer', h.offer))}</span>` : ''}</div>
+          <div class="head-price">${headPrice(h)}</div>
         </div>
         ${gallery}
         <div class="body">
@@ -253,6 +256,17 @@
       else $('#copied').textContent = location.href;
     });
   });
+
+  // Cena vpravo hore: pri predaji aj prenájme sú obe pod sebou
+  function headPrice(h) {
+    const offers = offersOf(h), rows = [];
+    if (typeof h.price === 'number')
+      rows.push(`<div class="hp"><b>${fmtMoney(h.price)}</b><span>${esc(typeof h.rent === 'number' ? optLabel('offer', 'predaj') : offerText(h))}</span></div>`);
+    if (typeof h.rent === 'number')
+      rows.push(`<div class="hp hp-rent"><b>${esc(rentText(h))}</b><span>${esc(optLabel('offer', 'prenajom'))}</span></div>`);
+    if (!rows.length) rows.push(`<div class="hp"><b>${fmtPrice(h.price)}</b>${offers.length ? `<span>${esc(offerText(h))}</span>` : ''}</div>`);
+    return rows.join('');
+  }
 
   // Výrez z mapy (rovnaký obrázok mapa.jpg ako na stránke Mapa)
   function initLocMap(h) {

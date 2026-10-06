@@ -104,7 +104,7 @@
     let shown = houses.filter(h => matchesFilters(h, active) && (!agentFilter || h.agent === agentFilter));
     const sort = $('#sort').value;
     if (sort) shown = shown.slice().sort((a, b) => {
-      const pa = typeof a.price === 'number' ? a.price : null, pb = typeof b.price === 'number' ? b.price : null;
+      const pa = sortPrice(a), pb = sortPrice(b);
       if (pa === null || pb === null) return (pa === null) - (pb === null);
       return sort === 'asc' ? pa - pb : pb - pa;
     });
