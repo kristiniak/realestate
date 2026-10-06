@@ -5,24 +5,50 @@
     "x": 2837,
     "y": 5183,
     "photo": "img/pano1outside.jpg",
-    "links": [ 
-      { "to": "vstup-terasa", "yaw": 158, "pitch": -25, "text": "Vstup na terasu" },
-      { "to": "vinewood-vila/hala", "yaw": 98, "pitch": -22, "text": "Vstup do domu" }
-    ]
+    "links": [
+      {
+        "to": "vstup-terasa",
+        "yaw": 158,
+        "pitch": -25,
+        "text": "Vstup na terasu"
+      },
+      {
+        "to": "vinewood-vila/hala",
+        "yaw": 98,
+        "pitch": -22,
+        "text": "Vstup do domu"
+      }
+    ],
+    "group": "Okolie - Vinewood Vila"
   },
   {
     "id": "vstup-terasa",
     "name": "Vstup na terasu",
     "photo": "img/pano1terasavstup.jpg",
     "links": [
-      { "to": "nort-conker-ave", "yaw": -127, "pitch": -8, "text": "Späť na ulicu" },
-      { "to": "terasa", "yaw": 8, "pitch": -37 }
+      {
+        "to": "nort-conker-ave",
+        "yaw": -127,
+        "pitch": -8,
+        "text": "Späť na ulicu"
+      },
+      {
+        "to": "terasa",
+        "yaw": 8,
+        "pitch": -37
+      }
     ]
   },
   {
     "id": "terasa",
     "name": "Terasa",
     "photo": "img/pano1terasa.jpg",
-    "links": [ { "to": "vstup-terasa", "yaw": -157, "pitch": -5 } ]
+    "links": [
+      {
+        "to": "vstup-terasa",
+        "yaw": -157,
+        "pitch": -5
+      }
+    ]
   }
 ]
