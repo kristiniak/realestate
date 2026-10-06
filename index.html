@@ -3,21 +3,44 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ONYX Real Estate</title>
+<title>Real Estate</title>
 <link rel="icon" href="img/onyx_logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Jost:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="web.css">
 <style>
-  .hero{position:relative;min-height:min(78vh,760px);display:flex;align-items:flex-end;padding:120px 0 64px;
-    background:linear-gradient(180deg,rgba(13,13,15,.35) 0%,rgba(13,13,15,.75) 55%,var(--panel) 100%),
-               url('mapa.jpg') center 40%/cover no-repeat, var(--sea)}
-  .hero .wrap{width:100%}
-  .hero h1{font-size:clamp(52px,8vw,112px);color:var(--text);margin:0 0 20px;max-width:12ch}
-  .hero .lead{font-size:clamp(17px,1.6vw,20px);color:#d8d1c2}
-  .hero-ctas{display:flex;flex-wrap:wrap;gap:12px;margin:32px 0 0}
-  .stats{display:flex;flex-wrap:wrap;gap:0;margin:56px 0 0;border-top:1px solid rgba(201,169,97,.4)}
-  .stat{padding:22px 40px 0 0;margin-right:40px}
+  /* Úvod: vycentrovaný názov, zlatá žiara a súmerná kresba vily dole */
+  .hero{position:relative;overflow:hidden;min-height:min(88vh,860px);display:flex;flex-direction:column;align-items:center;
+    justify-content:flex-start;text-align:center;padding:clamp(44px,7vh,90px) 0 clamp(200px,26vw,330px);
+    background:radial-gradient(ellipse 50% 45% at 50% 34%,rgba(201,169,97,.20),transparent 72%),
+               radial-gradient(ellipse 90% 40% at 50% 100%,rgba(201,169,97,.08),transparent 70%),
+               linear-gradient(180deg,#0a0a0c 0%,#121115 100%)}
+  .hero::after{content:'';position:absolute;left:0;right:0;bottom:0;height:90px;background:linear-gradient(transparent,var(--panel));pointer-events:none}
+  .hero .wrap{width:100%;position:relative;z-index:2;display:flex;flex-direction:column;align-items:center}
+  .hero .eyebrow{margin-bottom:22px}
+  .brand-title{font-family:var(--serif);font-weight:600;line-height:.85;margin:0;color:var(--text);
+    font-size:clamp(76px,14vw,190px);letter-spacing:.14em;padding-left:.14em;     /* padding vyrovná medzeru za posledným písmenom */
+    background:linear-gradient(180deg,#f7efdc 20%,#c9a961 120%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .brand-sub{display:flex;align-items:center;gap:18px;margin:14px 0 0;white-space:nowrap;color:var(--pin);font-family:var(--serif);
+    font-size:clamp(22px,3vw,36px);font-weight:500;letter-spacing:.42em;text-transform:uppercase;padding-left:.42em}
+  .brand-sub::before,.brand-sub::after{content:'';width:clamp(36px,7vw,90px);height:1px;background:var(--pin);opacity:.7}
+  .hero .lead{font-size:clamp(17px,1.6vw,20px);color:#d8d1c2;max-width:52ch;margin:28px auto 0}
+  .hero-ctas{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin:28px 0 0}
+  .hero-art{position:absolute;z-index:1;left:50%;transform:translateX(-50%);bottom:24px;width:min(100%,1100px);height:auto;pointer-events:none}
+  .hero-art *{fill:none;stroke:var(--pin);stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke;
+    stroke-dasharray:1;stroke-dashoffset:1;animation:draw 2.6s cubic-bezier(.4,0,.2,1) forwards}
+  .hero-art .faint{opacity:.3} .hero-art .mid{opacity:.6} .hero-art .bold{stroke-width:2.2}
+  .hero-art .glass{fill:rgba(201,169,97,.07)}
+  @keyframes draw{to{stroke-dashoffset:0}}
+  @media (prefers-reduced-motion:reduce){.hero-art *{animation:none;stroke-dashoffset:0}}
+  /* Variant s vlastnou fotkou (nastavenia.js → heroPhoto) */
+  .hero.has-photo{padding-bottom:clamp(90px,12vh,140px);justify-content:center;
+    background:radial-gradient(ellipse 60% 55% at 50% 45%,rgba(13,13,15,.55),rgba(13,13,15,.85)),var(--photo) center/cover no-repeat,var(--panel)}
+  .hero.has-photo .hero-art{display:none}
+  /* Čísla pod úvodom */
+  .stats{display:flex;justify-content:center;flex-wrap:wrap;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .stat{padding:26px clamp(24px,5vw,64px);text-align:center}
+  .stat + .stat{border-left:1px solid var(--line)}
   .stat b{display:block;font-family:var(--serif);font-size:48px;font-weight:600;color:var(--pin);line-height:1}
   .stat span{color:var(--muted);font-size:13px;letter-spacing:.14em;text-transform:uppercase}
   .steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:0;border-top:1px solid var(--line)}
@@ -29,7 +52,7 @@
   .band .wrap{display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap;padding-top:48px;padding-bottom:48px}
   .band h2{font-size:clamp(32px,4vw,46px)}
   .band p{color:var(--muted);margin:8px 0 0}
-  @media (max-width:760px){.hero{padding-top:72px}.stat{padding-right:0;margin-right:32px}.section{padding:52px 0}}
+  @media (max-width:760px){.hero-art{width:180%;bottom:18px}.brand-sub{letter-spacing:.28em;padding-left:.28em;gap:12px;font-size:20px}.brand-sub::before,.brand-sub::after{width:28px}.stat{padding:20px 18px}.section{padding:52px 0}}
 </style>
 </head>
 <body class="page">
@@ -37,18 +60,46 @@
 <script src="nastavenia.js"></script>
 
 <main>
-  <section class="hero">
+  <section class="hero" id="hero">
+    <svg class="hero-art" viewBox="0 0 1200 380" aria-hidden="true">
+      <!-- mesto v diaľke vľavo a vpravo -->
+      <path class="faint" d="M60 300V232h24v68M92 300V196h32v104M132 300V222h22v78M162 300V170h38v130M208 300V214h26v86M242 300V244h22v56"/>
+      <path class="faint" d="M936 300V244h22v56M966 300V206h26v94M1000 300V170h38v130M1046 300V222h22v78M1076 300V196h32v104M1116 300V232h24v68"/>
+      <path class="faint" d="M0 312C110 282 210 298 300 276S380 268 412 274M788 274C820 268 900 254 900 276S1090 282 1200 312"/>
+      <!-- vila v strede -->
+      <path class="bold" d="M432 192H808"/>
+      <rect x="452" y="196" width="336" height="66"/>
+      <rect class="glass" x="476" y="210" width="196" height="40"/>
+      <path class="mid" d="M504 210v40M532 210v40M560 210v40M588 210v40M616 210v40M644 210v40"/>
+      <path d="M770 262V340"/>
+      <path class="bold" d="M396 262H760"/>
+      <rect x="412" y="266" width="336" height="74"/>
+      <rect class="glass" x="434" y="278" width="176" height="62"/>
+      <path class="mid" d="M478 278v62M522 278v62M566 278v62"/>
+      <rect x="640" y="292" width="30" height="48"/>
+      <path class="mid" d="M690 282h44v24h-44z"/>
+      <!-- terén a bazén -->
+      <path d="M150 340H1050"/>
+      <path d="M430 354H770L800 374H400Z"/>
+      <path class="faint" d="M456 362h80M570 365h96M700 362h50"/>
+      <!-- palmy po stranách -->
+      <path d="M338 340C334 296 340 260 354 228"/>
+      <path class="mid" d="M354 228C328 216 306 220 288 238M354 228C336 206 316 200 294 204M354 228C364 204 380 194 402 194M354 228C378 218 400 222 414 242"/>
+      <path d="M862 340C866 296 860 260 846 228"/>
+      <path class="mid" d="M846 228C872 216 894 220 912 238M846 228C864 206 884 200 906 204M846 228C836 204 820 194 798 194M846 228C822 218 800 222 786 242"/>
+    </svg>
     <div class="wrap">
       <p class="eyebrow" id="eyebrow"></p>
-      <h1 id="hero-title"></h1>
+      <h1 class="brand-title" id="hero-title"></h1>
+      <p class="brand-sub" id="hero-sub"></p>
       <p class="lead" id="tagline"></p>
       <div class="hero-ctas">
         <a class="btn btn-gold" href="ponuka.html">Prezrieť ponuku</a>
         <a class="btn btn-line" href="mapa.html">Otvoriť mapu</a>
       </div>
-      <div class="stats" id="stats"></div>
     </div>
   </section>
+  <div class="stats" id="stats"></div>
 
   <section class="section">
     <div class="wrap">
@@ -86,7 +137,15 @@
   if (location.hash.length > 1) location.replace('mapa.html' + location.hash);
 
   $('#eyebrow').textContent = AGENCY.eyebrow;
-  $('#hero-title').textContent = AGENCY.name;
+  $('#hero-title').textContent = AGENCY.heroTitle || AGENCY.name;
+  $('#hero-sub').textContent = AGENCY.heroSubtitle || '';
+  if (!AGENCY.heroSubtitle) $('#hero-sub').hidden = true;
+  if (AGENCY.heroPhoto) {                       // vlastná fotka namiesto kresby
+    $('#hero').classList.add('has-photo');
+    $('#hero').style.setProperty('--photo', `url('${AGENCY.heroPhoto}')`);
+  }
+  // kresba sa postupne „dokreslí“
+  document.querySelectorAll('.hero-art *').forEach((el, i) => { el.setAttribute('pathLength', '1'); el.style.animationDelay = (i * 0.06) + 's'; });
   $('#tagline').textContent = AGENCY.tagline;
   $('#band-cta').href = DISCORD;
 

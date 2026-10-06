@@ -7,8 +7,14 @@
 const AGENCY = {
   name: 'Onyx Real Estate',
   logo: 'img/onyx_logo.png',
+  // Veľký názov v strede úvodnej stránky a menší text pod ním
+  heroTitle: 'ONYX',
+  heroSubtitle: 'Real Estate',
   eyebrow: 'Realitná kancelária · Los Santos',
-  tagline: 'Domy, vily a byty v Los Santos a okolí. Prezri si ponuku, prejdi sa nimi v 360° a ozvi sa nám na Discorde.'
+  tagline: 'Domy, vily a byty v Los Santos a okolí. Prezri si ponuku, prejdi sa nimi v 360° a ozvi sa nám na Discorde.',
+  // Pozadie úvodnej stránky: nechaj prázdne '' = zlatá kresba vily,
+  // alebo daj cestu k fotke, napr. 'img/uvod.jpg' (ideálne široká fotka z hry, aspoň 1920 px)
+  heroPhoto: ''
 };
 
 // Pozvánka na Discord (tlačidlá „Mám záujem“ a „Kontakt“)
