@@ -38,12 +38,16 @@
 
   /* Obsah */
   .body{display:grid;grid-template-columns:1fr 360px;gap:48px;padding:40px 0 64px;align-items:start}
-  .facts{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line);margin:0 0 40px}
-  .fact{padding:18px 20px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);margin:-1px -1px 0 0}
-  .fact span{display:block;color:var(--muted);font-size:12px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px}
-  .fact b{font-weight:500;font-size:18px}
   .block{margin:0 0 40px}
   .block h2{font-size:34px;margin:0 0 16px;color:var(--pin)}
+  /* Rozbaľovacie „Parametre“ */
+  .fold > summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;
+    border-bottom:1px solid var(--pin);padding-bottom:10px;margin-bottom:6px}
+  .fold > summary::-webkit-details-marker{display:none}
+  .fold > summary h2{margin:0}
+  .fold > summary::after{content:'Skryť ▴';color:var(--pin);font-size:12px;font-weight:500;letter-spacing:.14em;text-transform:uppercase}
+  .fold:not([open]) > summary::after{content:'Zobraziť ▾'}
+  .fold > summary:focus-visible{outline:2px solid var(--pin);outline-offset:4px}
   .desc p{color:#d8d1c2;line-height:1.75;margin:0 0 14px;max-width:70ch}
   .params{display:grid;grid-template-columns:1fr 1fr;gap:0 40px;margin:0}
   .params div{display:flex;justify-content:space-between;gap:16px;padding:12px 0;border-bottom:1px solid var(--line)}
@@ -82,7 +86,6 @@
     .params{grid-template-columns:1fr}
   }
   @media (max-width:640px){
-    .facts{grid-template-columns:repeat(2,1fr)}
     .gallery{grid-template-columns:1fr;grid-template-rows:1fr;height:280px}
     .gallery button:not(:first-child){display:none}
     .gallery .m-only{display:block}
@@ -177,14 +180,13 @@
         ${gallery}
         <div class="body">
           <div>
-            ${facts.length ? `<div class="facts">${facts.map(([k, v]) => `<div class="fact"><span>${k}</span><b>${esc(v)}</b></div>`).join('')}</div>` : ''}
-            ${desc ? `<section class="block desc"><h2>Popis</h2>${desc}</section>` : ''}
+            ${params.length ? `<details class="block fold" open><summary><h2>Parametre</h2></summary><dl class="params">${params.map(([k, v]) =>
+              `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl></details>` : ''}
             ${(hasTour360 || h.video) ? `<section class="block"><h2>Prehliadka</h2><div class="media-btns">
               ${hasTour360 ? `<a class="btn btn-line" href="mapa.html?prehliadka=1#${encodeURIComponent(h.id)}">⟳ 360° prehliadka</a>` : ''}
               ${h.video ? `<a class="btn btn-line" href="${esc(h.video)}" target="_blank" rel="noopener">▶ Videoprehliadka</a>` : ''}
             </div></section>` : ''}
-            ${params.length ? `<section class="block"><h2>Parametre</h2><dl class="params">${params.map(([k, v]) =>
-              `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl></section>` : ''}
+            ${desc ? `<section class="block desc"><h2>Popis</h2>${desc}</section>` : ''}
           </div>
           <aside class="side">
             <div class="box">
