@@ -148,7 +148,7 @@
     }
     document.title = h.name + ' – ' + AGENCY.name;
     photos = h.photos || [];
-    const sold = statusesOf(h).includes('predane');
+    const sold = isClosed(h);
     const agent = h.agent && (agents || []).find(a => a.id === h.agent);
 
     // Galéria: veľká fotka + 2 menšie, zvyšok v prezeračke
@@ -244,7 +244,7 @@
     if (typeof h.x === 'number' && typeof h.y === 'number') initLocMap(h);
 
     // Podobné ponuky: rovnaká lokalita alebo druh; ak žiadne nie sú, ukážu sa iné z ponuky (max. 3)
-    const others = houses.filter(x => x.id !== h.id && !statusesOf(x).includes('predane'));
+    const others = houses.filter(x => x.id !== h.id && !isClosed(x));
     const similar = others.filter(x => (h.area && x.area === h.area) || (h.type && x.type === h.type));
     const list = (similar.length ? similar : others).slice(0, 3);
     if (list.length) $('#similar').innerHTML = `<div class="section-head"><h2>${similar.length ? 'Podobné nehnuteľnosti' : 'Ďalšie nehnuteľnosti'}</h2>

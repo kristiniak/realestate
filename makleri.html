@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Makléri – ONYX Real Estate</title>
+<title>Makléri – Real Estate</title>
 <link rel="icon" href="img/onyx_logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Jost:wght@400;500&display=swap" rel="stylesheet">
@@ -48,7 +48,7 @@
       return;
     }
     $('#agents').innerHTML = agents.map(a => {
-      const count = houses.filter(h => h.agent === a.id && !statusesOf(h).includes('predane')).length;
+      const count = houses.filter(h => h.agent === a.id && !isClosed(h)).length;
       const rows = [['Kontakt', a.discord], ['Telefón', a.phone]].filter(([, v]) => v);
       return `<article class="agent">
         <div class="agent-photo"${a.photo ? ` style="background-image:url('${esc(a.photo)}')"` : ''}>

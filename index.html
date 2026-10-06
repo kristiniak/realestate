@@ -117,7 +117,7 @@
       <div class="steps">
         <div class="step"><span class="num">01</span><h3>Vyberte si</h3><p>Filtrujte ponuku podľa lokality, ceny, typu či počtu izieb, alebo hľadajte priamo na mape.</p></div>
         <div class="step"><span class="num">02</span><h3>Pozrite sa dovnútra</h3><p>Pri vybraných nehnuteľnostiach si môžete pozrieť 360° prehliadku interiéru a cez panáčika na mape aj okolie z ulice.</p></div>
-        <div class="step"><span class="num">03</span><h3>Ozvite sa nám</h3><p>Kliknite na „Mám záujem“ a napíšte nám e-mail. Náš maklér sa vám následne ozve.</p></div>
+        <div class="step"><span class="num">03</span><h3>Ozvite sa nám</h3><p>Kliknite na „Mám záujem“, vytvorte ticket a uveďte, o ktorú nehnuteľnosť máte záujem. Náš maklér sa vám následne ozve.</p></div>
       </div>
     </div>
   </section>
@@ -150,7 +150,7 @@
   $('#band-cta').href = DISCORD;
 
   Promise.all([loadJSON('data.json', []), loadJSON('makleri.json', [])]).then(([houses, agents]) => {
-    const available = houses.filter(h => !statusesOf(h).includes('predane'));
+    const available = houses.filter(h => !isClosed(h));
     const areas = new Set(houses.map(h => h.area).filter(Boolean));
     const stats = [[available.length, 'v ponuke'], [areas.size, 'lokalít'], [agents.length, 'maklérov']].filter(([n]) => n > 0);
     $('#stats').innerHTML = stats.map(([n, t]) => `<div class="stat"><b>${n}</b><span>${t}</span></div>`).join('');

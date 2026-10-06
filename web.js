@@ -6,6 +6,8 @@ const roomsText = n => n + ' ' + (n == 1 ? 'izba' : n < 5 ? 'izby' : 'izieb');
 
 const normKey = v => String(v).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim();
 const statusesOf = h => [].concat(h.status || []).map(normKey).filter(k => STATUSES[k]);
+// Predané alebo prenajaté = už nie je dostupné (sivé, nepočíta sa do ponuky)
+const isClosed = h => statusesOf(h).some(k => k === 'predane' || k === 'prenajate');
 const badgesHtml = h => statusesOf(h).map(k =>
   `<span class="badge" style="--b:${STATUSES[k][1]}">${esc(STATUSES[k][0])}</span>`).join('');
 
@@ -60,7 +62,7 @@ function cardHtml(h) {
     h.pool === true && 'Bazén',
     h.view && 'Výhľad ' + [].concat(h.view).map(v => optLabel('view', v).toLowerCase()).join(', ')
   ].filter(Boolean);
-  return `<a class="card${statusesOf(h).includes('predane') ? ' is-sold' : ''}" href="nehnutelnost.html?id=${encodeURIComponent(h.id)}">
+  return `<a class="card${isClosed(h) ? ' is-sold' : ''}" href="nehnutelnost.html?id=${encodeURIComponent(h.id)}">
     <div class="card-img"${photo ? ` style="background-image:url('${esc(photo)}')"` : ''}>
       ${photo ? '' : 'Zatiaľ bez fotiek'}
       <div class="card-badges">${badgesHtml(h)}</div>

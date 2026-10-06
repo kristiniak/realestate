@@ -5,7 +5,7 @@
 
 // Názov kancelárie, logo a krátky popis na úvodnej stránke
 const AGENCY = {
-  name: 'ONYX Real Estate',
+  name: 'Onyx Real Estate',
   logo: 'img/onyx_logo.png',
   // Veľký názov v strede úvodnej stránky a menší text pod ním
   heroTitle: 'ONYX',
@@ -48,7 +48,8 @@ const STATUSES = {
   novinka:     ['Novinka',     '#3c9a5f'],
   zlava:       ['Zľava',       '#c0392b'],
   rezervovane: ['Rezervované', '#d4881f'],
-  predane:     ['Predané',     '#6f6a62']
+  predane:     ['Predané',     '#6f6a62'],
+  prenajate:   ['Prenajaté',   '#5f6b78']
 };
 
 
