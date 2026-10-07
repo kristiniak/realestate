@@ -47,6 +47,11 @@
     color:var(--pin);border:1px solid var(--pin);padding:4px 10px;font:600 15px var(--serif);letter-spacing:.06em}
   @keyframes pulse{0%{transform:scale(.35);opacity:1}100%{transform:scale(1.25);opacity:0}}
   @media (prefers-reduced-motion:reduce){.us::before{animation:none;opacity:.5}}
+  /* Názvy ulíc – viditeľné len pri priblížení */
+  .st{position:relative}
+  .st span{position:absolute;left:0;top:0;transform:translate(-50%,-50%) rotate(var(--a));white-space:nowrap;color:#f3ecdc;
+    font:500 12px var(--sans);letter-spacing:.04em;text-shadow:0 0 2px #0a0a0c,0 0 4px #0a0a0c,0 0 6px #0a0a0c;pointer-events:none}
+  .far .st{display:none}
   /* Orientačné body */
   .lm{position:relative}
   .lm i{position:absolute;left:-6px;top:-6px;width:12px;height:12px;border-radius:50%;background:#f3ecdc;border:2px solid #0a0a0c}
@@ -110,13 +115,18 @@
     const W = probe.naturalWidth, H = probe.naturalHeight, bounds = [[0, 0], [H, W]];
     const ll = p => [H - p.y, p.x];                                    // y počítame zhora ako v obrázku
     const map = L.map('cmap', {crs: L.CRS.Simple, zoomControl: false, attributionControl: false, zoomSnap: 0.25,
-      maxBounds: bounds, maxBoundsViscosity: 1, scrollWheelZoom: true, maxZoom: 1});
+      maxBounds: bounds, maxBoundsViscosity: 1, scrollWheelZoom: true, minZoom: -6, maxZoom: 1});
     L.imageOverlay(CONTACT.map, bounds).addTo(map);
-    const fitZoom = () => map.getBoundsZoom(bounds, true);              // najmenšie zobrazenie = mapa vyplní okno
-    const home = () => map.setView(ll(CONTACT.pin), Math.min(fitZoom() + 0.75, 0.25));
+    const fitZoom = () => map.getBoundsZoom(bounds, false);             // najmenšie zobrazenie = celá mapa v okne
+    const home = () => map.setView(ll(CONTACT.pin), -0.25);
+    window.contactMap = map;
     map.setMinZoom(fitZoom()); home();
     map.on('resize', () => map.setMinZoom(fitZoom()));
 
+    (CONTACT.streets || []).forEach(p => L.marker(ll(p), {interactive: false, keyboard: false,
+      icon: L.divIcon({className: 'st', html: `<span style="--a:${Number(p.angle) || 0}deg">${esc(p.name)}</span>`, iconSize: [0, 0]})}).addTo(map));
+    const far = () => $('#cmap').classList.toggle('far', map.getZoom() < -1.25);   // pri oddialení sa názvy ulíc skryjú
+    map.on('zoomend', far); far();
     (CONTACT.landmarks || []).forEach(p => L.marker(ll(p), {interactive: false, keyboard: false,
       icon: L.divIcon({className: 'lm', html: `<i></i><span>${esc(p.name)}</span>`, iconSize: [0, 0]})}).addTo(map));
     L.marker(ll(CONTACT.pin), {interactive: false, keyboard: false, zIndexOffset: 1000,
