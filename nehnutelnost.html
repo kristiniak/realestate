@@ -311,12 +311,19 @@
   async function initInquiry(h) {
     const btn = $('#interest');
     if (!btn || h.contact) return;                                   // vlastný odkaz v ponuke má prednosť
-    let r;
-    try { r = await fetch('/api/me', {cache: 'no-store'}).then(x => x.ok ? x.json() : null); } catch (e) { r = null; }
-    if (!r || !('user' in r)) return;                                // server nie je pripravený → ostáva starý odkaz
-    inqUser = r.user;
+    // Klik sa zachytí hneď (aj keď sa stránka ešte len načítava) a počká na odpoveď servera
+    let apiOk = null;
+    const ready = fetch('/api/me', {cache: 'no-store', credentials: 'same-origin'})
+      .then(x => x.ok ? x.json() : null).catch(() => null)
+      .then(r => { apiOk = !!(r && 'user' in r); if (apiOk) inqUser = r.user; return apiOk; });
     btn.removeAttribute('target'); btn.href = '#zaujem';
-    btn.addEventListener('click', e => { e.preventDefault(); openInquiry(h); });
+    btn.addEventListener('click', async e => {
+      e.preventDefault();
+      if (apiOk === null) await ready;
+      if (apiOk) openInquiry(h);
+      else location.href = DISCORD;                                 // server nie je dostupný → Discord ako doteraz
+    });
+    if (!(await ready)) return;
 
     // interest select
     const offers = offersOf(h).filter(o => o === 'predaj' || o === 'prenajom');
