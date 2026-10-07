@@ -5,7 +5,7 @@
 
 // Názov kancelárie, logo a krátky popis na úvodnej stránke
 const AGENCY = {
-  name: 'ONYX Real Estate',
+  name: 'Onyx Real Estate',
   logo: 'img/onyx_logo.png',
   // Veľký názov v strede úvodnej stránky a menší text pod ním
   heroTitle: 'ONYX',
@@ -17,7 +17,22 @@ const AGENCY = {
   heroPhoto: ''
 };
 
-// Pozvánka na Discord (tlačidlá „Mám záujem“ a „Kontakt“)
+// ===== KONTAKT (stránka kontakt.html) =====
+// Adresa a telefón kancelárie. Poloha na mapke je v pixeloch obrázka img/kontakt-mapa.png
+// (x zľava, y zhora). Orientačné body (napr. Bahama Mamas) pridáš do "landmarks".
+const CONTACT = {
+  address: 'Boulevard Del Perro',          // ulica a číslo
+  district: 'Del Perro, Los Santos',        // štvrť / mesto
+  phone: '555-0100',                        // telefón kancelárie
+  hours: '',                                // napr. 'Po – Pi 10:00 – 22:00' (nechaj prázdne, ak nechceš)
+  map: 'img/kontakt-mapa.png',
+  pin: {x: 588, y: 511},
+  landmarks: [
+    // {name: 'Bahama Mamas', x: 0, y: 0},
+  ]
+};
+
+// Pozvánka na Discord (tlačidlo „Mám záujem“, keď formulár nie je dostupný)
 const DISCORD = 'https://discord.gg/PrrqcxaUy7';
 const CONTACT_LABEL = 'Mám záujem';
 
@@ -69,5 +84,5 @@ const STATUSES = {
     `<nav class="site-nav" aria-label="Hlavné menu">` +
       links.map(([href, text]) => `<a href="${href}"${page === href ? ' aria-current="page"' : ''}>${text}</a>`).join('') +
     `</nav>` +
-    `<a class="hdr-cta" href="${DISCORD}" target="_blank" rel="noopener">Kontakt</a>`;
+    `<a class="hdr-cta" href="kontakt.html"${page === 'kontakt.html' ? ' aria-current="page"' : ''}>Kontakt</a>`;
 })();

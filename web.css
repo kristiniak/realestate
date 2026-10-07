@@ -19,7 +19,7 @@
 .site-nav a[aria-current="page"]{color:var(--pin);border-bottom-color:var(--pin)}
 .hdr-cta{flex:none;color:var(--panel);background:var(--pin);text-decoration:none;font-size:13px;font-weight:500;letter-spacing:.16em;
   text-transform:uppercase;padding:11px 18px;border:1px solid var(--pin);transition:background .15s,color .15s}
-.hdr-cta:hover{background:transparent;color:var(--pin)}
+.hdr-cta:hover,.hdr-cta[aria-current="page"]{background:transparent;color:var(--pin)}
 .site-header a:focus-visible{outline:2px solid var(--pin);outline-offset:2px}
 @media (max-width:760px){
   .site-header{flex-wrap:wrap;height:auto;gap:0 12px;padding:10px 16px 0}
