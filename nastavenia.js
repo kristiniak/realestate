@@ -30,31 +30,8 @@ const CONTACT = {
   // Orientačné body – svetlá bodka s názvom (x, y = pixely v obrázku mapy)
   landmarks: [
     // {name: 'Bahama Mamas', x: 0, y: 0},
-  ],
-  // Názvy ulíc (ukážu sa pri priblížení). angle = natočenie textu v stupňoch
-  streets: [
-    {name: 'Boulevard Del Perro', x: 1266, y: 4935, angle: -28},
-    {name: 'Bay City Avenue', x: 1125, y: 4960, angle: 55},
-    {name: 'Marathon Avenue', x: 1314, y: 5018, angle: -28},
-    {name: 'North Rockford Drive', x: 1403, y: 4964, angle: 58},
-    {name: 'Morningwood Boulevard', x: 1367, y: 4805, angle: 62},
-    {name: 'Prosperity Street', x: 1251, y: 4870, angle: 55},
-    {name: 'Dorset Drive', x: 1504, y: 4718, angle: 25},
-    {name: 'Marathon Avenue', x: 1609, y: 4844, angle: -25},
-    {name: 'South Boulevard Del Perro', x: 1609, y: 4779, angle: -20},
-    {name: 'San Andreas Avenue', x: 1515, y: 5151, angle: -38},
-    {name: 'Movie Star Way', x: 1641, y: 4942, angle: 65},
-    {name: 'Red Desert Avenue', x: 1323, y: 5115, angle: -50},
-    {name: 'Magellan Avenue', x: 1266, y: 5198, angle: 25},
-    {name: 'Cougar Avenue', x: 1262, y: 4805, angle: -55},
-    {name: 'Bay City Incline', x: 1020, y: 4931, angle: 33},
-    {name: 'West Eclipse Boulevard', x: 937, y: 4758, angle: -22},
-    {name: 'West Eclipse Boulevard', x: 1659, y: 4458, angle: -8},
-    {name: 'Great Ocean Highway', x: 626, y: 4769, angle: 30},
-    {name: 'Palomino Avenue', x: 1833, y: 4992, angle: -88},
-    {name: 'Vespucci Boulevard', x: 1825, y: 5176, angle: 0},
-    {name: 'Hawick Avenue', x: 1970, y: 4624, angle: -5}
   ]
+  // Názvy ulíc sú v súbore kontakt-ulice.js
 };
 
 // Pozvánka na Discord (tlačidlo „Mám záujem“, keď formulár nie je dostupný)
