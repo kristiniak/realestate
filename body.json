@@ -40,7 +40,9 @@
         "pitch": -37
       }
     ],
-    "group": "Okolie - Vinewood Vila"
+    "group": "Okolie - Vinewood Vila",
+    "yaw": 4,
+    "pitch": -16
   },
   {
     "id": "terasa",
