@@ -109,6 +109,11 @@ body.page{margin:0;background:var(--panel);color:var(--text);font-family:var(--s
 .modal-x:focus-visible{outline:2px solid var(--pin);outline-offset:2px}
 
 /* Formulár „Mám záujem“ */
+/* OOC poznámka ako „spoiler“ (ako na Discorde): tmavý pásik, text sa ukáže po prejdení myšou / kliknutí */
+.ooc{margin:10px 0 0;font-size:14px;color:var(--muted)}
+.spoiler{display:inline;padding:2px 6px;border-radius:4px;background:#2b2a30;color:transparent;cursor:pointer;
+  transition:background .15s,color .15s;-webkit-box-decoration-break:clone;box-decoration-break:clone;user-select:none}
+.spoiler:hover,.spoiler:focus,.spoiler.open{background:rgba(201,169,97,.14);color:var(--text);outline:none;user-select:text}
 .inq-box{width:min(720px,100%)}
 .inq-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .inq-field{min-width:0}

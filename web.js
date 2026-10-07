@@ -114,3 +114,6 @@ function initCarousel(root) {
   el.className = 'site-footer';
   el.innerHTML = `<div class="wrap"><span>© ${new Date().getFullYear()} ${esc(AGENCY.name)}</span></div>`;
 })();
+
+// Spoiler (OOC poznámka): na mobile sa ukáže ťuknutím
+document.addEventListener('click', e => { const s = e.target.closest('.spoiler'); if (s) s.classList.toggle('open'); });
