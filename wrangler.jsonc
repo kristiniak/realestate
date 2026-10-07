@@ -9,7 +9,14 @@
     "binding": "ASSETS",
     "run_worker_first": ["/api/*"]
   },
-  // premenné nastavené v Cloudflare (Variables and Secrets) sa pri nasadení nezmažú
+  // Verejné ID z Discordu (nie sú tajné). Token bota a Client Secret patria do Cloudflare ako Secret!
+  "vars": {
+    "DISCORD_CLIENT_ID": "1557328761505054720",
+    "DISCORD_GUILD_ID": "1556773571550908500",
+    "DISCORD_CATEGORY_ID": "1556773572704477294",
+    "DISCORD_STAFF_ROLE_ID": "1556944091122770010,1556944236971298818"
+  },
+  // secrets nastavené v Cloudflare (Variables and Secrets) sa pri nasadení nezmažú
   "keep_vars": true,
   "observability": { "enabled": true }
 }
