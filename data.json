@@ -135,10 +135,7 @@
     "pool": true,
     "agent": "makler-2",
     "view": "more",
-    "status": [
-      "zlava",
-      "predane"
-    ],
+    "status": "zlava",
     "desc": "TESTIK",
     "photos": [
       "img/test-1791334719862-1.jpg"
