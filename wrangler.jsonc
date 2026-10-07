@@ -16,9 +16,9 @@
     "DISCORD_CATEGORY_ID": "1557074996797505556",
     "DISCORD_STAFF_ROLE_ID": "1556944091122770010,1556944236971298818",
     // Public Key z Developer Portal → General Information (tlačidlo Copy)
-    "DISCORD_PUBLIC_KEY": "SEM-VLOZTE-PUBLIC-KEY",
+    "DISCORD_PUBLIC_KEY": "6c1c5c074ed6fd267302f1ea76b57fcae9a56d6eec5c7fbf4414140ea71f99ae",
     // ID kanála, kam sa ukladajú prepisy uzavretých ticketov (pravý klik na kanál → Copy Channel ID)
-    "DISCORD_TRANSCRIPT_CHANNEL_ID": "SEM-VLOZTE-ID-KANALA"
+    "DISCORD_TRANSCRIPT_CHANNEL_ID": "1557078905150644304"
   },
   // secrets nastavené v Cloudflare (Variables and Secrets) sa pri nasadení nezmažú
   "keep_vars": true,
