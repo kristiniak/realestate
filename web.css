@@ -75,6 +75,39 @@ body.page{margin:0;background:var(--panel);color:var(--text);font-family:var(--s
 .card.is-sold .card-price{color:var(--muted);text-decoration:line-through}
 .card-rent{display:block;color:var(--muted);font-size:14px;font-weight:400;margin-top:2px}   /* „alebo prenájom …“ */
 
+/* Posuvný riadok kariet (úspešné obchody) */
+.carousel{position:relative}
+.car-track{display:grid;grid-auto-flow:column;grid-auto-columns:calc((100% - 3 * 22px) / 4);gap:22px;overflow-x:auto;
+  scroll-snap-type:x mandatory;scroll-behavior:smooth;scrollbar-width:none;padding:4px 0 6px}
+.car-track::-webkit-scrollbar{display:none}
+.car-track > *{scroll-snap-align:start}
+.car-track:focus-visible{outline:2px solid var(--pin);outline-offset:4px}
+.car-btn{position:absolute;top:calc(50% - 26px);z-index:5;width:48px;height:48px;display:grid;place-items:center;
+  background:var(--panel);color:var(--pin);border:1px solid var(--pin);font:400 30px/1 var(--sans);cursor:pointer;
+  box-shadow:0 4px 14px rgba(0,0,0,.5);transition:background .15s,color .15s,opacity .15s}
+.car-btn:hover{background:var(--pin);color:var(--panel)}
+.car-btn:disabled{opacity:0;pointer-events:none}
+.car-prev{left:-22px} .car-next{right:-22px}
+.carousel.no-scroll .car-btn{display:none}
+@media (max-width:1100px){.car-track{grid-auto-columns:calc((100% - 2 * 22px) / 3)}}
+@media (max-width:800px){.car-track{grid-auto-columns:calc((100% - 22px) / 2)}.car-prev{left:-8px}.car-next{right:-8px}}
+@media (max-width:520px){.car-track{grid-auto-columns:82%}}
+/* Úspešné obchody: karta nie je sivá ani preškrtnutá, len so štítkom */
+.success .card.is-sold .card-img{filter:saturate(.75) brightness(.85)}
+.success .card.is-sold .card-price{color:var(--pin);text-decoration:none}
+
+/* Okno s úspešnými obchodmi makléra */
+.modal{position:fixed;inset:0;z-index:3000;background:rgba(6,6,8,.88);display:flex;align-items:flex-start;justify-content:center;
+  padding:5vh 16px;overflow-y:auto}
+.modal[hidden]{display:none}
+.modal-box{width:min(1100px,100%);background:var(--panel);border:1px solid var(--pin);padding:28px}
+.modal-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin:0 0 22px}
+.modal-head h2{font-size:clamp(30px,4vw,44px);color:var(--pin)}
+.modal-head p{color:var(--muted);margin:6px 0 0}
+.modal-x{flex:none;width:44px;height:44px;background:none;border:1px solid var(--pin);color:var(--pin);font-size:20px;cursor:pointer}
+.modal-x:hover{background:var(--pin);color:var(--panel)}
+.modal-x:focus-visible{outline:2px solid var(--pin);outline-offset:2px}
+
 /* Pätička */
 .site-footer{border-top:1px solid var(--line);padding:32px 0;color:var(--muted);font-size:14px}
 .site-footer .wrap{display:flex;justify-content:center;text-align:center;gap:16px;flex-wrap:wrap}

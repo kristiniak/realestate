@@ -128,6 +128,14 @@
       <a class="btn btn-gold" id="band-cta" target="_blank" rel="noopener">Kontaktujte nás</a>
     </div>
   </section>
+
+  <section class="section success" id="success" hidden>
+    <div class="wrap">
+      <div class="section-head"><div><p class="eyebrow">Naše úspechy</p><h2>Úspešne predané a prenajaté</h2></div>
+        <span class="link-more" id="success-count" style="cursor:default"></span></div>
+      <div id="success-list"></div>
+    </div>
+  </section>
 </main>
 
 <footer id="site-footer"></footer>
@@ -159,6 +167,15 @@
     const featured = [...available.filter(h => statusesOf(h).includes('novinka')),
                       ...available.filter(h => !statusesOf(h).includes('novinka'))].slice(0, 3);
     $('#featured').innerHTML = featured.length ? featured.map(cardHtml).join('') : '<p class="empty">Ponuku práve pripravujeme.</p>';
+
+    // Úplne dole: predané a prenajaté nehnuteľnosti v jednom riadku so šípkami
+    const done = houses.filter(isClosed);
+    if (done.length) {
+      $('#success').hidden = false;
+      $('#success-count').textContent = `${done.length} ${done.length === 1 ? 'obchod' : done.length < 5 ? 'obchody' : 'obchodov'}`;
+      $('#success-list').innerHTML = carouselHtml(done.map(cardHtml).join(''));
+      initCarousel($('#success-list .carousel'));
+    }
   });
 </script>
 </body>

@@ -132,7 +132,7 @@
   if (matchMedia('(max-width:900px)').matches) $('#filters-box').open = false;   // na mobile sú filtre zbalené
 
   Promise.all([loadJSON('data.json', []), loadJSON('makleri.json', [])]).then(([h, a]) => {
-    houses = Array.isArray(h) ? h : [];
+    houses = (Array.isArray(h) ? h : []).filter(x => !isClosed(x));   // predané a prenajaté sa v ponuke neukazujú
     agents = Array.isArray(a) ? a : [];
     if (agentFilter) {
       const ag = agents.find(x => x.id === agentFilter);

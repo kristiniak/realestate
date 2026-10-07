@@ -22,7 +22,8 @@
   .agent-contact{border-top:1px solid var(--line);margin-top:14px;padding-top:14px;display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:14px}
   .agent-contact dt{color:var(--muted)} .agent-contact dd{margin:0;text-align:right}
   .agent-actions{display:flex;gap:8px;margin-top:auto;padding-top:18px}
-  .agent-actions .btn{flex:1;padding:12px 10px}
+  .agent-actions{flex-wrap:wrap}
+  .agent-actions .btn{flex:1 1 auto;padding:12px 10px;letter-spacing:.12em}
 </style>
 </head>
 <body class="page">
@@ -37,18 +38,52 @@
   <div class="agents" id="agents"><p class="empty">Načítavam…</p></div>
 </main>
 
+<div class="modal success" id="deals" hidden role="dialog" aria-modal="true" aria-labelledby="deals-title">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div><h2 id="deals-title"></h2><p id="deals-sub"></p></div>
+      <button class="modal-x" type="button" data-close aria-label="Zavrieť">✕</button>
+    </div>
+    <div class="grid" id="deals-grid"></div>
+  </div>
+</div>
+
 <footer id="site-footer"></footer>
 <script src="web.js"></script>
 <script>
   const initials = n => String(n).split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('');
 
+  let agentsAll = [], housesAll = [], lastBtn = null;
+  const dealsOf = a => housesAll.filter(h => h.agent === a.id && isClosed(h));
+
+  // Okno s predanými a prenajatými nehnuteľnosťami makléra
+  function openDeals(id, btn) {
+    const a = agentsAll.find(x => x.id === id); if (!a) return;
+    const list = dealsOf(a);
+    const sold = list.filter(h => statusesOf(h).includes('predane')).length, rented = list.length - sold;
+    $('#deals-title').textContent = 'Úspešné obchody – ' + a.name;
+    $('#deals-sub').textContent = [sold && `Predané: ${sold}`, rented && `Prenajaté: ${rented}`].filter(Boolean).join(' · ');
+    $('#deals-grid').innerHTML = list.map(cardHtml).join('');
+    lastBtn = btn; $('#deals').hidden = false; document.body.style.overflow = 'hidden';
+    $('#deals .modal-x').focus();
+  }
+  function closeDeals() {
+    $('#deals').hidden = true; document.body.style.overflow = '';
+    if (lastBtn) lastBtn.focus();
+  }
+  $('#deals').addEventListener('click', e => { if (e.target.id === 'deals' || e.target.closest('[data-close]')) closeDeals(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#deals').hidden) closeDeals(); });
+  $('#agents').addEventListener('click', e => { const b = e.target.closest('[data-deals]'); if (b) openDeals(b.dataset.deals, b); });
+
   Promise.all([loadJSON('makleri.json', []), loadJSON('data.json', [])]).then(([agents, houses]) => {
+    agentsAll = Array.isArray(agents) ? agents : []; housesAll = Array.isArray(houses) ? houses : [];
     if (!Array.isArray(agents) || !agents.length) {
       $('#agents').innerHTML = '<p class="empty">Zoznam maklérov pripravujeme.</p>';
       return;
     }
     $('#agents').innerHTML = agents.map(a => {
       const count = houses.filter(h => h.agent === a.id && !isClosed(h)).length;
+      const deals = dealsOf(a).length;
       const rows = [['Kontakt', a.discord], ['Telefón', a.phone]].filter(([, v]) => v);
       return `<article class="agent">
         <div class="agent-photo"${a.photo ? ` style="background-image:url('${esc(a.photo)}')"` : ''}>
@@ -61,7 +96,7 @@
           ${rows.length ? `<dl class="agent-contact">${rows.map(([k, v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join('')}</dl>` : ''}
           <div class="agent-actions">
             <a class="btn btn-line" href="ponuka.html?makler=${encodeURIComponent(a.id)}">Ponuka (${count})</a>
-            <a class="btn btn-gold" href="${esc(a.contact || DISCORD)}" target="_blank" rel="noopener">Kontakt</a>
+            ${deals ? `<button class="btn btn-gold" type="button" data-deals="${esc(a.id)}">Úspešné obchody (${deals})</button>` : ''}
           </div>
         </div>
       </article>`;

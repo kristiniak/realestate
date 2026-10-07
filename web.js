@@ -78,6 +78,35 @@ function cardHtml(h) {
   </a>`;
 }
 
+// Text pre uzavretú ponuku: "Predané", "Prenajaté" alebo oboje
+const closedText = h => statusesOf(h).filter(k => k === 'predane' || k === 'prenajate').map(k => STATUSES[k][0]).join(' · ');
+
+// Posuvný riadok kariet so šípkami (napr. úspešné obchody na úvodnej stránke)
+// html = karty, vráti kód; po vložení do stránky zavolaj initCarousel(prvok)
+const carouselHtml = cards => `<div class="carousel">
+    <button class="car-btn car-prev" type="button" aria-label="Predchádzajúce" data-car="-1">‹</button>
+    <div class="car-track" tabindex="0">${cards}</div>
+    <button class="car-btn car-next" type="button" aria-label="Ďalšie" data-car="1">›</button>
+  </div>`;
+function initCarousel(root) {
+  const track = root.querySelector('.car-track');
+  const prev = root.querySelector('.car-prev'), next = root.querySelector('.car-next');
+  const step = () => { const c = track.firstElementChild; return c ? c.getBoundingClientRect().width + 22 : track.clientWidth; };
+  const update = () => {
+    const max = track.scrollWidth - track.clientWidth - 2;
+    prev.disabled = track.scrollLeft <= 2;
+    next.disabled = track.scrollLeft >= max;
+    root.classList.toggle('no-scroll', max <= 0);
+  };
+  root.addEventListener('click', e => {
+    const b = e.target.closest('[data-car]'); if (!b) return;
+    track.scrollBy({left: Number(b.dataset.car) * step(), behavior: 'smooth'});
+  });
+  track.addEventListener('scroll', update, {passive: true});
+  window.addEventListener('resize', update);
+  update();
+}
+
 // Pätička na každej obsahovej stránke
 (function renderFooter() {
   const el = document.getElementById('site-footer');

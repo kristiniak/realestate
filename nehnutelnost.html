@@ -70,6 +70,10 @@
   .agent small{color:var(--pin);font-size:12px;letter-spacing:.12em;text-transform:uppercase}
   .agent-rows{margin:14px 0 0;font-size:14px;display:grid;grid-template-columns:auto 1fr;gap:6px 12px}
   .agent-rows dt{color:var(--muted)} .agent-rows dd{margin:0;text-align:right}
+  .closed-note{margin:0;text-align:center;font-family:var(--serif);font-size:30px;font-weight:600;color:var(--text);
+    border:1px solid var(--line);padding:10px;background:var(--panel)}
+  .closed-sub{color:var(--muted);font-size:14px;text-align:center;margin:10px 0 16px}
+  .closed-sub a{color:var(--pin)}
   .copied{color:var(--pin);font-size:13px;text-align:center;margin:8px 0 0;min-height:1em}
 
   /* Lokalita – výrez z mapy */
@@ -93,6 +97,17 @@
   @keyframes pulse{0%{transform:scale(.4);opacity:1}100%{transform:scale(1.3);opacity:0}}
   @media (prefers-reduced-motion:reduce){.here::before{animation:none;opacity:.6}}
   .leaflet-container{font-family:var(--sans)}
+  /* ostatné ponuky v mapke Lokalita – menšie a tlmenejšie */
+  .other span{display:block;width:16px;height:16px;background:#8a7a55;border:2px solid var(--panel);border-radius:50% 50% 50% 0;
+    transform:rotate(-45deg);box-shadow:0 1px 4px rgba(0,0,0,.5);opacity:.9;transition:transform .15s,background .15s}
+  .other:hover span{background:var(--pin);transform:rotate(-45deg) scale(1.25);opacity:1}
+  .other.closed span{background:#6f6a62;opacity:.7}
+  .leaflet-tooltip{font-family:var(--sans);background:var(--panel);color:var(--text);border:1px solid var(--pin);border-radius:0;box-shadow:none;line-height:1.35}
+  .leaflet-tooltip small{color:var(--muted)}
+  .leaflet-tooltip-top:before{border-top-color:var(--pin)}
+  .loc-legend{position:absolute;z-index:500;left:12px;bottom:12px;display:flex;gap:14px;align-items:center;background:rgba(13,13,15,.85);
+    border:1px solid var(--line);padding:6px 10px;font-size:13px;color:var(--muted)}
+  .loc-legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px}
 
   /* Lightbox */
   .lb{position:fixed;inset:0;z-index:3000;background:rgba(6,6,8,.96);display:flex;align-items:center;justify-content:center}
@@ -217,7 +232,8 @@
           </div>
           <aside class="side">
             <div class="box">
-              <a class="btn btn-gold" href="${esc(h.contact || DISCORD)}" target="_blank" rel="noopener">${esc(CONTACT_LABEL)}</a>
+              ${sold ? `<p class="closed-note">${esc(closedText(h))}</p><p class="closed-sub">Táto nehnuteľnosť už nie je k dispozícii. Pozrite si <a href="ponuka.html">aktuálnu ponuku</a>.</p>`
+                     : `<a class="btn btn-gold" href="${esc(h.contact || DISCORD)}" target="_blank" rel="noopener">${esc(CONTACT_LABEL)}</a>`}
               <a class="btn btn-line" href="mapa.html#${encodeURIComponent(h.id)}">Zobraziť na mape</a>
               <button class="btn btn-line" id="share" type="button">Zdieľať ponuku</button>
               <p class="copied" id="copied" aria-live="polite"></p>
@@ -236,12 +252,13 @@
             <button type="button" id="loc-in" aria-label="Priblížiť">+</button>
             <button type="button" id="loc-out" aria-label="Oddialiť">−</button>
           </div>
+          <div class="loc-legend" aria-hidden="true"><span><i style="background:var(--pin)"></i>Táto ponuka</span><span><i style="background:#8a7a55"></i>Ďalšie ponuky</span></div>
         </div>
         <p class="loc-note">${esc([h.street, h.area && optLabel('area', h.area)].filter(Boolean).join(', '))}
           ${h.street || h.area ? ' · ' : ''}<a href="mapa.html#${encodeURIComponent(h.id)}">Otvoriť na veľkej mape →</a></p>
       </section>` : ''}
       <section class="section" id="similar" style="padding-top:0"></section>`;
-    if (typeof h.x === 'number' && typeof h.y === 'number') initLocMap(h);
+    if (typeof h.x === 'number' && typeof h.y === 'number') initLocMap(h, houses);
 
     // Podobné ponuky: rovnaká lokalita alebo druh; ak žiadne nie sú, ukážu sa iné z ponuky (max. 3)
     const others = houses.filter(x => x.id !== h.id && !isClosed(x));
@@ -269,7 +286,7 @@
   }
 
   // Výrez z mapy (rovnaký obrázok mapa.jpg ako na stránke Mapa)
-  function initLocMap(h) {
+  function initLocMap(h, houses) {
     const probe = new Image();
     probe.onload = () => {
       const W = probe.naturalWidth, H = probe.naturalHeight, bounds = [[0, 0], [H, W]];
@@ -279,7 +296,17 @@
       const pos = [H - h.y, h.x];
       map.setView(pos, -0.5);
       L.marker(pos, {interactive: false, keyboard: false,
-        icon: L.divIcon({className: 'here', html: '<span></span>', iconSize: [0, 0]})}).addTo(map);
+        icon: L.divIcon({className: 'here', html: '<span></span>', iconSize: [0, 0]}), zIndexOffset: 1000}).addTo(map);
+      // Ostatné dostupné ponuky: menšie body, po kliknutí sa otvorí ich inzerát (predané/prenajaté sa neukazujú)
+      (houses || []).filter(x => x.id !== h.id && !isClosed(x) && typeof x.x === 'number' && typeof x.y === 'number').forEach(x => {
+        const closed = false;
+        const sub = priceParts(x).main;
+        L.marker([H - x.y, x.x], {title: x.name, keyboard: true,
+          icon: L.divIcon({className: 'other' + (closed ? ' closed' : ''), html: '<span></span>', iconSize: [16, 16], iconAnchor: [8, 16]})})
+          .bindTooltip(`<b>${esc(x.name)}</b><br><small>${esc(sub)}</small>`, {direction: 'top', offset: [0, -14]})
+          .on('click', () => { location.href = 'nehnutelnost.html?id=' + encodeURIComponent(x.id); })
+          .addTo(map);
+      });
       $('#loc-in').onclick = () => map.zoomIn();
       $('#loc-out').onclick = () => map.zoomOut();
       map.on('click', () => map.scrollWheelZoom.enable());        // po kliknutí do mapy funguje aj koliesko
