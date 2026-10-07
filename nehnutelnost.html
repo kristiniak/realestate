@@ -161,7 +161,7 @@
         <div class="inq-field"><label for="q-phone">Tel. číslo *</label><input id="q-phone" maxlength="15" required inputmode="numeric" autocomplete="off" placeholder="napr. 5550123"></div>
         <div class="inq-field" id="q-interest-wrap"><label for="q-interest">Mám záujem o</label><select id="q-interest"></select></div>
         <div class="inq-field"><label for="q-date">Kedy sa vám hodí obhliadka?</label>
-          <div class="inq-when"><input type="date" id="q-date" aria-label="Dátum obhliadky"><input type="time" id="q-time" aria-label="Čas obhliadky" step="900"></div></div>
+          <div class="inq-when"><input type="date" id="q-date" aria-label="Dátum obhliadky"><select id="q-time" aria-label="Čas obhliadky" disabled><option value="">Čas</option></select></div></div>
         <div class="inq-field wide"><label for="q-msg">Správa pre makléra</label><textarea id="q-msg" maxlength="800" rows="4" placeholder="Otázky, požiadavky, rozpočet…"></textarea></div>
       </div>
       <p class="inq-err" id="inq-err" role="alert" hidden></p>
@@ -360,17 +360,24 @@
   // Dnešný dátum (miestny čas) vo formáte RRRR-MM-DD – skoršie dni sa v kalendári nedajú vybrať
   const pad = n => String(n).padStart(2, '0');
   const todayStr = () => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
+  // Čas obhliadky: ponuka po 15 minútach; pri dnešnom dátume len od najbližšieho štvrťhodinového času do 23:45
   function syncWhen() {
     $('#q-date').min = todayStr();
-    const d = new Date();
-    $('#q-time').min = $('#q-date').value === todayStr() ? `${pad(d.getHours())}:${pad(d.getMinutes())}` : '';
+    const sel = $('#q-time'), keep = sel.value, date = $('#q-date').value;
+    let from = 0;
+    if (date === todayStr()) { const d = new Date(); from = Math.ceil((d.getHours() * 60 + d.getMinutes() + 1) / 15) * 15; }
+    const slots = [];
+    for (let m = from; m < 24 * 60; m += 15) slots.push(`${pad(Math.floor(m / 60))}:${pad(m % 60)}`);
+    sel.innerHTML = `<option value="">${date ? 'Čas' : 'Najprv dátum'}</option>` + slots.map(t => `<option value="${t}">${t}</option>`).join('');
+    sel.disabled = !date || !slots.length;
+    if (slots.includes(keep)) sel.value = keep;
   }
   function openInquiry(h, saved) {
     $('#inq-code').textContent = h.code ? 'Kód ponuky ' + h.code : 'Dopyt';
     $('#inq-title').textContent = h.name;
     $('#inq-sub').textContent = 'Vyplňte pár údajov. Maklér vám odpovie e-mailom a dohodne s vami ďalší postup.';
     if (saved) { $('#q-name').value = saved.icName || ''; $('#q-phone').value = saved.phone || '';
-      $('#q-date').value = saved.date || ''; $('#q-time').value = saved.time || '';
+      $('#q-date').value = saved.date || ''; syncWhen(); $('#q-time').value = saved.time || '';
       $('#q-msg').value = saved.message || ''; if (saved.interest) $('#q-interest').value = saved.interest; }
     $('#inq-form').hidden = false; $('#inq-done').hidden = true; $('#inq-err').hidden = true;
     renderUser(); syncWhen();
