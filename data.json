@@ -116,5 +116,39 @@
     "y": 0,
     "desc": "Farma.",
     "photos": []
+  },
+  {
+    "id": "test",
+    "name": "TEST",
+    "price": 500,
+    "offer": [
+      "predaj",
+      "prenajom"
+    ],
+    "rent": 2,
+    "rentPeriod": "den",
+    "type": "dom",
+    "area": "plaz",
+    "rooms": 1,
+    "pool": true,
+    "agent": "makler-2",
+    "view": "more",
+    "status": "zlava",
+    "desc": "TESTIK",
+    "photos": [
+      "img/test-1791334719862-1.jpg"
+    ],
+    "tour": {
+      "start": "miestnost-1",
+      "scenes": {
+        "miestnost-1": {
+          "title": "Miestnosť 1",
+          "photo": "img/360-test-miestnost-1-1791334719862.jpg",
+          "links": []
+        }
+      }
+    },
+    "x": 2799,
+    "y": 5164
   }
 ]
