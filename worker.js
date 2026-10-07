@@ -109,11 +109,12 @@ async function ticket(req, env, url) {
   const body = await req.json().catch(() => ({}));
   const clip = (v, n) => String(v || '').replace(/\s+/g, ' ').trim().slice(0, n);
   const form = {
-    icName: clip(String(body.icName || '').normalize('NFC'), 60), phone: clip(body.phone, 15), interest: clip(body.interest, 20),
+    icName: clip(String(body.icName || '').normalize('NFC'), 60), phone: clip(body.phone, 15), email: clip(body.email, 80), interest: clip(body.interest, 20),
     message: String(body.message || '').trim().slice(0, 800)
   };
   if (!/^\p{L}+(?:[ '-]\p{L}+)+$/u.test(form.icName)) return json({error: 'icName'}, 400);   // meno a priezvisko, len písmená
   if (!/^\d{3,15}$/.test(form.phone)) return json({error: 'phone'}, 400);                     // len číslice
+  if (!/^[^\s@]+@[^\s@]+$/.test(form.email)) return json({error: 'email'}, 400);              // musí obsahovať @
   // Termín obhliadky (nepovinný): dátum RRRR-MM-DD + čas HH:MM, nie v minulosti
   const date = String(body.date || ''), time = String(body.time || '');
   if (date || time) {
@@ -182,6 +183,7 @@ async function ticket(req, env, url) {
     {name: 'Cena', value: price, inline: true},
     {name: 'Meno a priezvisko', value: form.icName, inline: true},
     {name: 'Tel. číslo', value: form.phone, inline: true},
+    {name: 'E-mail', value: form.email, inline: true},
     {name: 'Maklér', value: agent ? agent.name : '—', inline: true}
   ];
   if (form.when) fields.push({name: 'Termín obhliadky', value: form.when});
