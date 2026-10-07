@@ -24,7 +24,7 @@ const CONTACT = {
   address: 'Blv. Del Perro 7171',          // ulica a číslo
   district: 'Morningwood, Los Santos, San Andreas',   // štvrť / mesto
   phone: '(738) 153-3803',                        // telefón kancelárie (doplň)
-  email: 'onyx_realestate@lifeinvader',                    // e-mail kancelárie (doplň)
+  email: 'onyx_realestate@lifeinvader.com',                    // e-mail kancelárie (doplň)
   hours: '',                                // napr. 'Po – Pi 10:00 – 22:00' (nechaj prázdne, ak nechceš)
   map: 'img/kontakt-mapa.png',
   pin: {x: 1216, y: 5008},
