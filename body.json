@@ -19,7 +19,9 @@
         "text": "Vstup do domu"
       }
     ],
-    "group": "Okolie - Vinewood Vila"
+    "group": "Okolie - Vinewood Vila",
+    "yaw": 122,
+    "pitch": -18
   },
   {
     "id": "vstup-terasa",
