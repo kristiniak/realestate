@@ -1,0 +1,15 @@
+// Nastavenie Cloudflare Workera (nemeň, ak nevieš presne čo robíš)
+{
+  "name": "onyx",
+  "main": "worker.js",
+  "compatibility_date": "2025-09-01",
+  // celý web (html, obrázky, json) sa servíruje ako doteraz; worker.js rieši len adresy /api/…
+  "assets": {
+    "directory": "./",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*"]
+  },
+  // premenné nastavené v Cloudflare (Variables and Secrets) sa pri nasadení nezmažú
+  "keep_vars": true,
+  "observability": { "enabled": true }
+}

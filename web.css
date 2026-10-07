@@ -108,6 +108,31 @@ body.page{margin:0;background:var(--panel);color:var(--text);font-family:var(--s
 .modal-x:hover{background:var(--pin);color:var(--panel)}
 .modal-x:focus-visible{outline:2px solid var(--pin);outline-offset:2px}
 
+/* Formulár „Mám záujem“ */
+.inq-box{width:min(720px,100%)}
+.inq-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.inq-field{min-width:0}
+.inq-field[hidden]{display:none}
+.inq-field.wide{grid-column:1 / -1}
+.inq-field label{display:block;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+.inq-field input,.inq-field select,.inq-field textarea{width:100%;font:inherit;font-size:15px;color:var(--text);background:var(--panel-2);
+  border:1px solid var(--line);padding:11px 12px;border-radius:0}
+.inq-field textarea{resize:vertical;min-height:96px;line-height:1.55}
+.inq-field input:focus,.inq-field select:focus,.inq-field textarea:focus{outline:2px solid var(--pin);outline-offset:0;border-color:var(--pin)}
+.inq-err{margin:16px 0 0;padding:10px 14px;border:1px solid #e07b6a;color:#f2b3a8;background:rgba(224,123,106,.08)}
+.inq-err a{color:var(--pin)}
+.inq-foot{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-top:22px;padding-top:18px;border-top:1px solid var(--line)}
+.inq-user{color:var(--muted);font-size:14px;margin:0;display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex:1 1 260px}
+.inq-user img{width:24px;height:24px;border-radius:50%}
+.inq-user b{color:var(--text);font-weight:500}
+.inq-done{text-align:center;padding:12px 0 8px}
+.inq-done h3{font-size:34px;margin:6px 0 8px}
+.inq-done p{color:var(--muted);margin:0 0 22px}
+.inq-check{width:64px;height:64px;margin:0 auto;border:1px solid var(--pin);color:var(--pin);display:grid;place-items:center;font-size:30px;border-radius:50%}
+.linkbtn{font:inherit;background:none;border:0;padding:0;color:var(--pin);cursor:pointer;text-decoration:underline}
+.btn:disabled{opacity:.6;cursor:progress}
+@media (max-width:600px){.inq-grid{grid-template-columns:1fr}.modal-box{padding:20px}.inq-foot .btn{width:100%}}
+
 /* Pätička */
 .site-footer{border-top:1px solid var(--line);padding:32px 0;color:var(--muted);font-size:14px}
 .site-footer .wrap{display:flex;justify-content:center;text-align:center;gap:16px;flex-wrap:wrap}

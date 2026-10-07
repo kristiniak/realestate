@@ -357,12 +357,12 @@
 
     const video = h.video
       ? `<a class="video-link" href="${esc(h.video)}" target="_blank" rel="noopener">▶ Videoprehliadka</a>` : '';
-    const link = h.contact || DISCORD;
+    const link = h.contact || 'nehnutelnost.html?id=' + encodeURIComponent(h.id) + '&zaujem=1';   // formulár v inzeráte
     const closed = statusesOf(h).filter(k => k === 'predane' || k === 'prenajate');
     const contact = closed.length
       ? `<p class="closed-note">${esc(closed.map(k => STATUSES[k][0]).join(' · '))}</p><p class="contact-note">Táto nehnuteľnosť už nie je k dispozícii.</p>`
       : link
-      ? `<a class="contact-btn" href="${esc(link)}" target="_blank" rel="noopener">
+      ? `<a class="contact-btn" href="${esc(link)}"${h.contact ? ' target="_blank" rel="noopener"' : ''}>
            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 3h16a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H9l-5 4v-4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zm3 6.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm5 0a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm5 0a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z"/></svg>
            ${esc(CONTACT_LABEL)}</a>
          ` : '';

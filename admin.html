@@ -330,6 +330,10 @@
         <div class="field"><label for="a-contact">Kontakt (napr. meno na Discorde)</label><input type="text" id="a-contact"></div>
         <div class="field"><label for="a-phone">Telefón</label><input type="text" id="a-phone" placeholder="napr. (879) 850-9659"></div>
       </div>
+      <div class="row">
+        <div class="field"><label for="a-did">Discord ID (pre tickety)</label><input type="text" id="a-did" inputmode="numeric" placeholder="napr. 412345678901234567">
+          <p class="hint">Nepovinné. Keď je vyplnené, maklér bude v tickete k svojim ponukám označený. (Discord → pravý klik na meno → Kopírovať ID používateľa.)</p></div>
+      </div>
       <div class="field" style="margin-bottom:16px"><label for="a-bio">Krátky popis</label>
         <textarea id="a-bio" style="min-height:100px" placeholder="Na čo sa maklér špecializuje…"></textarea></div>
       <div class="field"><label>Fotka</label>
@@ -429,11 +433,17 @@
   const opt = (v, l, sel) => `<option value="${esc(v)}"${sel ? ' selected' : ''}>${esc(l)}</option>`;
   const filterOpts = key => (FILTERS.find(f => f.key === key) || {options: []}).options;
 
+  // Kód ponuky: ponuky bez kódu dostanú ďalšie voľné číslo. Kód sa už nikdy nemení.
+  function assignCodes(list) {
+    let n = list.reduce((m, h) => { const k = /^ONX-(\d+)$/.exec(h.code || ''); return k ? Math.max(m, Number(k[1])) : m; }, 0);
+    list.forEach(h => { if (!h.code) h.code = 'ONX-' + String(++n).padStart(3, '0'); });
+  }
+
   // ================= Zoznam =================
   function renderList() {
     $('#list-body').innerHTML = houses.length ? houses.map((h, i) => `<tr>
       <td><span class="thumb" style="${(h.photos || [])[0] ? `background-image:url('${esc(h.photos[0])}')` : ''}"></span></td>
-      <td><b>${esc(h.name || '(bez názvu)')}</b>${h.street ? `<div class="hint" style="margin:2px 0 0">${esc(h.street)}</div>` : ''}</td>
+      <td>${h.code ? `<span class="hint" style="margin:0;letter-spacing:.08em">${esc(h.code)}</span><br>` : ''}<b>${esc(h.name || '(bez názvu)')}</b>${h.street ? `<div class="hint" style="margin:2px 0 0">${esc(h.street)}</div>` : ''}</td>
       <td>${[typeof h.price === 'number' ? fmtMoney(h.price) : '', rentText(h)].filter(Boolean).map(esc).join('<br>') || '—'}</td>
       <td>${offersOf(h).length ? esc(offerText(h)) : '—'}</td>
       <td>${badgesHtml(h) || '—'}</td>
@@ -448,7 +458,7 @@
   function openEditor(h) {
     editing = h ? {...h} : null;
     const d = h || {};
-    $('#ed-title').textContent = h ? 'Upraviť: ' + (h.name || '') : 'Nová ponuka';
+    $('#ed-title').textContent = h ? 'Upraviť: ' + (h.name || '') + (h.code ? ' · ' + h.code : '') : 'Nová ponuka';
     $('#e-name').value = d.name || '';
     $('#e-street').value = d.street || '';
     $('#e-id').value = d.id || '';
@@ -640,6 +650,7 @@
 
       const idx = list.findIndex(x => x.id === id);
       if (idx >= 0) list[idx] = h; else list.push(h);
+      assignCodes(list);                                   // každá ponuka dostane kód (ONX-001, ONX-002…)
       msg('Ukladám ponuku…');
       await putFile('data.json', b64encode(JSON.stringify(list, null, 2) + '\n'), fresh.sha, (editing ? 'Úprava: ' : 'Nová ponuka: ') + name);
       houses = list;
@@ -706,6 +717,7 @@
     $('#a-id-hint').textContent = a ? 'ID sa nemení (sú naň naviazané ponuky).' : 'Vytvorí sa automaticky z mena.';
     $('#a-contact').value = d.discord || '';
     $('#a-phone').value = d.phone || '';
+    $('#a-did').value = d.discordId || '';
     $('#a-bio').value = d.bio || '';
     agPhoto = d.photo ? {src: d.photo} : null;
     renderAgPhoto();
@@ -741,6 +753,8 @@
       const base = agEditing ? (list.find(a => a.id === agEditing.id) || agEditing) : {};
       const a = {...base, id, name, role: $('#a-role').value.trim(), photo: agPhoto ? agPhoto.src : '',
                  discord: $('#a-contact').value.trim(), phone: $('#a-phone').value.trim(), bio: $('#a-bio').value.trim()};
+      const did = $('#a-did').value.replace(/\D/g, '');
+      if (did) a.discordId = did; else delete a.discordId;
       const idx = list.findIndex(x => x.id === id);
       if (idx >= 0) list[idx] = a; else list.push(a);
       msg('Ukladám makléra…');

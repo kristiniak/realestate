@@ -1,0 +1,9 @@
+# Tieto súbory sa NEZVEREJNIA na webe
+.git
+.github
+node_modules
+worker.js
+wrangler.jsonc
+wrangler.toml
+.assetsignore
+*.md
