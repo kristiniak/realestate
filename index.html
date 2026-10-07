@@ -153,9 +153,10 @@
         <div class="inq-field"><label for="q-offer">Mám záujem o</label><select id="q-offer"><option>Kúpu</option><option>Prenájom</option><option>Kúpu aj prenájom</option></select></div>
         <div class="inq-field"><label for="q-type">Druh nehnuteľnosti</label><select id="q-type"></select></div>
         <div class="inq-field"><label for="q-area">Lokalita</label><select id="q-area"></select></div>
+        <div class="inq-field" id="q-area2-wrap" hidden><label for="q-area2">Aká iná lokalita? *</label><input id="q-area2" maxlength="60" autocomplete="off" placeholder="napr. Grapeseed"></div>
         <div class="inq-field"><label for="q-budget">Rozpočet</label><input id="q-budget" maxlength="40" autocomplete="off" placeholder="napr. do 2 000 000 $"></div>
         <div class="inq-field"><label for="q-rooms">Počet izieb</label><select id="q-rooms"><option>Nezáleží</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5 a viac</option></select></div>
-        <div class="inq-field wide"><label for="q-msg">Ďalšie požiadavky</label><textarea id="q-msg" maxlength="500" rows="3" placeholder="napr. bazén, garáž na 4 autá, výhľad na more…"></textarea></div>
+        <div class="inq-field wide"><label for="q-msg">Ďalšie požiadavky</label><textarea id="q-msg" maxlength="500" rows="3" placeholder="napr. bazén, výhľad na more, blízko centra…"></textarea></div>
       </div>
       <p class="inq-err" id="inq-err" role="alert" hidden></p>
       <div class="inq-foot">
@@ -211,16 +212,18 @@
     const KEY = 'onyx-hladam', ANY = 'Nezáleží';
     const opts = key => [ANY, ...(FILTERS.find(f => f.key === key) || {options: []}).options.map(o => o[1])];
     $('#q-type').innerHTML = opts('type').map(o => `<option>${esc(o)}</option>`).join('');
-    $('#q-area').innerHTML = opts('area').map(o => `<option>${esc(o)}</option>`).join('');
+    $('#q-area').innerHTML = [...opts('area'), 'Iné'].map(o => `<option>${esc(o)}</option>`).join('');
+    const syncArea = () => { $('#q-area2-wrap').hidden = $('#q-area').value !== 'Iné'; };
+    $('#q-area').addEventListener('change', () => { syncArea(); if (!$('#q-area2-wrap').hidden) $('#q-area2').focus(); });
     let user = null, apiOk = null;
     const ready = fetch('/api/me', {cache: 'no-store'}).then(r => r.ok ? r.json() : null).catch(() => null)
       .then(r => { apiOk = !!(r && 'user' in r); if (apiOk) user = r.user; return apiOk; });
     const showErr = t => { $('#inq-err').innerHTML = t; $('#inq-err').hidden = false; };
-    const fields = ['q-name', 'q-phone', 'q-email', 'q-offer', 'q-type', 'q-area', 'q-budget', 'q-rooms', 'q-msg'];
+    const fields = ['q-name', 'q-phone', 'q-email', 'q-offer', 'q-type', 'q-area', 'q-area2', 'q-budget', 'q-rooms', 'q-msg'];
     const raw = () => Object.fromEntries(fields.map(id => [id, $('#' + id).value]));
     function data() {
       const v = raw();
-      const lines = [['Hľadám', v['q-offer']], ['Druh', v['q-type']], ['Lokalita', v['q-area']], ['Rozpočet', v['q-budget'].trim() || ANY], ['Počet izieb', v['q-rooms']]]
+      const lines = [['Hľadám', v['q-offer']], ['Druh', v['q-type']], ['Lokalita', v['q-area'] === 'Iné' ? 'Iné – ' + v['q-area2'].trim() : v['q-area']], ['Rozpočet', v['q-budget'].trim() || ANY], ['Počet izieb', v['q-rooms']]]
         .map(([k, x]) => `${k}: ${x}`);
       if (v['q-msg'].trim()) lines.push('', 'Ďalšie požiadavky: ' + v['q-msg'].trim());
       return {type: 'general', topic: 'Hľadám nehnuteľnosť', icName: v['q-name'].normalize('NFC').replace(/\s+/g, ' ').trim(),
@@ -235,6 +238,7 @@
     }
     function open(saved) {
       if (saved) fields.forEach(id => { if (saved[id] !== undefined) $('#' + id).value = saved[id]; });
+      syncArea();
       $('#inq-form').hidden = false; $('#inq-done').hidden = true; $('#inq-err').hidden = true; renderUser();
       $('#inq').hidden = false; document.body.style.overflow = 'hidden'; setTimeout(() => $('#q-name').focus(), 30);
     }
@@ -244,6 +248,7 @@
       if (!/^\p{L}+(?:[ '-]\p{L}+)+$/u.test(d.icName)) { showErr('Vyplňte prosím meno aj priezvisko (len písmená).'); $('#q-name').focus(); return; }
       if (!/^\d{3,15}$/.test(d.phone)) { showErr('Vyplňte prosím tel. číslo (len číslice).'); $('#q-phone').focus(); return; }
       if (!/^[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)*\.[a-z]{2,}$/i.test(d.email)) { showErr('Zadajte platný e-mail, napr. meno@domena.com.'); $('#q-email').focus(); return; }
+      if ($('#q-area').value === 'Iné' && !$('#q-area2').value.trim()) { showErr('Napíšte prosím, akú inú lokalitu hľadáte.'); $('#q-area2').focus(); return; }
       try { sessionStorage.setItem(KEY, JSON.stringify(raw())); } catch (e) {}
       if (!user) { location.href = '/api/login?back=' + encodeURIComponent(location.pathname + '?odoslat=1'); return; }
       const btn = $('#inq-send'); btn.disabled = true; btn.textContent = 'Odosielam…';
