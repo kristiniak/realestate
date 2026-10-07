@@ -129,9 +129,17 @@ async function ticket(req, env, url) {
     form.when = `${Number(d)}. ${Number(m)}. ${y}` + (time ? ` o ${time}` : '');
   }
 
+  // Všeobecná správa zo stránky Kontakt (bez konkrétnej ponuky)
+  const general = body.type === 'general';
+  const TOPICS = ['Kúpa nehnuteľnosti', 'Predaj nehnuteľnosti', 'Prenájom', 'Spolupráca', 'Iné'];
+  if (general) {
+    form.topic = TOPICS.includes(body.topic) ? body.topic : 'Iné';
+    if (form.message.length < 5) return json({error: 'message'}, 400);
+  }
+
   // Údaje o ponuke berieme priamo zo súboru data.json na webe (nedajú sa podvrhnúť)
-  const houses = await env.ASSETS.fetch(new Request(url.origin + '/data.json')).then(r => r.json()).catch(() => []);
-  const h = houses.find(x => x.id === body.listingId);
+  const houses = general ? [] : await env.ASSETS.fetch(new Request(url.origin + '/data.json')).then(r => r.json()).catch(() => []);
+  const h = general ? {id: '', name: 'Správa z webu', code: 'SPRAVA', status: []} : houses.find(x => x.id === body.listingId);
   if (!h) return json({error: 'listing'}, 404);
   const closed = [].concat(h.status || []).map(v => String(v).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''))
     .some(k => k === 'predane' || k === 'prenajate');
@@ -166,7 +174,7 @@ async function ticket(req, env, url) {
 
   // Krátky názov kanála: email-014-meno (číslo z kódu ponuky ONX-014, meno max. 16 znakov)
   const norm = v => String(v).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
-  const num = (/(\d+)$/.exec(h.code || '') || [])[1];
+  const num = general ? 'sprava' : (/(\d+)$/.exec(h.code || '') || [])[1];
   const chName = ['email', num, norm(s.username).slice(0, 16).replace(/-+$/, '')].filter(Boolean).join('-');
   const ch = await bot(env, `/guilds/${g}/channels`, 'POST', {
     name: chName, type: 0, parent_id: env.DISCORD_CATEGORY_ID,
@@ -181,7 +189,13 @@ async function ticket(req, env, url) {
                 .filter(Boolean).join('\n') || 'Na vyžiadanie';
   const pageUrl = url.origin + '/nehnutelnost.html?id=' + encodeURIComponent(h.id);
   const photo = (h.photos || [])[0];
-  const fields = [
+  const fields = general ? [
+    {name: 'Téma', value: form.topic, inline: true},
+    {name: 'Meno a priezvisko', value: form.icName, inline: true},
+    {name: 'Tel. číslo', value: form.phone, inline: true},
+    {name: 'E-mail', value: form.email, inline: true},
+    {name: 'Správa', value: form.message}
+  ] : [
     {name: 'Kód ponuky', value: code, inline: true},
     {name: 'Záujem o', value: form.interest || '—', inline: true},
     {name: 'Cena', value: price, inline: true},
@@ -190,17 +204,18 @@ async function ticket(req, env, url) {
     {name: 'E-mail', value: form.email, inline: true},
     {name: 'Maklér', value: agent ? agent.name : '—', inline: true}
   ];
-  if (form.when) fields.push({name: 'Termín obhliadky', value: form.when});
-  if (form.message) fields.push({name: 'Správa', value: form.message});
+  if (!general && form.when) fields.push({name: 'Termín obhliadky', value: form.when});
+  if (!general && form.message) fields.push({name: 'Správa', value: form.message});
   const pingRoles = agentId ? [] : staffRoles;
   const pings = [`<@${s.id}>`, agentId && `<@${agentId}>`, ...pingRoles.map(r => `<@&${r}>`)].filter(Boolean);
   await bot(env, `/channels/${ch.id}/messages`, 'POST', {
-    content: `${pings.join(' ')}\nDobrý deň, ďakujeme za záujem o nehnuteľnosť${h.code ? ' **' + h.code + '**' : ''}. Maklér vám odpovie v tomto e-maile.`,
+    content: `${pings.join(' ')}\n` + (general ? 'Dobrý deň, ďakujeme za vašu správu. Maklér vám odpovie v tomto e-maile.'
+      : `Dobrý deň, ďakujeme za záujem o nehnuteľnosť${h.code ? ' **' + h.code + '**' : ''}. Maklér vám odpovie v tomto e-maile.`),
     allowed_mentions: {users: [s.id, agentId].filter(Boolean), roles: pingRoles},
     embeds: [{
-      title: 'Otvoriť inzerát na webe →', url: pageUrl, color: 0xc9a961,
+      title: general ? 'Správa z kontaktného formulára' : 'Otvoriť inzerát na webe →', url: general ? undefined : pageUrl, color: 0xc9a961,
       description: h.street || undefined, fields,
-      thumbnail: photo ? {url: url.origin + '/' + String(photo).split('/').map(encodeURIComponent).join('/')} : undefined,
+      thumbnail: !general && photo ? {url: url.origin + '/' + String(photo).split('/').map(encodeURIComponent).join('/')} : undefined,
       footer: {text: `Dopyt z webu · ${s.name} (@${s.username})`}, timestamp: new Date().toISOString()
     }],
     components: [closeButtonRow()]

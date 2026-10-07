@@ -23,8 +23,9 @@
   /* Telefón a e-mail s ikonkou */
   .reach{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
   .reach li[hidden]{display:none}
-  .reach a{display:flex;align-items:center;gap:12px;color:var(--text);text-decoration:none;font-size:18px}
-  .reach a:hover{color:var(--pin)}
+  .reach a,.reach .ri{display:flex;align-items:center;gap:12px;color:var(--text);text-decoration:none;font-size:18px}
+  .reach a{cursor:pointer}
+  .reach a:hover span{color:var(--pin);text-decoration:underline}
   .reach svg{width:20px;height:20px;flex:none;fill:var(--pin)}
   .info .btn{width:100%}
   .info .grow{flex:1}
@@ -84,8 +85,8 @@
       <div class="card-i"><p class="lbl">Adresa</p><div class="val" id="c-addr"></div><div class="sub" id="c-district"></div></div>
       <div class="card-i" id="c-reach-box"><p class="lbl">Kontakt</p>
         <ul class="reach">
-          <li id="c-phone-li"><a id="c-phone"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25c1.1.37 2.3.57 3.6.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1L6.6 10.8z"/></svg><span></span></a></li>
-          <li id="c-email-li"><a id="c-email"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zm9 7.2L4.4 7H19.6L12 12.2zM4 8.6V17h16V8.6l-7.4 5.1a1 1 0 0 1-1.2 0L4 8.6z"/></svg><span></span></a></li>
+          <li id="c-phone-li"><span class="ri" id="c-phone"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25c1.1.37 2.3.57 3.6.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1L6.6 10.8z"/></svg><span></span></span></li>
+          <li id="c-email-li"><a id="c-email" href="#napiste-nam" title="Napísať správu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zm9 7.2L4.4 7H19.6L12 12.2zM4 8.6V17h16V8.6l-7.4 5.1a1 1 0 0 1-1.2 0L4 8.6z"/></svg><span></span></a></li>
         </ul></div>
       <div class="card-i" id="c-hours-box" hidden><p class="lbl">Otváracie hodiny</p><div class="val" id="c-hours" style="font-size:22px"></div></div>
       <div class="grow"></div>
@@ -108,6 +109,32 @@
   </div>
 </main>
 
+<div class="modal" id="inq" hidden role="dialog" aria-modal="true" aria-labelledby="inq-title">
+  <div class="modal-box inq-box">
+    <div class="modal-head">
+      <div><p class="eyebrow" style="margin:0 0 6px">Kontakt</p><h2 id="inq-title">Napíšte nám</h2>
+        <p>Máte otázku, chcete predať alebo prenajať nehnuteľnosť? Napíšte nám a maklér vám odpovie e-mailom.</p></div>
+      <button class="modal-x" type="button" data-inq-close aria-label="Zavrieť">✕</button>
+    </div>
+    <form id="inq-form" novalidate>
+      <div class="inq-grid">
+        <div class="inq-field"><label for="q-name">Vaše meno a priezvisko *</label><input id="q-name" maxlength="60" autocomplete="off" placeholder="napr. John Carter"></div>
+        <div class="inq-field"><label for="q-phone">Tel. číslo *</label><input id="q-phone" maxlength="15" inputmode="numeric" autocomplete="off" placeholder="napr. 5550123"></div>
+        <div class="inq-field"><label for="q-email">E-mail *</label><input id="q-email" type="email" maxlength="80" autocomplete="off" placeholder="napr. john.carter@mail.ls"></div>
+        <div class="inq-field"><label for="q-topic">Téma</label><select id="q-topic">
+          <option>Kúpa nehnuteľnosti</option><option>Predaj nehnuteľnosti</option><option>Prenájom</option><option>Spolupráca</option><option>Iné</option></select></div>
+        <div class="inq-field wide"><label for="q-msg">Vaša správa *</label><textarea id="q-msg" maxlength="800" rows="5" placeholder="Napíšte nám, s čím vám môžeme pomôcť…"></textarea></div>
+      </div>
+      <p class="inq-err" id="inq-err" role="alert" hidden></p>
+      <div class="inq-foot">
+        <p class="inq-user" id="inq-user"></p>
+        <button class="btn btn-gold" id="inq-send" type="submit">Odoslať</button>
+      </div>
+    </form>
+    <div class="inq-done" id="inq-done" hidden></div>
+  </div>
+</div>
+
 <footer id="site-footer"></footer>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="web.js"></script>
@@ -116,9 +143,9 @@
   // Údaje sa berú zo súboru nastavenia.js (CONTACT)
   $('#c-addr').textContent = CONTACT.address || '';
   $('#c-district').textContent = CONTACT.district || '';
-  if (CONTACT.phone) { $('#c-phone span').textContent = CONTACT.phone; $('#c-phone').href = 'tel:' + String(CONTACT.phone).replace(/[^\d+]/g, ''); }
+  if (CONTACT.phone) $('#c-phone span').textContent = CONTACT.phone;
   else $('#c-phone-li').hidden = true;
-  if (CONTACT.email) { $('#c-email span').textContent = CONTACT.email; $('#c-email').href = 'mailto:' + CONTACT.email; }
+  if (CONTACT.email) $('#c-email span').textContent = CONTACT.email;
   else $('#c-email-li').hidden = true;
   if (!CONTACT.phone && !CONTACT.email) $('#c-reach-box').hidden = true;
   if (CONTACT.hours) { $('#c-hours').textContent = CONTACT.hours; $('#c-hours-box').hidden = false; }
@@ -169,6 +196,81 @@
   };
   probe.onerror = () => { $('#cmap-wrap').innerHTML = '<p class="empty" style="padding:24px">Mapa sa nenačítala.</p>'; };
   probe.src = CONTACT.map;
+
+  // ===== „Napíšte nám“ – formulár po kliknutí na e-mail (správa príde maklérom ako e-mail) =====
+  (function () {
+    const KEY = 'onyx-sprava';
+    let user = null, apiOk = null;
+    const ready = fetch('/api/me', {cache: 'no-store'}).then(r => r.ok ? r.json() : null).catch(() => null)
+      .then(r => { apiOk = !!(r && 'user' in r); if (apiOk) user = r.user; return apiOk; });
+    const showErr = t => { $('#inq-err').innerHTML = t; $('#inq-err').hidden = false; };
+    const data = () => ({type: 'general', icName: $('#q-name').value.normalize('NFC').replace(/\s+/g, ' ').trim(), phone: $('#q-phone').value.trim(),
+      email: $('#q-email').value.trim(), topic: $('#q-topic').value, message: $('#q-msg').value.trim()});
+    function renderUser() {
+      $('#inq-user').innerHTML = user
+        ? `${user.avatar ? `<img src="${esc(user.avatar)}" alt="">` : ''}Odpoveď príde na e-mail používateľa <b>${esc(user.name)}</b> · <button type="button" class="linkbtn" id="inq-logout">Nie ste to vy?</button>`
+        : 'Pri odoslaní overíme váš e-mail, aby vám maklér mohol odpovedať.';
+      $('#inq-send').textContent = user ? 'Odoslať' : 'Overiť e-mail a odoslať';
+      const lo = $('#inq-logout'); if (lo) lo.onclick = async () => { await fetch('/api/logout', {method: 'POST'}).catch(() => {}); user = null; renderUser(); };
+    }
+    function open(saved) {
+      if (saved) { $('#q-name').value = saved.icName || ''; $('#q-phone').value = saved.phone || ''; $('#q-email').value = saved.email || '';
+        $('#q-topic').value = saved.topic || 'Iné'; $('#q-msg').value = saved.message || ''; }
+      $('#inq-form').hidden = false; $('#inq-done').hidden = true; $('#inq-err').hidden = true; renderUser();
+      $('#inq').hidden = false; document.body.style.overflow = 'hidden'; setTimeout(() => $('#q-name').focus(), 30);
+    }
+    const close = () => { $('#inq').hidden = true; document.body.style.overflow = ''; };
+    async function send() {
+      const d = data(); $('#inq-err').hidden = true;
+      if (!/^\p{L}+(?:[ '-]\p{L}+)+$/u.test(d.icName)) { showErr('Vyplňte prosím meno aj priezvisko (len písmená).'); $('#q-name').focus(); return; }
+      if (!/^\d{3,15}$/.test(d.phone)) { showErr('Vyplňte prosím tel. číslo (len číslice).'); $('#q-phone').focus(); return; }
+      if (!/^[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)*\.[a-z]{2,}$/i.test(d.email)) { showErr('Zadajte platný e-mail, napr. meno@domena.com.'); $('#q-email').focus(); return; }
+      if (d.message.length < 5) { showErr('Napíšte nám prosím krátku správu.'); $('#q-msg').focus(); return; }
+      try { sessionStorage.setItem(KEY, JSON.stringify(d)); } catch (e) {}
+      if (!user) { location.href = '/api/login?back=' + encodeURIComponent(location.pathname + '?odoslat=1'); return; }
+      const btn = $('#inq-send'); btn.disabled = true; btn.textContent = 'Odosielam…';
+      let body = {};
+      try { body = await fetch('/api/ticket', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(d)}).then(r => r.json()); }
+      catch (e) { body = {error: 'network'}; }
+      btn.disabled = false; renderUser();
+      if (body.ok) {
+        try { sessionStorage.removeItem(KEY); } catch (e) {}
+        $('#inq-form').hidden = true; $('#inq-done').hidden = false;
+        $('#inq-done').innerHTML = `<div class="inq-check">✓</div><h3>${body.existing ? 'Už s nami komunikujete' : 'Správa bola odoslaná'}</h3>
+          <p>${body.existing ? 'Pokračujte prosím v e-maile, ktorý s nami už máte.' : 'Ďakujeme. Maklér vám čoskoro odpovie e-mailom.'}</p>
+          <a class="btn btn-gold" href="${esc(body.url)}" target="_blank" rel="noopener">Otvoriť e-mail</a>`;
+        return;
+      }
+      const m = {login: () => { user = null; renderUser(); return 'Overenie vypršalo. Kliknite na „Overiť e-mail a odoslať“.'; },
+        not_member: () => 'Váš e-mail sa nepodarilo overiť. Skúste to prosím znova.',
+        too_many: () => `Máte už ${body.max || 3} otvorené konverzácie s maklérmi. Pokračujte prosím v nich.`,
+        message: () => 'Napíšte nám prosím krátku správu.', email: () => 'Zadajte platný e-mail, napr. meno@domena.com.',
+        phone: () => 'Vyplňte prosím tel. číslo (len číslice).', icName: () => 'Vyplňte prosím meno aj priezvisko (len písmená).'};
+      showErr(m[body.error] ? m[body.error]() : 'Správu sa nepodarilo odoslať. Skúste to prosím o chvíľu znova.');
+    }
+    $('#c-email').addEventListener('click', async e => {
+      e.preventDefault();
+      if (apiOk === null) await ready;
+      if (apiOk) open(); else if (CONTACT.email) location.href = 'mailto:' + CONTACT.email;
+    });
+    $('#inq-form').addEventListener('submit', e => { e.preventDefault(); send(); });
+    $('#inq-form').addEventListener('input', () => { $('#inq-err').hidden = true; });
+    $('#q-name').addEventListener('input', e => { const v = e.target.value.replace(/[^\p{L}\p{M} '-]/gu, ''); if (v !== e.target.value) e.target.value = v; });
+    $('#q-phone').addEventListener('input', e => { const v = e.target.value.replace(/\D/g, ''); if (v !== e.target.value) e.target.value = v; });
+    $('#q-email').addEventListener('input', e => { const v = e.target.value.replace(/\s/g, ''); if (v !== e.target.value) e.target.value = v; });
+    $('#inq').addEventListener('click', e => { if (e.target.id === 'inq' || e.target.closest('[data-inq-close]')) close(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#inq').hidden) close(); });
+    // Návrat z overenia → odoslať automaticky; ?napiste=1 otvorí formulár
+    ready.then(ok => {
+      if (!ok) return;
+      const p = new URLSearchParams(location.search);
+      let saved = null; try { saved = JSON.parse(sessionStorage.getItem(KEY) || 'null'); } catch (e) {}
+      if (p.has('prihlasenie')) { open(saved); showErr(p.get('prihlasenie') === 'zrusene' ? 'Overenie bolo zrušené. Bez neho vám makléri nemôžu odpovedať.' : 'Overenie sa nepodarilo. Skúste to prosím znova.'); }
+      else if (p.has('odoslat') && saved && user) { open(saved); send(); }
+      else if (p.has('napiste') || location.hash === '#napiste-nam') open(saved);
+      if (location.search) history.replaceState(null, '', location.pathname);
+    });
+  })();
 </script>
 </body>
 </html>
