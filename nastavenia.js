@@ -21,8 +21,8 @@ const AGENCY = {
 // Adresa a telefón kancelárie. Poloha na mapke je v pixeloch obrázka img/kontakt-mapa.png
 // (x zľava, y zhora). Orientačné body (napr. Bahama Mamas) pridáš do "landmarks".
 const CONTACT = {
-  address: 'Boulevard Del Perro',          // ulica a číslo
-  district: 'Del Perro, Los Santos',        // štvrť / mesto
+  address: 'Blv. Del Perro 7171',          // ulica a číslo
+  district: 'Morningwood, Los Santos, San Andreas',   // štvrť / mesto
   phone: '555-0100',                        // telefón kancelárie
   hours: '',                                // napr. 'Po – Pi 10:00 – 22:00' (nechaj prázdne, ak nechceš)
   map: 'img/kontakt-mapa.png',
