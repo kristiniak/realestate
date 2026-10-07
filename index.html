@@ -125,7 +125,7 @@
   <section class="band">
     <div class="wrap">
       <div><h2>Hľadáte niečo konkrétne?</h2><p>Napíšte nám, čo hľadáte, a dáme vám vedieť, keď sa objaví.</p></div>
-      <a class="btn btn-gold" id="band-cta" target="_blank" rel="noopener">Kontaktujte nás</a>
+      <a class="btn btn-gold" id="band-cta" href="kontakt.html?napiste=1">Kontaktujte nás</a>
     </div>
   </section>
 
@@ -137,6 +137,35 @@
     </div>
   </section>
 </main>
+
+<div class="modal" id="inq" hidden role="dialog" aria-modal="true" aria-labelledby="inq-title">
+  <div class="modal-box inq-box">
+    <div class="modal-head">
+      <div><p class="eyebrow" style="margin:0 0 6px">Hľadáte niečo konkrétne?</p><h2 id="inq-title">Povedzte nám, čo hľadáte</h2>
+        <p>Vyplňte, akú nehnuteľnosť hľadáte. Maklér vám odpovie e-mailom a dá vám vedieť, keď sa objaví vhodná ponuka.</p></div>
+      <button class="modal-x" type="button" data-inq-close aria-label="Zavrieť">✕</button>
+    </div>
+    <form id="inq-form" novalidate>
+      <div class="inq-grid">
+        <div class="inq-field"><label for="q-name">Vaše meno a priezvisko *</label><input id="q-name" maxlength="60" autocomplete="off" placeholder="napr. John Carter"></div>
+        <div class="inq-field"><label for="q-phone">Tel. číslo *</label><input id="q-phone" maxlength="15" inputmode="numeric" autocomplete="off" placeholder="napr. 5550123"></div>
+        <div class="inq-field"><label for="q-email">E-mail *</label><input id="q-email" type="email" maxlength="80" autocomplete="off" placeholder="napr. john.carter@mail.ls"></div>
+        <div class="inq-field"><label for="q-offer">Mám záujem o</label><select id="q-offer"><option>Kúpu</option><option>Prenájom</option><option>Kúpu aj prenájom</option></select></div>
+        <div class="inq-field"><label for="q-type">Druh nehnuteľnosti</label><select id="q-type"></select></div>
+        <div class="inq-field"><label for="q-area">Lokalita</label><select id="q-area"></select></div>
+        <div class="inq-field"><label for="q-budget">Rozpočet</label><input id="q-budget" maxlength="40" autocomplete="off" placeholder="napr. do 2 000 000 $"></div>
+        <div class="inq-field"><label for="q-rooms">Počet izieb</label><select id="q-rooms"><option>Nezáleží</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5 a viac</option></select></div>
+        <div class="inq-field wide"><label for="q-msg">Ďalšie požiadavky</label><textarea id="q-msg" maxlength="500" rows="3" placeholder="napr. bazén, garáž na 4 autá, výhľad na more…"></textarea></div>
+      </div>
+      <p class="inq-err" id="inq-err" role="alert" hidden></p>
+      <div class="inq-foot">
+        <p class="inq-user" id="inq-user"></p>
+        <button class="btn btn-gold" id="inq-send" type="submit">Odoslať</button>
+      </div>
+    </form>
+    <div class="inq-done" id="inq-done" hidden></div>
+  </div>
+</div>
 
 <footer id="site-footer"></footer>
 <script src="web.js"></script>
@@ -155,7 +184,6 @@
   // kresba sa postupne „dokreslí“
   document.querySelectorAll('.hero-art *').forEach((el, i) => { el.setAttribute('pathLength', '1'); el.style.animationDelay = (i * 0.06) + 's'; });
   $('#tagline').textContent = AGENCY.tagline;
-  $('#band-cta').href = DISCORD;
 
   Promise.all([loadJSON('data.json', []), loadJSON('makleri.json', [])]).then(([houses, agents]) => {
     const available = houses.filter(h => !isClosed(h));
@@ -177,6 +205,88 @@
       initCarousel($('#success-list .carousel'));
     }
   });
+
+  // ===== „Hľadáte niečo konkrétne?“ – formulár (správa príde maklérom ako e-mail) =====
+  (function () {
+    const KEY = 'onyx-hladam', ANY = 'Nezáleží';
+    const opts = key => [ANY, ...(FILTERS.find(f => f.key === key) || {options: []}).options.map(o => o[1])];
+    $('#q-type').innerHTML = opts('type').map(o => `<option>${esc(o)}</option>`).join('');
+    $('#q-area').innerHTML = opts('area').map(o => `<option>${esc(o)}</option>`).join('');
+    let user = null, apiOk = null;
+    const ready = fetch('/api/me', {cache: 'no-store'}).then(r => r.ok ? r.json() : null).catch(() => null)
+      .then(r => { apiOk = !!(r && 'user' in r); if (apiOk) user = r.user; return apiOk; });
+    const showErr = t => { $('#inq-err').innerHTML = t; $('#inq-err').hidden = false; };
+    const fields = ['q-name', 'q-phone', 'q-email', 'q-offer', 'q-type', 'q-area', 'q-budget', 'q-rooms', 'q-msg'];
+    const raw = () => Object.fromEntries(fields.map(id => [id, $('#' + id).value]));
+    function data() {
+      const v = raw();
+      const lines = [['Hľadám', v['q-offer']], ['Druh', v['q-type']], ['Lokalita', v['q-area']], ['Rozpočet', v['q-budget'].trim() || ANY], ['Počet izieb', v['q-rooms']]]
+        .map(([k, x]) => `${k}: ${x}`);
+      if (v['q-msg'].trim()) lines.push('', 'Ďalšie požiadavky: ' + v['q-msg'].trim());
+      return {type: 'general', topic: 'Hľadám nehnuteľnosť', icName: v['q-name'].normalize('NFC').replace(/\s+/g, ' ').trim(),
+        phone: v['q-phone'].trim(), email: v['q-email'].trim(), message: lines.join('\n')};
+    }
+    function renderUser() {
+      $('#inq-user').innerHTML = user
+        ? `${user.avatar ? `<img src="${esc(user.avatar)}" alt="">` : ''}Odpoveď príde na e-mail používateľa <b>${esc(user.name)}</b> · <button type="button" class="linkbtn" id="inq-logout">Nie ste to vy?</button>`
+        : 'Pri odoslaní overíme váš e-mail, aby vám maklér mohol odpovedať.';
+      $('#inq-send').textContent = user ? 'Odoslať' : 'Overiť e-mail a odoslať';
+      const lo = $('#inq-logout'); if (lo) lo.onclick = async () => { await fetch('/api/logout', {method: 'POST'}).catch(() => {}); user = null; renderUser(); };
+    }
+    function open(saved) {
+      if (saved) fields.forEach(id => { if (saved[id] !== undefined) $('#' + id).value = saved[id]; });
+      $('#inq-form').hidden = false; $('#inq-done').hidden = true; $('#inq-err').hidden = true; renderUser();
+      $('#inq').hidden = false; document.body.style.overflow = 'hidden'; setTimeout(() => $('#q-name').focus(), 30);
+    }
+    const close = () => { $('#inq').hidden = true; document.body.style.overflow = ''; };
+    async function send() {
+      const d = data(); $('#inq-err').hidden = true;
+      if (!/^\p{L}+(?:[ '-]\p{L}+)+$/u.test(d.icName)) { showErr('Vyplňte prosím meno aj priezvisko (len písmená).'); $('#q-name').focus(); return; }
+      if (!/^\d{3,15}$/.test(d.phone)) { showErr('Vyplňte prosím tel. číslo (len číslice).'); $('#q-phone').focus(); return; }
+      if (!/^[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)*\.[a-z]{2,}$/i.test(d.email)) { showErr('Zadajte platný e-mail, napr. meno@domena.com.'); $('#q-email').focus(); return; }
+      try { sessionStorage.setItem(KEY, JSON.stringify(raw())); } catch (e) {}
+      if (!user) { location.href = '/api/login?back=' + encodeURIComponent(location.pathname + '?odoslat=1'); return; }
+      const btn = $('#inq-send'); btn.disabled = true; btn.textContent = 'Odosielam…';
+      let body = {};
+      try { body = await fetch('/api/ticket', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(d)}).then(r => r.json()); }
+      catch (e) { body = {error: 'network'}; }
+      btn.disabled = false; renderUser();
+      if (body.ok) {
+        try { sessionStorage.removeItem(KEY); } catch (e) {}
+        $('#inq-form').hidden = true; $('#inq-done').hidden = false;
+        $('#inq-done').innerHTML = `<div class="inq-check">✓</div><h3>${body.existing ? 'Už s nami komunikujete' : 'Správa bola odoslaná'}</h3>
+          <p>${body.existing ? 'Pokračujte prosím v e-maile, ktorý s nami už máte.' : 'Ďakujeme. Maklér vám odpovie e-mailom, keď pre vás bude mať vhodnú ponuku.'}</p>
+          <a class="btn btn-gold" href="${esc(body.url)}" target="_blank" rel="noopener">Otvoriť e-mail</a>`;
+        return;
+      }
+      const m = {login: () => { user = null; renderUser(); return 'Overenie vypršalo. Kliknite na „Overiť e-mail a odoslať“.'; },
+        not_member: () => 'Váš e-mail sa nepodarilo overiť. Skúste to prosím znova.',
+        too_many: () => `Máte už ${body.max || 3} otvorené konverzácie s maklérmi. Pokračujte prosím v nich.`,
+        email: () => 'Zadajte platný e-mail, napr. meno@domena.com.', phone: () => 'Vyplňte prosím tel. číslo (len číslice).',
+        icName: () => 'Vyplňte prosím meno aj priezvisko (len písmená).'};
+      showErr(m[body.error] ? m[body.error]() : 'Správu sa nepodarilo odoslať. Skúste to prosím o chvíľu znova.');
+    }
+    $('#band-cta').addEventListener('click', async e => {
+      e.preventDefault();
+      if (apiOk === null) await ready;
+      if (apiOk) open(); else location.href = 'kontakt.html';
+    });
+    $('#inq-form').addEventListener('submit', e => { e.preventDefault(); send(); });
+    $('#inq-form').addEventListener('input', () => { $('#inq-err').hidden = true; });
+    $('#q-name').addEventListener('input', e => { const v = e.target.value.replace(/[^\p{L}\p{M} '-]/gu, ''); if (v !== e.target.value) e.target.value = v; });
+    $('#q-phone').addEventListener('input', e => { const v = e.target.value.replace(/\D/g, ''); if (v !== e.target.value) e.target.value = v; });
+    $('#q-email').addEventListener('input', e => { const v = e.target.value.replace(/\s/g, ''); if (v !== e.target.value) e.target.value = v; });
+    $('#inq').addEventListener('click', e => { if (e.target.id === 'inq' || e.target.closest('[data-inq-close]')) close(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#inq').hidden) close(); });
+    ready.then(ok => {
+      if (!ok) return;
+      const p = new URLSearchParams(location.search);
+      let saved = null; try { saved = JSON.parse(sessionStorage.getItem(KEY) || 'null'); } catch (e) {}
+      if (p.has('prihlasenie')) { open(saved); showErr(p.get('prihlasenie') === 'zrusene' ? 'Overenie bolo zrušené. Bez neho vám makléri nemôžu odpovedať.' : 'Overenie sa nepodarilo. Skúste to prosím znova.'); }
+      else if (p.has('odoslat') && saved && user) { open(saved); send(); }
+      if (location.search) history.replaceState(null, '', location.pathname);
+    });
+  })();
 </script>
 </body>
 </html>
