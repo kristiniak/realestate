@@ -179,10 +179,10 @@ async function ticket(req, env, url) {
   const pingRoles = agentId ? [] : staffRoles;
   const pings = [`<@${s.id}>`, agentId && `<@${agentId}>`, ...pingRoles.map(r => `<@&${r}>`)].filter(Boolean);
   await bot(env, `/channels/${ch.id}/messages`, 'POST', {
-    content: `${pings.join(' ')}\nDobrý deň, ďakujeme za záujem o **${h.name}**. Maklér sa vám ozve tu v tomto kanáli.`,
+    content: `${pings.join(' ')}\nDobrý deň, ďakujeme za záujem o nehnuteľnosť${h.code ? ' **' + h.code + '**' : ''}. Maklér sa vám ozve tu v tomto kanáli.`,
     allowed_mentions: {users: [s.id, agentId].filter(Boolean), roles: pingRoles},
     embeds: [{
-      title: `${code} · ${h.name}`.slice(0, 250), url: pageUrl, color: 0xc9a961,
+      title: 'Otvoriť inzerát na webe →', url: pageUrl, color: 0xc9a961,
       description: h.street || undefined, fields,
       thumbnail: photo ? {url: url.origin + '/' + String(photo).split('/').map(encodeURIComponent).join('/')} : undefined,
       footer: {text: `Dopyt z webu · ${s.name} (@${s.username})`}, timestamp: new Date().toISOString()
