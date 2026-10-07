@@ -5,7 +5,7 @@
 
 // Názov kancelárie, logo a krátky popis na úvodnej stránke
 const AGENCY = {
-  name: 'Onyx Real Estate',
+  name: 'ONYX Real Estate',
   logo: 'img/onyx_logo.png',
   // Veľký názov v strede úvodnej stránky a menší text pod ním
   heroTitle: 'ONYX',
