@@ -23,7 +23,8 @@ const AGENCY = {
 const CONTACT = {
   address: 'Blv. Del Perro 7171',          // ulica a číslo
   district: 'Morningwood, Los Santos, San Andreas',   // štvrť / mesto
-  phone: '555-0100',                        // telefón kancelárie
+  phone: '555-0100',                        // telefón kancelárie (doplň)
+  email: 'info@onyx.ls',                    // e-mail kancelárie (doplň)
   hours: '',                                // napr. 'Po – Pi 10:00 – 22:00' (nechaj prázdne, ak nechceš)
   map: 'img/kontakt-mapa.png',
   pin: {x: 1216, y: 5008},

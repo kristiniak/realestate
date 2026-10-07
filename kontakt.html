@@ -12,7 +12,7 @@
 <style>
   .page-top{padding:48px 0 28px;border-bottom:1px solid var(--line)}
   .page-top h1{font-size:clamp(48px,6vw,76px);color:var(--pin);margin:0 0 10px}
-  .contact{display:grid;grid-template-columns:340px 1fr;gap:28px;padding:36px 0 72px;align-items:stretch}
+  .contact{display:grid;grid-template-columns:360px 1fr;gap:36px;padding:36px 0 72px;align-items:start}
   .info{display:flex;flex-direction:column;gap:14px}
   .card-i{background:var(--panel-2);border:1px solid var(--line);padding:20px 22px}
   .card-i .lbl{color:var(--muted);font-size:12px;letter-spacing:.16em;text-transform:uppercase;margin:0 0 6px}
@@ -20,10 +20,16 @@
   .card-i .sub{color:var(--muted);margin-top:4px}
   .card-i a.val{text-decoration:none;color:var(--pin)}
   .card-i a.val:hover{text-decoration:underline}
+  /* Telefón a e-mail s ikonkou */
+  .reach{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+  .reach li[hidden]{display:none}
+  .reach a{display:flex;align-items:center;gap:12px;color:var(--text);text-decoration:none;font-size:18px}
+  .reach a:hover{color:var(--pin)}
+  .reach svg{width:20px;height:20px;flex:none;fill:var(--pin)}
   .info .btn{width:100%}
   .info .grow{flex:1}
 
-  .cmap{position:relative;min-height:520px;border:1px solid var(--pin);background:#0a0a0c;overflow:hidden}
+  .cmap{position:relative;height:420px;border:1px solid var(--pin);background:#0a0a0c;overflow:hidden}
   .cmap:fullscreen{border:0}
   #cmap{position:absolute;inset:0;background:#0a0a0c}
   .leaflet-container{font-family:var(--sans)}
@@ -59,7 +65,7 @@
 
   @media (max-width:900px){
     .contact{grid-template-columns:1fr}
-    .cmap{min-height:420px;order:-1}
+    .cmap{height:340px;order:-1}
   }
 </style>
 </head>
@@ -76,7 +82,11 @@
   <div class="contact">
     <div class="info">
       <div class="card-i"><p class="lbl">Adresa</p><div class="val" id="c-addr"></div><div class="sub" id="c-district"></div></div>
-      <div class="card-i" id="c-phone-box"><p class="lbl">Telefón</p><a class="val" id="c-phone"></a></div>
+      <div class="card-i" id="c-reach-box"><p class="lbl">Kontakt</p>
+        <ul class="reach">
+          <li id="c-phone-li"><a id="c-phone"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25c1.1.37 2.3.57 3.6.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1L6.6 10.8z"/></svg><span></span></a></li>
+          <li id="c-email-li"><a id="c-email"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zm9 7.2L4.4 7H19.6L12 12.2zM4 8.6V17h16V8.6l-7.4 5.1a1 1 0 0 1-1.2 0L4 8.6z"/></svg><span></span></a></li>
+        </ul></div>
       <div class="card-i" id="c-hours-box" hidden><p class="lbl">Otváracie hodiny</p><div class="val" id="c-hours" style="font-size:22px"></div></div>
       <div class="grow"></div>
       <a class="btn btn-gold" href="ponuka.html">Prezrieť ponuku</a>
@@ -106,8 +116,11 @@
   // Údaje sa berú zo súboru nastavenia.js (CONTACT)
   $('#c-addr').textContent = CONTACT.address || '';
   $('#c-district').textContent = CONTACT.district || '';
-  if (CONTACT.phone) { $('#c-phone').textContent = CONTACT.phone; $('#c-phone').href = 'tel:' + String(CONTACT.phone).replace(/[^\d+]/g, ''); }
-  else $('#c-phone-box').hidden = true;
+  if (CONTACT.phone) { $('#c-phone span').textContent = CONTACT.phone; $('#c-phone').href = 'tel:' + String(CONTACT.phone).replace(/[^\d+]/g, ''); }
+  else $('#c-phone-li').hidden = true;
+  if (CONTACT.email) { $('#c-email span').textContent = CONTACT.email; $('#c-email').href = 'mailto:' + CONTACT.email; }
+  else $('#c-email-li').hidden = true;
+  if (!CONTACT.phone && !CONTACT.email) $('#c-reach-box').hidden = true;
   if (CONTACT.hours) { $('#c-hours').textContent = CONTACT.hours; $('#c-hours-box').hidden = false; }
 
   const probe = new Image();
@@ -118,7 +131,7 @@
       maxBounds: bounds, maxBoundsViscosity: 1, scrollWheelZoom: true, minZoom: -6, maxZoom: 1});
     L.imageOverlay(CONTACT.map, bounds).addTo(map);
     const fitZoom = () => map.getBoundsZoom(bounds, false);             // najmenšie zobrazenie = celá mapa v okne
-    const home = () => map.setView(ll(CONTACT.pin), -0.25);
+    const home = () => map.setView(ll(CONTACT.pin), 0);
     window.contactMap = map;
     map.setMinZoom(fitZoom()); home();
     map.on('resize', () => map.setMinZoom(fitZoom()));
