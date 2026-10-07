@@ -94,7 +94,8 @@
     },
     "agent": "makler-1",
     "rent": 2500,
-    "rentPeriod": "tyzden"
+    "rentPeriod": "tyzden",
+    "code": "ONX-001"
   },
   {
     "id": "plaz-dom",
@@ -108,7 +109,8 @@
     "photos": [
       "img/plaz-dom-1.jpg"
     ],
-    "area": "plaz"
+    "area": "plaz",
+    "code": "ONX-002"
   },
   {
     "id": "farma",
@@ -117,7 +119,8 @@
     "y": 0,
     "desc": "Farma.",
     "photos": [],
-    "status": "prenajate"
+    "status": "prenajate",
+    "code": "ONX-003"
   },
   {
     "id": "test",
@@ -151,6 +154,7 @@
       }
     },
     "x": 2799,
-    "y": 5164
+    "y": 5164,
+    "code": "ONX-004"
   }
 ]
