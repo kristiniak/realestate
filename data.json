@@ -116,7 +116,8 @@
     "x": 0,
     "y": 0,
     "desc": "Farma.",
-    "photos": []
+    "photos": [],
+    "status": "predane"
   },
   {
     "id": "test",
