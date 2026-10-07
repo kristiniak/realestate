@@ -6,6 +6,7 @@
 //    /api/me       → kto je prihlásený
 //    /api/logout   → odhlásenie
 //    /api/ticket   → vytvorí ticket (súkromný kanál) na Discord serveri
+//    /api/interactions → tlačidlo „Uzavrieť e-mail“ v tickete (prepis + zmazanie kanála)
 //
 //  Nastavenia sa NEPÍŠU sem, ale do Cloudflare:
 //  Workers & Pages → onyx → Settings → Variables and Secrets
@@ -15,6 +16,8 @@
 //    DISCORD_GUILD_ID       – ID servera
 //    DISCORD_CATEGORY_ID    – ID kategórie, kde vznikajú tickety
 //    DISCORD_STAFF_ROLE_ID  – ID role maklérov (uvidia všetky tickety); viac rolí oddeľ čiarkou
+//    DISCORD_PUBLIC_KEY     – Public Key aplikácie (kvôli tlačidlám)
+//    DISCORD_TRANSCRIPT_CHANNEL_ID – kanál, kam sa ukladajú prepisy uzavretých ticketov
 // =====================================================================
 
 const API = 'https://discord.com/api/v10';
@@ -28,7 +31,7 @@ const STAFF_ALLOW = MEMBER_ALLOW | P.MANAGE_MSG;
 const BOT_ALLOW = STAFF_ALLOW | P.MANAGE_CH;
 
 export default {
-  async fetch(req, env) {
+  async fetch(req, env, ctx) {
     const url = new URL(req.url);
     if (!url.pathname.startsWith('/api/')) return env.ASSETS.fetch(req);
     try {
@@ -41,6 +44,7 @@ export default {
         case '/api/me': return me(req, env);
         case '/api/logout': return new Response(null, {status: 204, headers: {'Set-Cookie': cookie('onyx_s', '', 0)}});
         case '/api/ticket': return req.method === 'POST' ? ticket(req, env, url) : json({error: 'method'}, 405);
+        case '/api/interactions': return interactions(req, env, ctx);
         default: return json({error: 'not_found'}, 404);
       }
     } catch (e) {
@@ -198,10 +202,135 @@ async function ticket(req, env, url) {
       description: h.street || undefined, fields,
       thumbnail: photo ? {url: url.origin + '/' + String(photo).split('/').map(encodeURIComponent).join('/')} : undefined,
       footer: {text: `Dopyt z webu · ${s.name} (@${s.username})`}, timestamp: new Date().toISOString()
-    }]
+    }],
+    components: [closeButtonRow()]
   }).catch(e => console.error('message', e));
 
   return json({ok: true, url: `https://discord.com/channels/${g}/${ch.id}`, code});
+}
+
+// ---------- Uzavretie ticketu (tlačidlo) + prepis ----------
+const closeButtonRow = () => ({type: 1, components: [{type: 2, style: 4, label: 'Uzavrieť e-mail', emoji: {name: '🔒'}, custom_id: 'onyx_close'}]});
+
+async function interactions(req, env, ctx) {
+  if (req.method !== 'POST') return json({error: 'method'}, 405);
+  const body = await req.text();
+  if (!(await verifyDiscord(env, req, body))) return new Response('invalid request signature', {status: 401});
+  const it = JSON.parse(body);
+  if (it.type === 1) return json({type: 1});                                         // PING od Discordu
+  if (it.type !== 3) return json({type: 4, data: {flags: 64, content: 'Neznáma akcia.'}});
+  const id = it.data && it.data.custom_id;
+  const user = (it.member && it.member.user) || it.user || {};
+
+  if (id === 'onyx_close') {                                                          // 1. klik → potvrdenie (vidí ho len ten, kto klikol)
+    return json({type: 4, data: {flags: 64, content: 'Naozaj chcete tento e-mail uzavrieť? Kanál sa zmaže a uloží sa jeho kópia.',
+      components: [{type: 1, components: [
+        {type: 2, style: 4, label: 'Áno, uzavrieť', custom_id: 'onyx_close_yes'},
+        {type: 2, style: 2, label: 'Zrušiť', custom_id: 'onyx_close_no'}]}]}});
+  }
+  if (id === 'onyx_close_no') return json({type: 7, data: {content: 'Zrušené.', components: []}});
+  if (id === 'onyx_close_yes') {
+    ctx.waitUntil(closeTicket(env, it.channel_id, user).catch(e => console.error('close', e)));
+    return json({type: 7, data: {content: 'Uzatváram, chvíľu strpenia…', components: []}});
+  }
+  return json({type: 4, data: {flags: 64, content: 'Neznáma akcia.'}});
+}
+
+async function closeTicket(env, channelId, user) {
+  const ch = await bot(env, `/channels/${channelId}`);
+  if (ch.parent_id !== env.DISCORD_CATEGORY_ID) return;                              // len kanály z našej kategórie
+  const who = user.global_name || user.username || 'neznámy';
+  await bot(env, `/channels/${channelId}/messages`, 'POST', {content: `🔒 E-mail uzavrel/a **${who}**. Kanál sa o chvíľu zmaže.`}).catch(() => {});
+
+  // Všetky správy (po 100), od najstaršej
+  let msgs = [], before = '';
+  for (let i = 0; i < 50; i++) {
+    const page = await bot(env, `/channels/${channelId}/messages?limit=100${before ? '&before=' + before : ''}`);
+    msgs = msgs.concat(page);
+    if (page.length < 100) break;
+    before = page[page.length - 1].id;
+  }
+  msgs.reverse();
+
+  const customerId = ((ch.topic || '').match(/uid:(\d+)/) || [])[1];
+  const code = ((ch.topic || '').match(/kod:(\S+)/) || [])[1] || '';
+  const html = transcriptHtml(ch, msgs, who);
+  const fileName = `prepis-${ch.name}.html`;
+  const people = [...new Set(msgs.filter(m => !m.author.bot).map(m => m.author.global_name || m.author.username))];
+  const summary = {
+    title: `Prepis: #${ch.name}`, color: 0xc9a961, timestamp: new Date().toISOString(),
+    fields: [
+      {name: 'Kód ponuky', value: code || '—', inline: true},
+      {name: 'Zákazník', value: customerId ? `<@${customerId}>` : '—', inline: true},
+      {name: 'Uzavrel/a', value: user.id ? `<@${user.id}>` : who, inline: true},
+      {name: 'Správ', value: String(msgs.length), inline: true},
+      {name: 'Účastníci', value: people.join(', ').slice(0, 1000) || '—'}
+    ]
+  };
+  if (env.DISCORD_TRANSCRIPT_CHANNEL_ID)
+    await sendFile(env, `/channels/${env.DISCORD_TRANSCRIPT_CHANNEL_ID}/messages`, {embeds: [summary], allowed_mentions: {parse: []}}, fileName, html)
+      .catch(e => console.error('transcript', e));
+  // Kópia aj zákazníkovi do súkromnej správy (ak má povolené správy zo servera)
+  if (customerId) {
+    try {
+      const dm = await bot(env, '/users/@me/channels', 'POST', {recipient_id: customerId});
+      await sendFile(env, `/channels/${dm.id}/messages`, {content: `Dobrý deň, váš e-mail s ONYX Real Estate${code ? ' k ponuke **' + code + '**' : ''} bol uzavretý. Posielame vám jeho kópiu. Ďakujeme!`}, fileName, html);
+    } catch (e) { console.log('dm', e.message); }
+  }
+  await new Promise(r => setTimeout(r, 3000));
+  await bot(env, `/channels/${channelId}`, 'DELETE');
+}
+
+async function sendFile(env, path, payload, name, text) {
+  const fd = new FormData();
+  fd.append('payload_json', JSON.stringify({...payload, attachments: [{id: 0, filename: name}]}));
+  fd.append('files[0]', new Blob([text], {type: 'text/html'}), name);
+  const r = await fetch(API + path, {method: 'POST', headers: {Authorization: 'Bot ' + env.DISCORD_BOT_TOKEN}, body: fd});
+  if (!r.ok) throw new Error(`Discord ${r.status} ${path}: ${await r.text()}`);
+  return r.json();
+}
+
+function transcriptHtml(ch, msgs, closedBy) {
+  const e = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
+  const fmt = t => new Date(t).toLocaleString('sk-SK', {timeZone: 'Europe/Bratislava', day: 'numeric', month: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit'});
+  const names = {};
+  msgs.forEach(m => { names[m.author.id] = m.author.global_name || m.author.username; (m.mentions || []).forEach(u => names[u.id] = u.global_name || u.username); });
+  const text = t => e(t).replace(/&lt;@!?(\d+)&gt;/g, (_, id) => '@' + e(names[id] || 'používateľ')).replace(/&lt;@&amp;(\d+)&gt;/g, '@rola')
+    .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>');
+  const avatar = a => a.avatar ? `https://cdn.discordapp.com/avatars/${a.id}/${a.avatar}.png?size=64` : '';
+  const rows = msgs.map(m => {
+    const embeds = (m.embeds || []).map(em => `<div class="em">${em.title ? `<div class="emt">${e(em.title)}</div>` : ''}${em.description ? `<div>${text(em.description)}</div>` : ''}
+      ${(em.fields || []).map(f => `<div class="f"><span>${e(f.name)}</span>${text(f.value)}</div>`).join('')}</div>`).join('');
+    const files = (m.attachments || []).map(a => /\.(png|jpe?g|gif|webp)$/i.test(a.filename)
+      ? `<a href="${e(a.url)}"><img class="att" src="${e(a.url)}" alt="${e(a.filename)}"></a>` : `<a class="file" href="${e(a.url)}">📎 ${e(a.filename)}</a>`).join('');
+    const av = avatar(m.author);
+    return `<div class="m"><div class="av"${av ? ` style="background-image:url('${av}')"` : ''}></div><div class="b">
+      <div class="h"><b>${e(m.author.global_name || m.author.username)}</b>${m.author.bot ? '<i>BOT</i>' : ''}<time>${fmt(m.timestamp)}</time></div>
+      ${m.content ? `<div class="c">${text(m.content)}</div>` : ''}${embeds}${files}</div></div>`;
+  }).join('');
+  return `<!DOCTYPE html><html lang="sk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Prepis #${e(ch.name)}</title>
+<style>body{margin:0;background:#0d0d0f;color:#f3ecdc;font:15px/1.5 system-ui,sans-serif}header{padding:24px 28px;border-bottom:1px solid #c9a961}
+h1{margin:0;font:600 28px Georgia,serif;color:#c9a961}header p{margin:6px 0 0;color:#a69f90}main{padding:12px 28px 40px;max-width:960px}
+.m{display:flex;gap:14px;padding:12px 0;border-bottom:1px solid #2a2822}.av{width:40px;height:40px;border-radius:50%;flex:none;background:#26242a center/cover}
+.b{min-width:0;flex:1}.h{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}.h i{font-style:normal;font-size:10px;background:#5865f2;color:#fff;padding:1px 5px;border-radius:3px}
+.h time{color:#a69f90;font-size:12px}.c{margin-top:2px;word-wrap:break-word}.em{margin-top:8px;border-left:4px solid #c9a961;background:#17161a;padding:10px 14px;border-radius:4px}
+.emt{font-weight:600;color:#c9a961;margin-bottom:6px}.f{margin:4px 0}.f span{display:block;font-size:12px;color:#a69f90}.att{max-width:360px;max-height:280px;margin-top:8px;border-radius:4px;display:block}
+.file{display:inline-block;margin-top:8px;color:#c9a961}a{color:#c9a961}</style></head><body>
+<header><h1>Prepis #${e(ch.name)}</h1><p>${e((ch.topic || '').replace(/ · uid:\d+/, '').replace('kod:', 'Kód: '))}</p>
+<p>Uzavreté: ${fmt(Date.now())} · Uzavrel/a: ${e(closedBy)} · Správ: ${msgs.length}</p></header><main>${rows || '<p>Žiadne správy.</p>'}</main></body></html>`;
+}
+
+// Overenie, že požiadavka naozaj prišla od Discordu (Ed25519 podpis)
+async function verifyDiscord(env, req, body) {
+  const sig = req.headers.get('X-Signature-Ed25519'), ts = req.headers.get('X-Signature-Timestamp');
+  if (!sig || !ts || !env.DISCORD_PUBLIC_KEY) return false;
+  const hex = h => new Uint8Array(h.match(/.{2}/g).map(b => parseInt(b, 16)));
+  try {
+    let key;
+    try { key = await crypto.subtle.importKey('raw', hex(env.DISCORD_PUBLIC_KEY), {name: 'Ed25519'}, false, ['verify']); }
+    catch (e) { key = await crypto.subtle.importKey('raw', hex(env.DISCORD_PUBLIC_KEY), {name: 'NODE-ED25519', namedCurve: 'NODE-ED25519'}, false, ['verify']); }
+    return await crypto.subtle.verify(key.algorithm.name === 'Ed25519' ? 'Ed25519' : {name: 'NODE-ED25519'}, key, hex(sig), new TextEncoder().encode(ts + body));
+  } catch (e) { return false; }
 }
 
 // ---------- Pomocníci ----------
