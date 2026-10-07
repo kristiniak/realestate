@@ -109,10 +109,20 @@ async function ticket(req, env, url) {
   const body = await req.json().catch(() => ({}));
   const clip = (v, n) => String(v || '').replace(/\s+/g, ' ').trim().slice(0, n);
   const form = {
-    icName: clip(body.icName, 60), phone: clip(body.phone, 30), interest: clip(body.interest, 20),
-    when: clip(body.when, 80), message: String(body.message || '').trim().slice(0, 800)
+    icName: clip(String(body.icName || '').normalize('NFC'), 60), phone: clip(body.phone, 15), interest: clip(body.interest, 20),
+    message: String(body.message || '').trim().slice(0, 800)
   };
-  if (!form.icName) return json({error: 'icName'}, 400);
+  if (!/^\p{L}+(?:[ '-]\p{L}+)+$/u.test(form.icName)) return json({error: 'icName'}, 400);   // meno a priezvisko, len písmená
+  if (!/^\d{3,15}$/.test(form.phone)) return json({error: 'phone'}, 400);                     // len číslice
+  // Termín obhliadky (nepovinný): dátum RRRR-MM-DD + čas HH:MM, nie v minulosti
+  const date = String(body.date || ''), time = String(body.time || '');
+  if (date || time) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || (time && !/^\d{2}:\d{2}$/.test(time))) return json({error: 'when'}, 400);
+    const yesterday = new Date(Date.now() - 36 * 3600000).toISOString().slice(0, 10);   // rezerva na časové pásma
+    if (date < yesterday) return json({error: 'when'}, 400);
+    const [y, m, d] = date.split('-');
+    form.when = `${Number(d)}. ${Number(m)}. ${y}` + (time ? ` o ${time}` : '');
+  }
 
   // Údaje o ponuke berieme priamo zo súboru data.json na webe (nedajú sa podvrhnúť)
   const houses = await env.ASSETS.fetch(new Request(url.origin + '/data.json')).then(r => r.json()).catch(() => []);
@@ -149,10 +159,10 @@ async function ticket(req, env, url) {
   staffRoles.forEach(r => overwrites.push({id: r, type: 0, allow: String(STAFF_ALLOW), deny: '0'}));
   if (agentId && agentId !== s.id) overwrites.push({id: agentId, type: 1, allow: String(STAFF_ALLOW), deny: '0'});
 
-  // Krátky názov kanála: ticket-014-meno (číslo z kódu ponuky ONX-014, meno max. 16 znakov)
+  // Krátky názov kanála: email-014-meno (číslo z kódu ponuky ONX-014, meno max. 16 znakov)
   const norm = v => String(v).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
   const num = (/(\d+)$/.exec(h.code || '') || [])[1];
-  const chName = ['ticket', num, norm(s.username).slice(0, 16).replace(/-+$/, '')].filter(Boolean).join('-');
+  const chName = ['email', num, norm(s.username).slice(0, 16).replace(/-+$/, '')].filter(Boolean).join('-');
   const ch = await bot(env, `/guilds/${g}/channels`, 'POST', {
     name: chName, type: 0, parent_id: env.DISCORD_CATEGORY_ID,
     topic: `${String(h.name).slice(0, 200)} · kod:${code} · uid:${s.id}`, permission_overwrites: overwrites
@@ -170,16 +180,16 @@ async function ticket(req, env, url) {
     {name: 'Kód ponuky', value: code, inline: true},
     {name: 'Záujem o', value: form.interest || '—', inline: true},
     {name: 'Cena', value: price, inline: true},
-    {name: 'Meno postavy', value: form.icName, inline: true},
-    {name: 'Telefón v hre', value: form.phone || '—', inline: true},
+    {name: 'Meno a priezvisko', value: form.icName, inline: true},
+    {name: 'Tel. číslo', value: form.phone, inline: true},
     {name: 'Maklér', value: agent ? agent.name : '—', inline: true}
   ];
-  if (form.when) fields.push({name: 'Kedy sa hodí obhliadka', value: form.when});
+  if (form.when) fields.push({name: 'Termín obhliadky', value: form.when});
   if (form.message) fields.push({name: 'Správa', value: form.message});
   const pingRoles = agentId ? [] : staffRoles;
   const pings = [`<@${s.id}>`, agentId && `<@${agentId}>`, ...pingRoles.map(r => `<@&${r}>`)].filter(Boolean);
   await bot(env, `/channels/${ch.id}/messages`, 'POST', {
-    content: `${pings.join(' ')}\nDobrý deň, ďakujeme za záujem o nehnuteľnosť${h.code ? ' **' + h.code + '**' : ''}. Maklér sa vám ozve tu v tomto kanáli.`,
+    content: `${pings.join(' ')}\nDobrý deň, ďakujeme za záujem o nehnuteľnosť${h.code ? ' **' + h.code + '**' : ''}. Maklér vám odpovie v tomto e-maile.`,
     allowed_mentions: {users: [s.id, agentId].filter(Boolean), roles: pingRoles},
     embeds: [{
       title: 'Otvoriť inzerát na webe →', url: pageUrl, color: 0xc9a961,

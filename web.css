@@ -117,6 +117,8 @@ body.page{margin:0;background:var(--panel);color:var(--text);font-family:var(--s
 .inq-field label{display:block;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
 .inq-field input,.inq-field select,.inq-field textarea{width:100%;font:inherit;font-size:15px;color:var(--text);background:var(--panel-2);
   border:1px solid var(--line);padding:11px 12px;border-radius:0}
+.inq-when{display:grid;grid-template-columns:1fr 140px;gap:8px}
+.inq-field input[type=date],.inq-field input[type=time]{color-scheme:dark;cursor:pointer}
 .inq-field textarea{resize:vertical;min-height:96px;line-height:1.55}
 .inq-field input:focus,.inq-field select:focus,.inq-field textarea:focus{outline:2px solid var(--pin);outline-offset:0;border-color:var(--pin)}
 .inq-err{margin:16px 0 0;padding:10px 14px;border:1px solid #e07b6a;color:#f2b3a8;background:rgba(224,123,106,.08)}

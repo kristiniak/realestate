@@ -157,16 +157,17 @@
     </div>
     <form id="inq-form" novalidate>
       <div class="inq-grid">
-        <div class="inq-field"><label for="q-name">Meno postavy v hre *</label><input id="q-name" maxlength="60" required autocomplete="off" placeholder="napr. John Carter"></div>
-        <div class="inq-field"><label for="q-phone">Telefón v hre</label><input id="q-phone" maxlength="30" autocomplete="off" placeholder="napr. 555-0123"></div>
+        <div class="inq-field"><label for="q-name">Vaše meno a priezvisko *</label><input id="q-name" maxlength="60" required autocomplete="off" placeholder="napr. John Carter"></div>
+        <div class="inq-field"><label for="q-phone">Tel. číslo *</label><input id="q-phone" maxlength="15" required inputmode="numeric" autocomplete="off" placeholder="napr. 5550123"></div>
         <div class="inq-field" id="q-interest-wrap"><label for="q-interest">Mám záujem o</label><select id="q-interest"></select></div>
-        <div class="inq-field"><label for="q-when">Kedy sa vám hodí obhliadka?</label><input id="q-when" maxlength="80" autocomplete="off" placeholder="napr. dnes večer po 20:00"></div>
+        <div class="inq-field"><label for="q-date">Kedy sa vám hodí obhliadka?</label>
+          <div class="inq-when"><input type="date" id="q-date" aria-label="Dátum obhliadky"><input type="time" id="q-time" aria-label="Čas obhliadky" step="900"></div></div>
         <div class="inq-field wide"><label for="q-msg">Správa pre makléra</label><textarea id="q-msg" maxlength="800" rows="4" placeholder="Otázky, požiadavky, rozpočet…"></textarea></div>
       </div>
       <p class="inq-err" id="inq-err" role="alert" hidden></p>
       <div class="inq-foot">
         <p class="inq-user" id="inq-user"></p>
-        <button class="btn btn-gold" id="inq-send" type="submit">Odoslať a vytvoriť ticket</button>
+        <button class="btn btn-gold" id="inq-send" type="submit">Odoslať</button>
       </div>
     </form>
     <div class="inq-done" id="inq-done" hidden></div>
@@ -304,8 +305,8 @@
     });
   });
 
-  // ===== Formulár „Mám záujem“ → ticket na Discorde (cez worker.js) =====
-  // Keď server (worker) ešte nie je nastavený, tlačidlo ostane obyčajným odkazom na Discord.
+  // ===== Formulár „Mám záujem“ → správa maklérovi (worker.js ju doručí ako „e-mail“) =====
+  // Keď server (worker) nie je dostupný, tlačidlo vedie na kontaktný odkaz z nastavenia.js.
   let inqUser = null;
   const INQ_KEY = 'onyx-dopyt';
   async function initInquiry(h) {
@@ -335,7 +336,7 @@
     const saved = readSaved(h.id);
     if (p.has('prihlasenie')) {
       openInquiry(h, saved);
-      showErr(p.get('prihlasenie') === 'zrusene' ? 'Prihlásenie cez Discord bolo zrušené. Bez neho ticket vytvoriť nevieme.' : 'Prihlásenie cez Discord sa nepodarilo. Skúste to prosím znova.');
+      showErr(p.get('prihlasenie') === 'zrusene' ? 'Overenie bolo zrušené. Bez neho vám makléri nemôžu odpovedať.' : 'Overenie sa nepodarilo. Skúste to prosím znova.');
     } else if (p.has('odoslat') && saved && inqUser) {
       openInquiry(h, saved); sendInquiry(h);                        // po návrate z prihlásenia sa odošle samo
     } else if (p.has('zaujem')) openInquiry(h, saved);
@@ -344,30 +345,44 @@
 
     $('#inq-form').addEventListener('submit', e => { e.preventDefault(); sendInquiry(h); });
     $('#inq-form').addEventListener('input', () => { $('#inq-err').hidden = true; });
+    // Meno: len písmená (aj s diakritikou), medzera, pomlčka, apostrof. Telefón: len číslice.
+    $('#q-name').addEventListener('input', e => { const v = e.target.value.replace(/[^\p{L}\p{M} '-]/gu, ''); if (v !== e.target.value) e.target.value = v; });
+    $('#q-phone').addEventListener('input', e => { const v = e.target.value.replace(/\D/g, ''); if (v !== e.target.value) e.target.value = v; });
+    $('#q-date').addEventListener('change', syncWhen);
+    $('#q-date').addEventListener('focus', syncWhen);
     $('#inq').addEventListener('click', e => { if (e.target.id === 'inq' || e.target.closest('[data-inq-close]')) closeInquiry(); });
     document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#inq').hidden) closeInquiry(); });
   }
   function readSaved(id) { try { const v = JSON.parse(sessionStorage.getItem(INQ_KEY) || 'null'); return v && v.listingId === id ? v : null; } catch (e) { return null; } }
-  const formData = h => ({listingId: h.id, icName: $('#q-name').value.trim(), phone: $('#q-phone').value.trim(),
+  const formData = h => ({listingId: h.id, icName: $('#q-name').value.normalize('NFC').replace(/\s+/g, ' ').trim(), phone: $('#q-phone').value.trim(),
     interest: $('#q-interest-wrap').hidden ? ($('#q-interest').value || '') : $('#q-interest').value,
-    when: $('#q-when').value.trim(), message: $('#q-msg').value.trim()});
+    date: $('#q-date').value, time: $('#q-time').value, message: $('#q-msg').value.trim()});
+  // Dnešný dátum (miestny čas) vo formáte RRRR-MM-DD – skoršie dni sa v kalendári nedajú vybrať
+  const pad = n => String(n).padStart(2, '0');
+  const todayStr = () => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
+  function syncWhen() {
+    $('#q-date').min = todayStr();
+    const d = new Date();
+    $('#q-time').min = $('#q-date').value === todayStr() ? `${pad(d.getHours())}:${pad(d.getMinutes())}` : '';
+  }
   function openInquiry(h, saved) {
     $('#inq-code').textContent = h.code ? 'Kód ponuky ' + h.code : 'Dopyt';
     $('#inq-title').textContent = h.name;
-    $('#inq-sub').textContent = 'Vyplňte pár údajov. Po odoslaní sa vám na našom Discorde automaticky vytvorí súkromný ticket s maklérom.';
-    if (saved) { $('#q-name').value = saved.icName || ''; $('#q-phone').value = saved.phone || ''; $('#q-when').value = saved.when || '';
+    $('#inq-sub').textContent = 'Vyplňte pár údajov. Maklér vám odpovie e-mailom a dohodne s vami ďalší postup.';
+    if (saved) { $('#q-name').value = saved.icName || ''; $('#q-phone').value = saved.phone || '';
+      $('#q-date').value = saved.date || ''; $('#q-time').value = saved.time || '';
       $('#q-msg').value = saved.message || ''; if (saved.interest) $('#q-interest').value = saved.interest; }
     $('#inq-form').hidden = false; $('#inq-done').hidden = true; $('#inq-err').hidden = true;
-    renderUser();
+    renderUser(); syncWhen();
     $('#inq').hidden = false; document.body.style.overflow = 'hidden';
     setTimeout(() => $('#q-name').focus(), 30);
   }
   function closeInquiry() { $('#inq').hidden = true; document.body.style.overflow = ''; }
   function renderUser() {
     $('#inq-user').innerHTML = inqUser
-      ? `${inqUser.avatar ? `<img src="${esc(inqUser.avatar)}" alt="">` : ''}Prihlásený cez Discord ako <b>${esc(inqUser.name)}</b> · <button type="button" class="linkbtn" id="inq-logout">Odhlásiť</button>`
-      : 'Pri odoslaní sa prihlásite cez Discord – aby sme vedeli, komu ticket vytvoriť.';
-    $('#inq-send').textContent = inqUser ? 'Odoslať a vytvoriť ticket' : 'Pokračovať cez Discord';
+      ? `${inqUser.avatar ? `<img src="${esc(inqUser.avatar)}" alt="">` : ''}Odpoveď príde na e-mail používateľa <b>${esc(inqUser.name)}</b> · <button type="button" class="linkbtn" id="inq-logout">Nie ste to vy?</button>`
+      : 'Pri odoslaní overíme váš e-mail, aby vám maklér mohol odpovedať.';
+    $('#inq-send').textContent = inqUser ? 'Odoslať' : 'Overiť e-mail a odoslať';
     const lo = $('#inq-logout');
     if (lo) lo.onclick = async () => { await fetch('/api/logout', {method: 'POST'}).catch(() => {}); inqUser = null; renderUser(); };
   }
@@ -375,13 +390,19 @@
   async function sendInquiry(h) {
     const data = formData(h);
     $('#inq-err').hidden = true;
-    if (!data.icName) { showErr('Vyplňte prosím meno postavy.'); $('#q-name').focus(); return; }
+    if (!/^\p{L}+(?:[ '-]\p{L}+)+$/u.test(data.icName)) { showErr('Vyplňte prosím meno aj priezvisko (len písmená).'); $('#q-name').focus(); return; }
+    if (!/^\d{3,15}$/.test(data.phone)) { showErr('Vyplňte prosím tel. číslo (len číslice).'); $('#q-phone').focus(); return; }
+    if (data.time && !data.date) { showErr('K času obhliadky vyberte aj dátum.'); $('#q-date').focus(); return; }
+    if (data.date) {
+      const when = new Date(data.date + 'T' + (data.time || '23:59'));
+      if (isNaN(when) || when < new Date()) { showErr('Termín obhliadky nemôže byť v minulosti.'); $('#q-date').focus(); return; }
+    }
     try { sessionStorage.setItem(INQ_KEY, JSON.stringify(data)); } catch (e) {}
-    if (!inqUser) {                                                  // najprv prihlásenie cez Discord, potom sa to odošle samo
+    if (!inqUser) {                                                  // najprv overenie (prihlásenie), potom sa to odošle samo
       location.href = '/api/login?back=' + encodeURIComponent(location.pathname + '?id=' + encodeURIComponent(h.id) + '&odoslat=1');
       return;
     }
-    const btn = $('#inq-send'); btn.disabled = true; btn.textContent = 'Vytváram ticket…';
+    const btn = $('#inq-send'); btn.disabled = true; btn.textContent = 'Odosielam…';
     let res, body = {};
     try {
       res = await fetch('/api/ticket', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data)});
@@ -393,19 +414,21 @@
       $('#inq-form').hidden = true;
       $('#inq-done').hidden = false;
       $('#inq-done').innerHTML = `<div class="inq-check">✓</div>
-        <h3>${body.existing ? 'K tejto ponuke už ticket máte' : 'Ticket je vytvorený'}</h3>
-        <p>${body.existing ? 'Pokračujte prosím v existujúcom tickete.' : 'Maklér sa vám ozve priamo v tickete na našom Discorde.'}</p>
-        <a class="btn btn-gold" href="${esc(body.url)}" target="_blank" rel="noopener">Otvoriť ticket na Discorde</a>`;
+        <h3>${body.existing ? 'K tejto ponuke už s nami komunikujete' : 'Správa bola odoslaná'}</h3>
+        <p>${body.existing ? 'Pokračujte prosím v e-maile, ktorý už s maklérom máte.' : 'Ďakujeme. Maklér vám čoskoro odpovie e-mailom.'}</p>
+        <a class="btn btn-gold" href="${esc(body.url)}" target="_blank" rel="noopener">Otvoriť e-mail</a>`;
       return;
     }
     const msgs = {
-      login: () => { inqUser = null; renderUser(); return 'Prihlásenie vypršalo. Kliknite na „Pokračovať cez Discord“.'; },
-      not_member: () => `Ticket vieme vytvoriť len členom nášho Discord servera. <a href="${esc(DISCORD)}" target="_blank" rel="noopener">Pridajte sa na server</a> a potom kliknite na „Odoslať“ znova.`,
-      too_many: () => `Máte už ${body.max || 3} otvorené tickety. Pokračujte prosím v nich, alebo počkajte, kým ich maklér uzavrie.`,
+      login: () => { inqUser = null; renderUser(); return 'Overenie vypršalo. Kliknite na „Overiť e-mail a odoslať“.'; },
+      not_member: () => `Váš e-mail sa nepodarilo overiť. <a href="${esc(DISCORD)}" target="_blank" rel="noopener">Kontaktujte nás</a> a potom to skúste znova.`,
+      too_many: () => `Máte už ${body.max || 3} otvorené konverzácie s maklérmi. Pokračujte prosím v nich, alebo počkajte, kým ich maklér uzavrie.`,
+      phone: () => 'Vyplňte prosím tel. číslo (len číslice).',
+      when: () => 'Termín obhliadky nemôže byť v minulosti.',
       closed: () => 'Táto nehnuteľnosť už nie je k dispozícii.',
-      icName: () => 'Vyplňte prosím meno postavy.'
+      icName: () => 'Vyplňte prosím meno aj priezvisko (len písmená).'
     };
-    showErr(msgs[body.error] ? msgs[body.error]() : `Ticket sa nepodarilo vytvoriť. Skúste to o chvíľu znova, alebo nás <a href="${esc(DISCORD)}" target="_blank" rel="noopener">kontaktujte priamo</a>.`);
+    showErr(msgs[body.error] ? msgs[body.error]() : `Správu sa nepodarilo odoslať. Skúste to o chvíľu znova, alebo nás <a href="${esc(DISCORD)}" target="_blank" rel="noopener">kontaktujte priamo</a>.`);
   }
 
   // Cena vpravo hore: pri predaji aj prenájme sú obe pod sebou
