@@ -107,7 +107,8 @@
     },
     "photos": [
       "img/plaz-dom-1.jpg"
-    ]
+    ],
+    "area": "plaz"
   },
   {
     "id": "farma",
