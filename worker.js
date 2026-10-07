@@ -254,8 +254,10 @@ async function closeTicket(env, channelId, user) {
 
   const customerId = ((ch.topic || '').match(/uid:(\d+)/) || [])[1];
   const code = ((ch.topic || '').match(/kod:(\S+)/) || [])[1] || '';
-  const html = transcriptHtml(ch, msgs, who);
-  const fileName = `prepis-${ch.name}.html`;
+  const roles = {};
+  try { (await bot(env, `/guilds/${env.DISCORD_GUILD_ID}/roles`)).forEach(r => roles[r.id] = r.name); } catch (e) {}
+  const html = transcriptText(ch, msgs, who, roles);
+  const fileName = `prepis-${ch.name}.txt`;
   const people = [...new Set(msgs.filter(m => !m.author.bot).map(m => m.author.global_name || m.author.username))];
   const summary = {
     title: `Prepis: #${ch.name}`, color: 0xc9a961, timestamp: new Date().toISOString(),
@@ -284,40 +286,49 @@ async function closeTicket(env, channelId, user) {
 async function sendFile(env, path, payload, name, text) {
   const fd = new FormData();
   fd.append('payload_json', JSON.stringify({...payload, attachments: [{id: 0, filename: name}]}));
-  fd.append('files[0]', new Blob([text], {type: 'text/html'}), name);
+  fd.append('files[0]', new Blob([text], {type: 'text/plain; charset=utf-8'}), name);
   const r = await fetch(API + path, {method: 'POST', headers: {Authorization: 'Bot ' + env.DISCORD_BOT_TOKEN}, body: fd});
   if (!r.ok) throw new Error(`Discord ${r.status} ${path}: ${await r.text()}`);
   return r.json();
 }
 
-function transcriptHtml(ch, msgs, closedBy) {
-  const e = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
+// Prepis ako čistý text – Discord ho zobrazí priamo v náhľade súboru
+function transcriptText(ch, msgs, closedBy, roles) {
   const fmt = t => new Date(t).toLocaleString('sk-SK', {timeZone: 'Europe/Bratislava', day: 'numeric', month: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit'});
   const names = {};
   msgs.forEach(m => { names[m.author.id] = m.author.global_name || m.author.username; (m.mentions || []).forEach(u => names[u.id] = u.global_name || u.username); });
-  const text = t => e(t).replace(/&lt;@!?(\d+)&gt;/g, (_, id) => '@' + e(names[id] || 'používateľ')).replace(/&lt;@&amp;(\d+)&gt;/g, '@rola')
-    .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>');
-  const avatar = a => a.avatar ? `https://cdn.discordapp.com/avatars/${a.id}/${a.avatar}.png?size=64` : '';
-  const rows = msgs.map(m => {
-    const embeds = (m.embeds || []).map(em => `<div class="em">${em.title ? `<div class="emt">${e(em.title)}</div>` : ''}${em.description ? `<div>${text(em.description)}</div>` : ''}
-      ${(em.fields || []).map(f => `<div class="f"><span>${e(f.name)}</span>${text(f.value)}</div>`).join('')}</div>`).join('');
-    const files = (m.attachments || []).map(a => /\.(png|jpe?g|gif|webp)$/i.test(a.filename)
-      ? `<a href="${e(a.url)}"><img class="att" src="${e(a.url)}" alt="${e(a.filename)}"></a>` : `<a class="file" href="${e(a.url)}">📎 ${e(a.filename)}</a>`).join('');
-    const av = avatar(m.author);
-    return `<div class="m"><div class="av"${av ? ` style="background-image:url('${av}')"` : ''}></div><div class="b">
-      <div class="h"><b>${e(m.author.global_name || m.author.username)}</b>${m.author.bot ? '<i>BOT</i>' : ''}<time>${fmt(m.timestamp)}</time></div>
-      ${m.content ? `<div class="c">${text(m.content)}</div>` : ''}${embeds}${files}</div></div>`;
-  }).join('');
-  return `<!DOCTYPE html><html lang="sk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Prepis #${e(ch.name)}</title>
-<style>body{margin:0;background:#0d0d0f;color:#f3ecdc;font:15px/1.5 system-ui,sans-serif}header{padding:24px 28px;border-bottom:1px solid #c9a961}
-h1{margin:0;font:600 28px Georgia,serif;color:#c9a961}header p{margin:6px 0 0;color:#a69f90}main{padding:12px 28px 40px;max-width:960px}
-.m{display:flex;gap:14px;padding:12px 0;border-bottom:1px solid #2a2822}.av{width:40px;height:40px;border-radius:50%;flex:none;background:#26242a center/cover}
-.b{min-width:0;flex:1}.h{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}.h i{font-style:normal;font-size:10px;background:#5865f2;color:#fff;padding:1px 5px;border-radius:3px}
-.h time{color:#a69f90;font-size:12px}.c{margin-top:2px;word-wrap:break-word}.em{margin-top:8px;border-left:4px solid #c9a961;background:#17161a;padding:10px 14px;border-radius:4px}
-.emt{font-weight:600;color:#c9a961;margin-bottom:6px}.f{margin:4px 0}.f span{display:block;font-size:12px;color:#a69f90}.att{max-width:360px;max-height:280px;margin-top:8px;border-radius:4px;display:block}
-.file{display:inline-block;margin-top:8px;color:#c9a961}a{color:#c9a961}</style></head><body>
-<header><h1>Prepis #${e(ch.name)}</h1><p>${e((ch.topic || '').replace(/ · uid:\d+/, '').replace('kod:', 'Kód: '))}</p>
-<p>Uzavreté: ${fmt(Date.now())} · Uzavrel/a: ${e(closedBy)} · Správ: ${msgs.length}</p></header><main>${rows || '<p>Žiadne správy.</p>'}</main></body></html>`;
+  const clean = t => String(t || '')
+    .replace(/<@!?(\d+)>/g, (_, id) => '@' + (names[id] || 'používateľ'))
+    .replace(/<@&(\d+)>/g, (_, id) => '@' + (roles[id] || 'rola'))
+    .replace(/<#(\d+)>/g, '#kanál')
+    .replace(/<a?:(\w+):\d+>/g, ':$1:')
+    .replace(/\*\*(.+?)\*\*/g, '$1').replace(/__(.+?)__/g, '$1');
+  const indent = t => clean(t).split('\n').map(l => '   ' + l).join('\n');
+  const topic = (ch.topic || '').replace(/ · uid:\d+/, '').replace('kod:', 'Kód: ');
+  const line = '═'.repeat(60);
+  const out = [
+    'ONYX REAL ESTATE – PREPIS E-MAILU', line,
+    'Kanál:     #' + ch.name,
+    topic ? 'Ponuka:    ' + topic : '',
+    'Uzavreté:  ' + fmt(Date.now()) + ' (uzavrel/a ' + closedBy + ')',
+    'Správ:     ' + msgs.length, line
+  ].filter(v => v !== '');
+  out.push('');
+  msgs.forEach(m => {
+    out.push(`[${fmt(m.timestamp)}] ${m.author.global_name || m.author.username}${m.author.bot ? ' (systém)' : ''}`);
+    if (m.content) out.push(indent(m.content));
+    (m.embeds || []).forEach(em => {
+      if (em.title) out.push('   ┌ ' + clean(em.title));
+      if (em.description) out.push('   │ ' + clean(em.description));
+      (em.fields || []).forEach(f => out.push('   │ ' + clean(f.name) + ': ' + clean(f.value).replace(/\n/g, ', ')));
+      out.push('   └');
+    });
+    (m.attachments || []).forEach(a => out.push('   📎 Príloha: ' + a.filename + ' – ' + a.url));
+    if (!m.content && !(m.embeds || []).length && !(m.attachments || []).length) out.push('   (prázdna správa)');
+    out.push('');
+  });
+  out.push(line, 'Koniec prepisu');
+  return out.join('\n');
 }
 
 // Overenie, že požiadavka naozaj prišla od Discordu (Ed25519 podpis)
