@@ -114,7 +114,7 @@ async function ticket(req, env, url) {
   };
   if (!/^\p{L}+(?:[ '-]\p{L}+)+$/u.test(form.icName)) return json({error: 'icName'}, 400);   // meno a priezvisko, len písmená
   if (!/^\d{3,15}$/.test(form.phone)) return json({error: 'phone'}, 400);                     // len číslice
-  if (!/^[^\s@]+@[^\s@]+$/.test(form.email)) return json({error: 'email'}, 400);              // musí obsahovať @
+  if (!/^[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)*\.[a-z]{2,}$/i.test(form.email)) return json({error: 'email'}, 400);              // musí obsahovať @
   // Termín obhliadky (nepovinný): dátum RRRR-MM-DD + čas HH:MM, nie v minulosti
   const date = String(body.date || ''), time = String(body.time || '');
   if (date || time) {

@@ -401,7 +401,7 @@
     $('#inq-err').hidden = true;
     if (!/^\p{L}+(?:[ '-]\p{L}+)+$/u.test(data.icName)) { showErr('Vyplňte prosím meno aj priezvisko (len písmená).'); $('#q-name').focus(); return; }
     if (!/^\d{3,15}$/.test(data.phone)) { showErr('Vyplňte prosím tel. číslo (len číslice).'); $('#q-phone').focus(); return; }
-    if (!/^[^\s@]+@[^\s@]+$/.test(data.email)) { showErr('Vyplňte prosím e-mail – musí obsahovať znak @.'); $('#q-email').focus(); return; }
+    if (!/^[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)*\.[a-z]{2,}$/i.test(data.email)) { showErr('Zadajte platný e-mail, napr. meno@domena.com.'); $('#q-email').focus(); return; }
     if (data.time && !data.date) { showErr('K času obhliadky vyberte aj dátum.'); $('#q-date').focus(); return; }
     if (data.date) {
       const when = new Date(data.date + 'T' + (data.time || '23:59'));
@@ -434,7 +434,7 @@
       not_member: () => `Váš e-mail sa nepodarilo overiť. <a href="${esc(DISCORD)}" target="_blank" rel="noopener">Kontaktujte nás</a> a potom to skúste znova.`,
       too_many: () => `Máte už ${body.max || 3} otvorené konverzácie s maklérmi. Pokračujte prosím v nich, alebo počkajte, kým ich maklér uzavrie.`,
       phone: () => 'Vyplňte prosím tel. číslo (len číslice).',
-      email: () => 'Vyplňte prosím e-mail – musí obsahovať znak @.',
+      email: () => 'Zadajte platný e-mail, napr. meno@domena.com.',
       when: () => 'Termín obhliadky nemôže byť v minulosti.',
       closed: () => 'Táto nehnuteľnosť už nie je k dispozícii.',
       icName: () => 'Vyplňte prosím meno aj priezvisko (len písmená).'
