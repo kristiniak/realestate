@@ -149,11 +149,13 @@ async function ticket(req, env, url) {
   staffRoles.forEach(r => overwrites.push({id: r, type: 0, allow: String(STAFF_ALLOW), deny: '0'}));
   if (agentId && agentId !== s.id) overwrites.push({id: agentId, type: 1, allow: String(STAFF_ALLOW), deny: '0'});
 
-  const chName = ('ticket-' + code + '-' + s.username).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
-    .replace(/[^a-z0-9-]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').slice(0, 90);
+  // Krátky názov kanála: ticket-014-meno (číslo z kódu ponuky ONX-014, meno max. 16 znakov)
+  const norm = v => String(v).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  const num = (/(\d+)$/.exec(h.code || '') || [])[1];
+  const chName = ['ticket', num, norm(s.username).slice(0, 16).replace(/-+$/, '')].filter(Boolean).join('-');
   const ch = await bot(env, `/guilds/${g}/channels`, 'POST', {
     name: chName, type: 0, parent_id: env.DISCORD_CATEGORY_ID,
-    topic: `${h.name} · kod:${code} · uid:${s.id}`, permission_overwrites: overwrites
+    topic: `${String(h.name).slice(0, 200)} · kod:${code} · uid:${s.id}`, permission_overwrites: overwrites
   });
 
   // Úvodná správa s údajmi
@@ -180,7 +182,7 @@ async function ticket(req, env, url) {
     content: `${pings.join(' ')}\nDobrý deň, ďakujeme za záujem o **${h.name}**. Maklér sa vám ozve tu v tomto kanáli.`,
     allowed_mentions: {users: [s.id, agentId].filter(Boolean), roles: pingRoles},
     embeds: [{
-      title: `${code} · ${h.name}`, url: pageUrl, color: 0xc9a961,
+      title: `${code} · ${h.name}`.slice(0, 250), url: pageUrl, color: 0xc9a961,
       description: h.street || undefined, fields,
       thumbnail: photo ? {url: url.origin + '/' + String(photo).split('/').map(encodeURIComponent).join('/')} : undefined,
       footer: {text: `Dopyt z webu · ${s.name} (@${s.username})`}, timestamp: new Date().toISOString()
