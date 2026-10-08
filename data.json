@@ -8,7 +8,7 @@
     "desc": "Moderná vila s výhľadom na mesto.",
     "details": {
       "Štvrť": "Vinewood Hills",
-      "Garáž": "10 áut",
+      "Garáž": "Áno",
       "Cena": "5 000 000 $"
     },
     "photos": [
@@ -96,7 +96,8 @@
     "rent": 2500,
     "rentPeriod": "tyzden",
     "code": "ONX-001",
-    "design": "mlo"
+    "design": "mlo",
+    "furnished": false
   },
   {
     "id": "plaz-dom",
