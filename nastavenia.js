@@ -61,11 +61,15 @@ const FILTERS = [
   {key: 'view', title: 'Výhľad', options: [['more', 'Na more'], ['mesto', 'Na mesto'], ['priroda', 'Na prírodu a hory']]}
 ];
 
-// ===== DIZAJN INTERIÉRU – krátky popis štúdia v inzeráte =====
+// ===== DIZAJN INTERIÉRU – karta štúdia v inzeráte (vedľa makléra) =====
+// mono = skratka v štvorčeku, full = celý názov pod menom, desc = krátky popis
 const DESIGNERS = {
-  mlo:   'Interiér navrhnutý na mieru priamo pre túto budovu – skutočné okná, výhľad aj vchod. Unikátne riešenie, ktoré inde nenájdete.',
-  ipl:   'Overený dizajn renomovaného štúdia, známy z prestížnych rezidencií v Los Santos.',
-  shell: 'Cenovo dostupná jednotka so samostatným vstupom, pripravená na vaše vlastné zariadenie.'
+  mlo:   {mono: 'MLO', full: 'Maison Luxe Originals',
+          desc: 'Interiér navrhnutý na mieru priamo pre túto budovu. Jedinečné dispozičné riešenie, ktoré inde nenájdete.'},
+  ipl:   {mono: 'IPL', full: 'Interior Prestige Los Santos',
+          desc: 'Overený dizajn renomovaného štúdia, známy z prestížnych rezidencií v Los Santos.'},
+  shell: {mono: 'S&C', full: 'Kompaktné bývanie',
+          desc: 'Cenovo dostupné bývanie, ktoré si môžete zariadiť presne podľa svojich predstáv – alebo ho získať už kompletne zariadené.'}
 };
 
 // ===== ŠTÍTKY STAVU =====
