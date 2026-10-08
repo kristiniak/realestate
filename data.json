@@ -95,7 +95,8 @@
     "agent": "makler-1",
     "rent": 2500,
     "rentPeriod": "tyzden",
-    "code": "ONX-001"
+    "code": "ONX-001",
+    "design": "mlo"
   },
   {
     "id": "plaz-dom",
