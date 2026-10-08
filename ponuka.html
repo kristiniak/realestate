@@ -82,6 +82,9 @@
   const active = {};
   FILTERS.forEach(f => active[f.key] = new Set());
   const agentFilter = new URLSearchParams(location.search).get('makler');   // ponuka.html?makler=id
+  // ponuka.html?typ=prenajom (alebo predaj) rovno zapne filter „Typ“
+  const typParam = new URLSearchParams(location.search).get('typ');
+  if (typParam && active.offer) active.offer.add(typParam);
 
   function optionsOf(f) {
     if (!f.onlyUsed) return f.options;

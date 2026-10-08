@@ -37,6 +37,19 @@
   .hero.has-photo{padding-bottom:clamp(90px,12vh,140px);justify-content:center;
     background:radial-gradient(ellipse 60% 55% at 50% 45%,rgba(13,13,15,.55),rgba(13,13,15,.85)),var(--photo) center/cover no-repeat,var(--panel)}
   .hero.has-photo .hero-art{display:none}
+  /* Naše služby – karty sa pri posunutí stránky postupne objavia */
+  .svc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:22px}
+  .svc{background:var(--panel-2);border:1px solid var(--line);padding:28px 26px 26px;display:flex;flex-direction:column;gap:12px;
+    transition:border-color .2s,transform .2s}
+  .svc:hover{border-color:var(--pin);transform:translateY(-4px)}
+  .svc svg{width:46px;height:46px;fill:none;stroke:var(--pin);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+  .svc h3{font-size:28px;margin:4px 0 0}
+  .svc p{color:var(--muted);margin:0;flex:1}
+  .svc .link-more{margin-top:6px}
+  .js-anim .svc{opacity:0;transform:translateY(28px);transition:opacity .6s ease,transform .6s ease,border-color .2s}
+  .js-anim .svc.in{opacity:1;transform:none}
+  .js-anim .svc.in:hover{transform:translateY(-4px)}
+  @media (prefers-reduced-motion:reduce){.js-anim .svc{opacity:1;transform:none;transition:none}}
   /* Čísla pod úvodom */
   .stats{display:flex;justify-content:center;flex-wrap:wrap;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
   .stat{padding:26px clamp(24px,5vw,64px);text-align:center}
@@ -100,6 +113,38 @@
     </div>
   </section>
   <div class="stats" id="stats"></div>
+
+  <section class="section services" id="sluzby">
+    <div class="wrap">
+      <div class="section-head"><div><p class="eyebrow">Čo pre vás robíme</p><h2>Naše služby</h2></div></div>
+      <div class="svc-grid">
+        <article class="svc">
+          <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M6 22 24 8l18 14"/><path d="M11 19v21h26V19"/><path d="M20 40V28h8v12"/></svg>
+          <h3>Predaj nehnuteľností</h3>
+          <p>Vily, domy aj byty v Los Santos a okolí. Pomôžeme vám vybrať, pozrieť si interiér aj okolie a bezpečne dotiahnuť kúpu.</p>
+          <a class="link-more" href="ponuka.html?typ=predaj">Prezrieť ponuku →</a>
+        </article>
+        <article class="svc">
+          <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="16" cy="24" r="7"/><path d="M23 24h19M36 24v6M41 24v4"/></svg>
+          <h3>Prenájom nehnuteľností</h3>
+          <p>Krátkodobé aj dlhodobé prenájmy – na deň, týždeň či mesiac. Nájdeme bývanie, ktoré sedí vašim plánom.</p>
+          <a class="link-more" href="ponuka.html?typ=prenajom">Pozrieť prenájmy →</a>
+        </article>
+        <article class="svc">
+          <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 40V18l12-9 12 9v22z"/><path d="M15 40V28h10v12"/><path d="M34 14h8v8M42 14 31 25"/></svg>
+          <h3>Predáme alebo prenajmeme vašu nehnuteľnosť</h3>
+          <p>Chcete predať či prenajať svoju nehnuteľnosť? Postaráme sa o fotky, 360° prehliadku, inzerciu aj komunikáciu so záujemcami.</p>
+          <a class="link-more" href="kontakt.html?napiste=1&amp;tema=Predaj%20nehnute%C4%BEnosti">Ponúknuť nehnuteľnosť →</a>
+        </article>
+        <article class="svc">
+          <svg viewBox="0 0 48 48" aria-hidden="true"><rect x="7" y="14" width="34" height="22" rx="2"/><circle cx="24" cy="25" r="5"/><path d="M12 19h3M33 31h3"/></svg>
+          <h3>Výkup nehnuteľností</h3>
+          <p>Potrebujete predať rýchlo? Vašu nehnuteľnosť od vás po dohode priamo odkúpime – bez čakania na kupujúceho.</p>
+          <a class="link-more" href="kontakt.html?napiste=1&amp;tema=V%C3%BDkup%20nehnute%C4%BEnosti">Požiadať o výkup →</a>
+        </article>
+      </div>
+    </div>
+  </section>
 
   <section class="section">
     <div class="wrap">
@@ -207,6 +252,20 @@
     }
   });
 
+
+  // Naše služby – postupné objavenie kariet pri posúvaní
+  (function () {
+    const cards = document.querySelectorAll('.svc');
+    if (!('IntersectionObserver' in window) || !cards.length) return;
+    document.documentElement.classList.add('js-anim');
+    const io = new IntersectionObserver(entries => entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      const i = [...cards].indexOf(e.target);
+      setTimeout(() => e.target.classList.add('in'), i * 120);
+      io.unobserve(e.target);
+    }), {threshold: 0.2});
+    cards.forEach(c => io.observe(c));
+  })();
   // ===== „Hľadáte niečo konkrétne?“ – formulár (správa príde maklérom ako e-mail) =====
   (function () {
     const KEY = 'onyx-hladam', ANY = 'Nezáleží';

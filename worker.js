@@ -131,7 +131,7 @@ async function ticket(req, env, url) {
 
   // Všeobecná správa zo stránky Kontakt (bez konkrétnej ponuky)
   const general = body.type === 'general';
-  const TOPICS = ['Hľadám nehnuteľnosť', 'Kúpa nehnuteľnosti', 'Predaj nehnuteľnosti', 'Prenájom', 'Spolupráca', 'Iné'];
+  const TOPICS = ['Hľadám nehnuteľnosť', 'Kúpa nehnuteľnosti', 'Predaj nehnuteľnosti', 'Výkup nehnuteľnosti', 'Prenájom', 'Spolupráca', 'Iné'];
   if (general) {
     form.topic = TOPICS.includes(body.topic) ? body.topic : 'Iné';
     if (form.message.length < 5) return json({error: 'message'}, 400);

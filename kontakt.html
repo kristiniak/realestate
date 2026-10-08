@@ -140,7 +140,7 @@
         <div class="inq-field"><label for="q-phone">Tel. číslo *</label><input id="q-phone" maxlength="15" inputmode="numeric" autocomplete="off" placeholder="napr. 5550123"></div>
         <div class="inq-field"><label for="q-email">E-mail *</label><input id="q-email" type="email" maxlength="80" autocomplete="off" placeholder="napr. john.carter@mail.ls"></div>
         <div class="inq-field"><label for="q-topic">Téma</label><select id="q-topic">
-          <option>Kúpa nehnuteľnosti</option><option>Predaj nehnuteľnosti</option><option>Prenájom</option><option>Spolupráca</option><option>Iné</option></select></div>
+          <option>Kúpa nehnuteľnosti</option><option>Predaj nehnuteľnosti</option><option>Výkup nehnuteľnosti</option><option>Prenájom</option><option>Spolupráca</option><option>Iné</option></select></div>
         <div class="inq-field wide"><label for="q-msg">Vaša správa *</label><textarea id="q-msg" maxlength="800" rows="5" placeholder="Napíšte nám, s čím vám môžeme pomôcť…"></textarea></div>
       </div>
       <p class="inq-err" id="inq-err" role="alert" hidden></p>
@@ -294,7 +294,11 @@
       let saved = null; try { saved = JSON.parse(sessionStorage.getItem(KEY) || 'null'); } catch (e) {}
       if (p.has('prihlasenie')) { open(saved); showErr(p.get('prihlasenie') === 'zrusene' ? 'Overenie bolo zrušené. Bez neho vám makléri nemôžu odpovedať.' : 'Overenie sa nepodarilo. Skúste to prosím znova.'); }
       else if (p.has('odoslat') && saved && user) { open(saved); send(); }
-      else if (p.has('napiste') || location.hash === '#napiste-nam') open(saved);
+      else if (p.has('napiste') || location.hash === '#napiste-nam') {
+        open(saved);
+        const t = p.get('tema');                                     // kontakt.html?napiste=1&tema=Výkup nehnuteľnosti
+        if (t && [...$('#q-topic').options].some(o => o.value === t)) $('#q-topic').value = t;
+      }
       if (location.search) history.replaceState(null, '', location.pathname);
     });
   })();
