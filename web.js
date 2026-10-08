@@ -17,8 +17,12 @@ const optLabel = (key, val) => {
   return o ? o[1] : String(val);
 };
 const priceRange = p => p < 500000 ? 'do500k' : p < 2000000 ? '500k-2m' : p <= 5000000 ? '2m-5m' : 'nad5m';
+// Prenájom prepočítaný na mesiac (deň × 30, týždeň × 4,33) – kvôli filtru „Cena prenájmu“
+const rentMonthly = h => typeof h.rent === 'number' ? h.rent * ({den: 30, tyzden: 4.33, mesiac: 1}[h.rentPeriod] || 1) : null;
+const rentRange = m => m < 5000 ? 'r-do5k' : m < 20000 ? 'r-5k-20k' : m <= 50000 ? 'r-20k-50k' : 'r-nad50k';
 function valuesOf(h, key) {
   if (key === 'price') return typeof h.price === 'number' ? [priceRange(h.price)] : [];
+  if (key === 'rentPrice') return rentMonthly(h) !== null ? [rentRange(rentMonthly(h))] : [];
   const v = h[key];
   if (v === undefined || v === null) return [];
   return (Array.isArray(v) ? v : [v]).map(String);

@@ -53,10 +53,14 @@ const FILTERS = [
     ['farma', 'Farmy a chaty'], ['biznis', 'Kancelárie alebo biznis']]},
   {key: 'design', title: 'Dizajn interiéru', onlyUsed: true, options: [
     ['mlo', 'M.L.O. Architects'], ['ipl', 'I.P.L. Interiors'], ['shell', 'Shell & Co. Living']]},
-  {key: 'price', title: 'Cena', options: [
+  {key: 'price', title: 'Cena predaja', options: [
     ['do500k', 'do 500 000 $'], ['500k-2m', '500 000 – 2 mil. $'], ['2m-5m', '2 – 5 mil. $'], ['nad5m', 'nad 5 mil. $']]},
+  // Cena prenájmu sa porovnáva za mesiac (prenájom na deň/týždeň sa prepočíta automaticky)
+  {key: 'rentPrice', title: 'Cena prenájmu (mesačne)', options: [
+    ['r-do5k', 'do 5 000 $'], ['r-5k-20k', '5 000 – 20 000 $'], ['r-20k-50k', '20 000 – 50 000 $'], ['r-nad50k', 'nad 50 000 $']]},
   {key: 'rooms', title: 'Počet izieb', onlyUsed: true, options: [
     ['1', '1'], ['2', '2'], ['3', '3'], ['4', '4'], ['5', '5'], ['6', '6'], ['7', '7'], ['8', '8'], ['9', '9'], ['10', '10']]},
+  {key: 'furnished', title: 'Vybavenie', options: [['true', 'Zariadené'], ['false', 'Nezariadené']]},
   {key: 'pool', title: 'Bazén', options: [['true', 'S bazénom'], ['false', 'Bez bazéna']]},
   {key: 'view', title: 'Výhľad', options: [['more', 'Na more'], ['mesto', 'Na mesto'], ['priroda', 'Na prírodu a hory']]}
 ];

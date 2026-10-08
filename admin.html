@@ -201,6 +201,7 @@
         </div>
         <div class="row">
           <div class="field"><label for="e-rooms">Počet izieb</label><input type="number" id="e-rooms" min="0" max="50"></div>
+          <div class="field"><label for="e-furn">Vybavenie</label><select id="e-furn"><option value="">—</option><option value="true">Zariadené</option><option value="false">Nezariadené</option></select></div>
           <div class="field"><label for="e-pool">Bazén</label><select id="e-pool"><option value="">—</option><option value="true">Áno</option><option value="false">Nie</option></select></div>
           <div class="field"><label for="e-agent">Maklér</label><select id="e-agent"></select></div>
         </div>
@@ -477,6 +478,7 @@
     $('#e-design').innerHTML = opt('', '—') + filterOpts('design').map(([v, l]) => opt(v, l, d.design === v)).join('');
     $('#e-rooms').value = d.rooms || '';
     $('#e-pool').value = typeof d.pool === 'boolean' ? String(d.pool) : '';
+    $('#e-furn').value = typeof d.furnished === 'boolean' ? String(d.furnished) : '';
     $('#e-agent').innerHTML = opt('', '—') + agents.map(a => opt(a.id, a.name, d.agent === a.id)).join('');
     const views = [].concat(d.view || []);
     $('#e-view').innerHTML = filterOpts('view').map(([v, l]) =>
@@ -621,6 +623,7 @@
       setOrDel('design', $('#e-design').value);
       setOrDel('rooms', $('#e-rooms').value === '' ? '' : Number($('#e-rooms').value));
       setOrDel('pool', $('#e-pool').value === '' ? '' : $('#e-pool').value === 'true');
+      setOrDel('furnished', $('#e-furn').value === '' ? '' : $('#e-furn').value === 'true');
       setOrDel('agent', $('#e-agent').value);
       const views = [...document.querySelectorAll('#e-view input:checked')].map(i => i.value);
       setOrDel('view', views.length === 1 ? views[0] : views);

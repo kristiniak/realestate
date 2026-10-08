@@ -211,6 +211,7 @@
       ['Lokalita', h.area && optLabel('area', h.area)],
       ['Dizajn interiéru', h.design && optLabel('design', h.design)],
       ['Izby', h.rooms],
+      ['Vybavenie', typeof h.furnished === 'boolean' ? (h.furnished ? 'Zariadené' : 'Nezariadené') : null],
       ['Bazén', typeof h.pool === 'boolean' ? (h.pool ? 'Áno' : 'Nie') : null],
       ['Výhľad', h.view && [].concat(h.view).map(v => optLabel('view', v)).join(', ')]
     ].filter(([, v]) => v !== undefined && v !== null && v !== '');
