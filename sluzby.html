@@ -46,6 +46,27 @@
   .how li span{display:block;color:var(--muted);font-size:14px;margin-top:2px}
   .how .btn{width:100%}
   .how .btn + .btn{margin-top:10px}
+  .svc-detail p.note-box{border-left:3px solid var(--pin);background:var(--panel-2);padding:12px 16px;color:var(--text)}
+  .svc-detail p.note-box b{color:var(--pin);font-weight:600}
+
+  /* Fotografie vo formulári výkupu */
+  .ph-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .ph-cat{border:1px solid var(--line);background:var(--panel-2);padding:12px;display:flex;flex-direction:column;gap:10px;min-width:0}
+  .ph-cat.bad{border-color:#c0574b}
+  .ph-head{font-size:13px;color:var(--text)}
+  .ph-head small{color:var(--muted);font-size:12px}
+  .ph-list{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+  .ph-list:empty{display:none}
+  .ph-th{position:relative;aspect-ratio:1;background:center/cover no-repeat var(--panel)}
+  .ph-th button{position:absolute;top:2px;right:2px;width:20px;height:20px;border:0;border-radius:50%;background:rgba(0,0,0,.75);color:#fff;
+    font-size:11px;line-height:20px;padding:0;cursor:pointer}
+  .inq-field label.ph-add{display:block;margin:0;text-align:center;border:1px dashed var(--pin);color:var(--pin);padding:9px 6px;cursor:pointer;
+    font-size:11px;letter-spacing:.1em}
+  .inq-field label.ph-add:hover{background:rgba(201,169,97,.08)}
+  .inq-field label.ph-add[hidden]{display:none}
+  .ph-add.busy{opacity:.5;pointer-events:none}
+  .ph-hint{color:var(--muted);font-size:12px;margin:8px 0 0}
+  @media (max-width:600px){.ph-grid{grid-template-columns:1fr}}
   @media (max-width:900px){.svc-detail{grid-template-columns:1fr;gap:24px;padding:48px 0}}
 </style>
 </head>
@@ -132,6 +153,7 @@
       <h2>Predáme či prenajmeme vašu nehnuteľnosť</h2>
       <p>Chcete predať alebo prenajať svoju nehnuteľnosť, ale nemáte čas riešiť inzeráty, obhliadky a záujemcov? Prenechajte to nám.</p>
       <p>Vašu nehnuteľnosť odborne oceníme, pripravíme profesionálnu prezentáciu a postaráme sa o celý proces až po podpis zmluvy.</p>
+      <p class="note-box">Za sprostredkovanie predaja alebo prenájmu sa realitnej kancelárii platí <b>kaucia</b>. Jej výšku vám maklér oznámi vopred, ešte pred podpisom zmluvy.</p>
       <ul class="checks-list">
         <li>Ocenenie nehnuteľnosti podľa aktuálneho trhu</li>
         <li>Fotografie a 360° prehliadka interiéru</li>
@@ -143,7 +165,7 @@
       <h3>Ako to prebieha</h3>
       <ol>
         <li><div>Napíšte nám<span>Pár údajov o vašej nehnuteľnosti stačí.</span></div></li>
-        <li><div>Obhliadka a ocenenie<span>Maklér nehnuteľnosť pozrie a navrhne cenu.</span></div></li>
+        <li><div>Obhliadka a ocenenie<span>Maklér nehnuteľnosť pozrie, navrhne cenu a oznámi výšku kaucie.</span></div></li>
         <li><div>Prezentácia a inzerát<span>Fotky, 360° prehliadka a zverejnenie v ponuke.</span></div></li>
         <li><div>Predaj alebo prenájom<span>Vybavíme záujemcov aj zmluvu.</span></div></li>
       </ol>
@@ -156,20 +178,20 @@
       <span class="num">04</span>
       <h2>Výkup nehnuteľností</h2>
       <p>Potrebujete predať rýchlo a bez starostí? Vašu nehnuteľnosť od vás po dohode priamo odkúpime – bez čakania na kupujúceho a bez zdĺhavých obhliadok so záujemcami.</p>
-      <p>Cenu stanovíme individuálne podľa stavu, lokality a vybavenia nehnuteľnosti.</p>
+      <p class="note-box">Výkup realizujeme za <b>80 – 85 % trhovej hodnoty</b> nehnuteľnosti. Presnú sumu stanovíme po obhliadke podľa stavu, lokality a vybavenia.</p>
       <ul class="checks-list">
         <li>Rýchle a férové jednanie</li>
         <li>Bez čakania na kupujúceho</li>
-        <li>Individuálny návrh ceny</li>
+        <li>Výkup za 80 – 85 % trhovej hodnoty</li>
         <li>Celú administratívu vybavíme za vás</li>
       </ul>
     </div>
     <aside class="how">
       <h3>Ako to prebieha</h3>
       <ol>
-        <li><div>Požiadajte o výkup<span>Vyplníte krátky formulár o nehnuteľnosti.</span></div></li>
+        <li><div>Požiadajte o výkup<span>Vyplníte krátky formulár a priložíte fotografie.</span></div></li>
         <li><div>Obhliadka<span>Maklér si nehnuteľnosť pozrie.</span></div></li>
-        <li><div>Návrh ceny<span>Pripravíme vám ponuku na odkúpenie.</span></div></li>
+        <li><div>Návrh ceny<span>Ponuka na odkúpenie za 80 – 85 % trhovej hodnoty.</span></div></li>
         <li><div>Zmluva a vyplatenie<span>Po dohode podpíšeme zmluvu a vyplatíme vás.</span></div></li>
       </ol>
       <button class="btn btn-gold" type="button" data-form="vykup">Požiadať o výkup</button>
@@ -192,9 +214,21 @@
         <div class="inq-field" data-for="sprostredkovanie"><label for="q-want">Chcem nehnuteľnosť</label><select id="q-want"><option>Predať</option><option>Prenajať</option></select></div>
         <div class="inq-field wide" data-for="sprostredkovanie vykup"><label for="q-addr">Adresa nehnuteľnosti *</label><input id="q-addr" maxlength="80" autocomplete="off" placeholder="napr. North Conker Avenue 2044"></div>
         <div class="inq-field" data-for="sprostredkovanie vykup"><label for="q-type">Druh nehnuteľnosti</label><select id="q-type"></select></div>
-        <div class="inq-field" data-for="sprostredkovanie vykup"><label for="q-area">Lokalita</label><select id="q-area"></select></div>
+        <div class="inq-field" data-for="sprostredkovanie vykup"><label for="q-area" id="q-area-label">Lokalita</label><select id="q-area"></select></div>
         <div class="inq-field" data-for="sprostredkovanie vykup"><label for="q-price">Predstavovaná cena</label><input id="q-price" maxlength="40" autocomplete="off" placeholder="napr. 1 500 000 $"></div>
         <div class="inq-field" data-for="vykup"><label for="q-when">Ako rýchlo potrebujete predať?</label><select id="q-when"><option>Čo najskôr</option><option>Do týždňa</option><option>Do mesiaca</option><option>Nie je to súrne</option></select></div>
+        <div class="inq-field wide" data-for="vykup">
+          <label>Fotografie nehnuteľnosti *</label>
+          <div class="ph-grid">
+            <div class="ph-cat" data-cat="interier" data-name="Interiér" data-req="1"><div class="ph-head">Interiér *</div><div class="ph-list"></div>
+              <label class="ph-add">+ Pridať fotky<input type="file" accept="image/*" multiple hidden></label></div>
+            <div class="ph-cat" data-cat="exterier" data-name="Exteriér" data-req="1"><div class="ph-head">Exteriér *</div><div class="ph-list"></div>
+              <label class="ph-add">+ Pridať fotky<input type="file" accept="image/*" multiple hidden></label></div>
+            <div class="ph-cat" data-cat="zahrada" data-name="Záhrada"><div class="ph-head">Záhrada <small>(ak ju má)</small></div><div class="ph-list"></div>
+              <label class="ph-add">+ Pridať fotky<input type="file" accept="image/*" multiple hidden></label></div>
+          </div>
+          <p class="ph-hint">Najviac 3 fotky v každej časti.</p>
+        </div>
         <div class="inq-field wide"><label for="q-msg" id="q-msg-label">Vaša správa</label><textarea id="q-msg" maxlength="600" rows="4"></textarea></div>
       </div>
       <p class="inq-err" id="inq-err" role="alert" hidden></p>
@@ -229,8 +263,8 @@
     const MODES = {
       kupa:             {title: 'Kúpa nehnuteľnosti', sub: 'Napíšte nám, čo hľadáte alebo čo vás zaujíma. Maklér vám odpovie e-mailom.', topic: 'Kúpa nehnuteľnosti', msgReq: true, msgLabel: 'Vaša správa *', ph: 'Napíšte nám, s čím vám môžeme pomôcť…'},
       prenajom:         {title: 'Prenájom nehnuteľnosti', sub: 'Napíšte nám, aký prenájom hľadáte. Maklér vám odpovie e-mailom.', topic: 'Prenájom', msgReq: true, msgLabel: 'Vaša správa *', ph: 'napr. hľadám zariadený byt na mesiac v meste…'},
-      sprostredkovanie: {title: 'Ponúknuť nehnuteľnosť', sub: 'Povedzte nám pár slov o vašej nehnuteľnosti. Maklér sa vám ozve a dohodne obhliadku.', topic: null, msgReq: false, msgLabel: 'Ďalšie informácie', ph: 'napr. počet izieb, garáž, bazén, stav…'},
-      vykup:            {title: 'Požiadať o výkup', sub: 'Vyplňte údaje o nehnuteľnosti. Maklér sa vám ozve s návrhom ďalšieho postupu.', topic: 'Výkup nehnuteľnosti', msgReq: false, msgLabel: 'Ďalšie informácie', ph: 'napr. počet izieb, stav, vybavenie…'}
+      sprostredkovanie: {title: 'Ponúknuť nehnuteľnosť', sub: 'Povedzte nám pár slov o vašej nehnuteľnosti. Maklér sa vám ozve, dohodne obhliadku a oznámi výšku kaucie za sprostredkovanie.', topic: null, msgReq: false, msgLabel: 'Ďalšie informácie', ph: 'napr. počet izieb, garáž, bazén, stav…'},
+      vykup:            {title: 'Požiadať o výkup', sub: 'Vyplňte údaje o nehnuteľnosti a priložte fotografie. Výkup realizujeme za 80 – 85 % trhovej hodnoty, presnú sumu vám maklér navrhne po obhliadke.', topic: 'Výkup nehnuteľnosti', msgReq: false, msgLabel: 'Ďalšie informácie', ph: 'napr. počet izieb, stav, vybavenie…'}
     };
     const ANY = 'Neuvedené';
     const opts = key => [ANY, ...(FILTERS.find(f => f.key === key) || {options: []}).options.map(o => o[1]), 'Iné'];
@@ -238,6 +272,40 @@
     $('#q-area').innerHTML = opts('area').map(o => `<option>${esc(o)}</option>`).join('');
     const ids = ['q-name', 'q-phone', 'q-email', 'q-want', 'q-addr', 'q-type', 'q-area', 'q-price', 'q-when', 'q-msg'];
     let mode = 'kupa', user = null, apiOk = null;
+    // ===== Fotografie (len výkup): zmenšené na max. 1280 px, JPEG – uložené aj pre prípad overenia e-mailu =====
+    const PKEY = 'onyx-sluzby-foto', PMAX = 3;
+    let photos = {interier: [], exterier: [], zahrada: []};
+    const shrink = file => new Promise((ok, bad) => {
+      const img = new Image(), u = URL.createObjectURL(file);
+      img.onload = () => {
+        const k = Math.min(1, 1280 / Math.max(img.width, img.height)), c = document.createElement('canvas');
+        c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(u);
+        ok(c.toDataURL('image/jpeg', 0.75));
+      };
+      img.onerror = () => { URL.revokeObjectURL(u); bad(); };
+      img.src = u;
+    });
+    function renderPhotos() {
+      document.querySelectorAll('.ph-cat').forEach(box => {
+        const list = photos[box.dataset.cat];
+        box.querySelector('.ph-list').innerHTML = list.map((d, i) => `<div class="ph-th" style="background-image:url('${d}')"><button type="button" data-del="${i}" aria-label="Odstrániť">✕</button></div>`).join('');
+        box.querySelector('.ph-add').hidden = list.length >= PMAX;
+      });
+    }
+    document.querySelectorAll('.ph-cat').forEach(box => {
+      const cat = box.dataset.cat, input = box.querySelector('input'), add = box.querySelector('.ph-add');
+      input.addEventListener('change', async () => {
+        const files = [...input.files].filter(f => f.type.startsWith('image/')).slice(0, PMAX - photos[cat].length); input.value = '';
+        add.classList.add('busy');
+        for (const f of files) { try { photos[cat].push(await shrink(f)); } catch (e) { showErr('Jednu z fotiek sa nepodarilo načítať. Skúste iný obrázok.'); } }
+        add.classList.remove('busy'); box.classList.remove('bad'); renderPhotos();
+      });
+      box.querySelector('.ph-list').addEventListener('click', e => {
+        const b = e.target.closest('[data-del]'); if (!b) return;
+        photos[cat].splice(Number(b.dataset.del), 1); renderPhotos();
+      });
+    });
     const ready = fetch('/api/me', {cache: 'no-store'}).then(r => r.ok ? r.json() : null).catch(() => null)
       .then(r => { apiOk = !!(r && 'user' in r); if (apiOk) user = r.user; return apiOk; });
     const showErr = t => { $('#inq-err').innerHTML = t; $('#inq-err').hidden = false; };
@@ -247,6 +315,7 @@
       mode = MODES[m] ? m : 'kupa'; const M = MODES[mode];
       $('#inq-title').textContent = M.title; $('#inq-sub').textContent = M.sub;
       $('#q-msg-label').textContent = M.msgLabel; $('#q-msg').placeholder = M.ph;
+      $('#q-area-label').textContent = mode === 'vykup' ? 'Lokalita *' : 'Lokalita';
       document.querySelectorAll('#inq-form [data-for]').forEach(el => { el.hidden = !el.dataset.for.split(' ').includes(mode); });
     }
     function data() {
@@ -259,8 +328,10 @@
         if (v('q-msg')) lines.push('', 'Ďalšie informácie: ' + v('q-msg'));
       } else lines.push(v('q-msg'));
       const topic = M.topic || (v('q-want') === 'Prenajať' ? 'Prenájom mojej nehnuteľnosti' : 'Predaj nehnuteľnosti');
-      return {type: 'general', topic, icName: $('#q-name').value.normalize('NFC').replace(/\s+/g, ' ').trim(),
+      const out = {type: 'general', topic, icName: $('#q-name').value.normalize('NFC').replace(/\s+/g, ' ').trim(),
         phone: v('q-phone'), email: v('q-email'), message: lines.join('\n')};
+      if (mode === 'vykup') out.photos = Object.entries(photos).flatMap(([cat, list]) => list.map(data => ({cat, data})));
+      return out;
     }
     function renderUser() {
       $('#inq-user').innerHTML = user
@@ -272,6 +343,8 @@
     function open(m, saved) {
       setMode(m);
       if (saved) ids.forEach(id => { if (saved[id] !== undefined) $('#' + id).value = saved[id]; });
+      if (saved && saved.mode === 'vykup') { try { const p = JSON.parse(sessionStorage.getItem(PKEY) || 'null'); if (p) photos = {interier: [], exterier: [], zahrada: [], ...p}; } catch (e) {} }
+      renderPhotos(); document.querySelectorAll('.ph-cat').forEach(b => b.classList.remove('bad'));
       $('#inq-form').hidden = false; $('#inq-done').hidden = true; $('#inq-err').hidden = true; renderUser();
       $('#inq').hidden = false; document.body.style.overflow = 'hidden'; setTimeout(() => $('#q-name').focus(), 30);
     }
@@ -282,8 +355,15 @@
       if (!/^\d{3,15}$/.test(d.phone)) { showErr('Vyplňte prosím tel. číslo (len číslice).'); $('#q-phone').focus(); return; }
       if (!/^[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)*\.[a-z]{2,}$/i.test(d.email)) { showErr('Zadajte platný e-mail, napr. meno@domena.com.'); $('#q-email').focus(); return; }
       if ((mode === 'sprostredkovanie' || mode === 'vykup') && !v('q-addr')) { showErr('Vyplňte prosím adresu nehnuteľnosti.'); $('#q-addr').focus(); return; }
+      if (mode === 'vykup' && v('q-area') === ANY) { showErr('Vyberte prosím lokalitu nehnuteľnosti.'); $('#q-area').focus(); return; }
+      if (mode === 'vykup') {
+        const miss = [...document.querySelectorAll('.ph-cat[data-req]')].filter(b => !photos[b.dataset.cat].length);
+        miss.forEach(b => b.classList.add('bad'));
+        if (miss.length) { showErr('Priložte prosím aspoň jednu fotku: ' + miss.map(b => b.dataset.name.toLowerCase()).join(' a ') + '.'); miss[0].scrollIntoView({block: 'center', behavior: 'smooth'}); return; }
+      }
       if (MODES[mode].msgReq && v('q-msg').length < 5) { showErr('Napíšte nám prosím krátku správu.'); $('#q-msg').focus(); return; }
       try { sessionStorage.setItem(KEY, JSON.stringify({mode, ...Object.fromEntries(ids.map(id => [id, $('#' + id).value]))})); } catch (e) {}
+      try { if (mode === 'vykup') sessionStorage.setItem(PKEY, JSON.stringify(photos)); } catch (e) {}
       if (!user) { location.href = '/api/login?back=' + encodeURIComponent(location.pathname + '?odoslat=1'); return; }
       const btn = $('#inq-send'); btn.disabled = true; btn.textContent = 'Odosielam…';
       let body = {};
@@ -291,7 +371,8 @@
       catch (e) { body = {error: 'network'}; }
       btn.disabled = false; renderUser();
       if (body.ok) {
-        try { sessionStorage.removeItem(KEY); } catch (e) {}
+        try { sessionStorage.removeItem(KEY); sessionStorage.removeItem(PKEY); } catch (e) {}
+        photos = {interier: [], exterier: [], zahrada: []}; renderPhotos();
         $('#inq-form').hidden = true; $('#inq-done').hidden = false;
         $('#inq-done').innerHTML = `<div class="inq-check">✓</div><h3>${body.existing ? 'Už s nami komunikujete' : 'Správa bola odoslaná'}</h3>
           <p>${body.existing ? 'Pokračujte prosím v e-maile, ktorý s nami už máte.' : 'Ďakujeme. Maklér vám čoskoro odpovie e-mailom.'}</p>
@@ -302,7 +383,8 @@
         not_member: () => 'Váš e-mail sa nepodarilo overiť. Skúste to prosím znova.',
         too_many: () => `Máte už ${body.max || 3} otvorené konverzácie s maklérmi. Pokračujte prosím v nich.`,
         message: () => 'Napíšte nám prosím krátku správu.', email: () => 'Zadajte platný e-mail, napr. meno@domena.com.',
-        phone: () => 'Vyplňte prosím tel. číslo (len číslice).', icName: () => 'Vyplňte prosím meno aj priezvisko (len písmená).'};
+        phone: () => 'Vyplňte prosím tel. číslo (len číslice).', area: () => 'Vyberte prosím lokalitu nehnuteľnosti.',
+        photos: () => 'Priložte prosím aspoň jednu fotku interiéru a exteriéru.', photo_size: () => 'Fotky sú príliš veľké. Skúste ich prosím nahrať znova.', icName: () => 'Vyplňte prosím meno aj priezvisko (len písmená).'};
       showErr(m[body.error] ? m[body.error]() : 'Správu sa nepodarilo odoslať. Skúste to prosím o chvíľu znova.');
     }
     document.querySelectorAll('[data-form]').forEach(b => b.addEventListener('click', async () => {

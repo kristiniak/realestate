@@ -139,6 +139,24 @@ async function ticket(req, env, url) {
     if (form.message.length < 5) return json({error: 'message'}, 400);
   }
 
+  // Fotografie nehnuteľnosti (výkup): JPEG, max. 3 na časť, interiér a exteriér povinné
+  const PHOTO_CATS = {interier: 'interier', exterier: 'exterier', zahrada: 'zahrada'};
+  const photos = [];
+  if (general && form.topic === 'Výkup nehnuteľnosti') {
+    if (!/^Lokalita: (?!Neuvedené)\S/m.test(form.message)) return json({error: 'area'}, 400);
+    const count = {}; let total = 0;
+    for (const p of [].concat(body.photos || []).slice(0, 9)) {
+      const cat = PHOTO_CATS[p && p.cat]; const m = /^data:image\/jpeg;base64,([A-Za-z0-9+/=]+)$/.exec(String(p && p.data || ''));
+      if (!cat || !m || (count[cat] = (count[cat] || 0) + 1) > 3) continue;
+      const bin = Uint8Array.from(atob(m[1]), c => c.charCodeAt(0));
+      if (bin[0] !== 0xFF || bin[1] !== 0xD8) continue;                         // naozaj JPEG
+      total += bin.length;
+      if (bin.length > 2e6 || total > 9e6) return json({error: 'photo_size'}, 413);
+      photos.push({name: `${cat}-${count[cat]}.jpg`, blob: new Blob([bin], {type: 'image/jpeg'})});
+    }
+    if (!count.interier || !count.exterier) return json({error: 'photos'}, 400);
+  }
+
   // Údaje o ponuke berieme priamo zo súboru data.json na webe (nedajú sa podvrhnúť)
   const houses = general ? [] : await env.ASSETS.fetch(new Request(url.origin + '/data.json')).then(r => r.json()).catch(() => []);
   const seeking = general && form.topic === 'Hľadám nehnuteľnosť';
@@ -223,6 +241,8 @@ async function ticket(req, env, url) {
     }],
     components: [closeButtonRow()]
   }).catch(e => console.error('message', e));
+  if (photos.length) await sendFiles(env, `/channels/${ch.id}/messages`, {content: '📷 **Fotografie nehnuteľnosti** (interiér, exteriér, záhrada)'}, photos)
+    .catch(e => console.error('photos', e));
 
   return json({ok: true, url: `https://discord.com/channels/${g}/${ch.id}`, code});
 }
@@ -299,6 +319,15 @@ async function closeTicket(env, channelId, user) {
   }
   await new Promise(r => setTimeout(r, 3000));
   await bot(env, `/channels/${channelId}`, 'DELETE');
+}
+
+async function sendFiles(env, path, payload, files) {
+  const fd = new FormData();
+  fd.append('payload_json', JSON.stringify({...payload, attachments: files.map((f, i) => ({id: i, filename: f.name}))}));
+  files.forEach((f, i) => fd.append(`files[${i}]`, f.blob, f.name));
+  const r = await fetch(API + path, {method: 'POST', headers: {Authorization: 'Bot ' + env.DISCORD_BOT_TOKEN}, body: fd});
+  if (!r.ok) throw new Error(`Discord ${r.status} ${path}: ${await r.text()}`);
+  return r.json();
 }
 
 async function sendFile(env, path, payload, name, text) {
