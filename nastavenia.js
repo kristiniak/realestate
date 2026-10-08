@@ -35,29 +35,39 @@ const CONTACT = {
   // Názvy ulíc sú v súbore kontakt-ulice.js
 };
 
-// ===== ČASTÉ OTÁZKY (zobrazia sa na stránke Kontakt) =====
+// ===== ČASTÉ OTÁZKY – záloha; web ich berie zo súboru faq.json (upravuje sa v admine) =====
 // Každá položka: ['Otázka', 'Odpoveď']. Nový odsek v odpovedi = \n
 const FAQ = [
-  ['Ako prebieha kúpa nehnuteľnosti?',
-   'Pri vybranej nehnuteľnosti kliknite na „Mám záujem“ a vyplňte krátky formulár. Maklér vás kontaktuje e-mailom, dohodne s vami osobnú obhliadku a zodpovie všetky otázky. Ak sa rozhodnete pre kúpu, pripravíme zmluvu a po jej podpise a úhrade vám odovzdáme kľúče.'],
-  ['Ako funguje prenájom?',
-   'Pri každej nehnuteľnosti na prenájom je uvedená cena aj obdobie – za deň, týždeň alebo mesiac. Postup je rovnaký ako pri kúpe: vyplníte formulár, maklér vás kontaktuje, dohodnete si obhliadku a podmienky prenájmu.'],
-  ['Môžem si nehnuteľnosť pozrieť ešte pred obhliadkou?',
-   'Áno. Pri vybraných nehnuteľnostiach nájdete 360° prehliadku interiéru, v ktorej sa môžete prejsť miestnosť po miestnosti. Na mape si cez „Poobzerajte sa po lokalitách“ prezriete aj okolie z ulice.'],
-  ['Čo znamená „Dizajn interiéru“?',
-   'Uvádzame, ktoré štúdio interiér navrhlo:\nM.L.O. Architects (Maison Luxe Originals) – interiéry navrhnuté na mieru priamo pre konkrétnu budovu.\nI.P.L. Interiors (Interior Prestige Los Santos) – overený dizajn známy z prestížnych rezidencií.\nShell & Co. Living – cenovo dostupné bývanie, ktoré si zariadite podľa seba.'],
-  ['Predávate nehnuteľnosti aj zariadené?',
-   'Áno. Pri každej ponuke je uvedené, či je zariadená alebo nezariadená, a vo filtri „Vybavenie“ si môžete zobraziť len to, čo hľadáte.'],
-  ['Čo znamená štítok „Rezervované“?',
-   'Nehnuteľnosť už má záujemcu, s ktorým prebiehajú rokovania. Ak by obchod nakoniec neprebehol, ponuka sa opäť uvoľní – pokojne nám napíšte a dáme vám vedieť.'],
-  ['Na čo slúži kód ponuky?',
-   'Každá nehnuteľnosť má vlastný kód (napr. ONX-014). Keď sa o nej budete rozprávať s maklérom, stačí uviesť kód a hneď bude vedieť, o ktorú ide.'],
-  ['Nenašli ste, čo hľadáte?',
-   'Na úvodnej stránke kliknite pri „Hľadáte niečo konkrétne?“ na „Kontaktujte nás“ a vyplňte, akú nehnuteľnosť hľadáte. Maklér sa vám ozve, keď sa objaví vhodná ponuka.'],
-  ['Môžem cez vás predať alebo prenajať svoju nehnuteľnosť?',
-   'Samozrejme. Kliknite vyššie na náš e-mail, vyberte tému „Predaj nehnuteľnosti“ alebo „Prenájom“ a napíšte nám pár slov o vašej nehnuteľnosti. Maklér sa vám ozve a dohodne ďalší postup.'],
-  ['Ako rýchlo dostanem odpoveď?',
-   'Na správy odpovedáme čo najskôr, spravidla v ten istý deň. Odpoveď nájdete vo svojej e-mailovej schránke.']
+  ["Ako prebieha kúpa nehnuteľnosti?",
+   "Pri vybranej nehnuteľnosti kliknite na „Mám záujem“ a vyplňte krátky formulár. Maklér vás kontaktuje e-mailom, dohodne s vami osobnú obhliadku a zodpovie všetky otázky. Ak sa rozhodnete pre kúpu, pripravíme zmluvu a po jej podpise a úhrade vám odovzdáme kľúče."],
+  ["Ako sa platí – v hotovosti alebo cez banku?",
+   "Kúpnu cenu môžete uhradiť bankovým prevodom alebo v hotovosti pri podpise zmluvy. Pri vyšších sumách odporúčame bankový prevod – je bezpečnejší a o platbe máte doklad. Konkrétny spôsob platby si dohodnete s maklérom."],
+  ["Môžem nehnuteľnosť neskôr predať späť?",
+   "Áno. Ak sa v budúcnosti rozhodnete nehnuteľnosť predať, radi vám pomôžeme – po dohode ju od vás odkúpime, alebo ju zaradíme do našej ponuky a nájdeme nového kupujúceho. Výkupnú cenu stanovujeme individuálne podľa stavu a lokality nehnuteľnosti."],
+  ["Ako funguje prenájom?",
+   "Pri každej nehnuteľnosti na prenájom je uvedená cena aj obdobie – za deň, týždeň alebo mesiac. Postup je rovnaký ako pri kúpe: vyplníte formulár, maklér vás kontaktuje, dohodnete si obhliadku a podmienky prenájmu."],
+  ["Platí sa pri prenájme záloha? Aká je minimálna doba prenájmu?",
+   "Pri podpise nájomnej zmluvy sa platí nájom za prvé obdobie vopred a vratná záloha (kaucia), ktorej výšku vám oznámi maklér podľa konkrétnej nehnuteľnosti. Zálohu vám vrátime po skončení nájmu, ak nehnuteľnosť odovzdáte v poriadku.\nMinimálna doba prenájmu je jedno obdobie uvedené pri cene – deň, týždeň alebo mesiac."],
+  ["Čo sa stane, keď prestanem platiť nájom?",
+   "Nájom sa platí vždy vopred na nasledujúce obdobie. Ak platba neprebehne včas, maklér vás najprv kontaktuje a dohodne s vami riešenie. Pri dlhšom omeškaní sa nájomná zmluva ukončí, nehnuteľnosť je potrebné uvoľniť a dlžná suma sa započíta so zálohou."],
+  ["Môžem si nehnuteľnosť pozrieť ešte pred obhliadkou?",
+   "Áno. Pri vybraných nehnuteľnostiach nájdete 360° prehliadku interiéru, v ktorej sa môžete prejsť miestnosť po miestnosti. Na mape si cez „Poobzerajte sa po lokalitách“ prezriete aj okolie z ulice."],
+  ["Čo znamená „Dizajn interiéru“?",
+   "Uvádzame, ktoré štúdio interiér navrhlo:\nM.L.O. Architects (Maison Luxe Originals) – interiéry navrhnuté na mieru priamo pre konkrétnu budovu.\nI.P.L. Interiors (Interior Prestige Los Santos) – overený dizajn známy z prestížnych rezidencií.\nShell & Co. Living – cenovo dostupné bývanie, ktoré si zariadite podľa seba."],
+  ["Predávate nehnuteľnosti aj zariadené?",
+   "Áno. Pri každej ponuke je uvedené, či je zariadená alebo nezariadená, a vo filtri „Vybavenie“ si môžete zobraziť len to, čo hľadáte."],
+  ["Čo znamená štítok „Rezervované“?",
+   "Nehnuteľnosť už má záujemcu, s ktorým prebiehajú rokovania. Ak by obchod nakoniec neprebehol, ponuka sa opäť uvoľní – pokojne nám napíšte a dáme vám vedieť."],
+  ["Na čo slúži kód ponuky?",
+   "Každá nehnuteľnosť má vlastný kód (napr. ONX-014). Keď sa o nej budete rozprávať s maklérom, stačí uviesť kód a hneď bude vedieť, o ktorú ide."],
+  ["Nenašli ste, čo hľadáte?",
+   "Na úvodnej stránke kliknite pri „Hľadáte niečo konkrétne?“ na „Kontaktujte nás“ a vyplňte, akú nehnuteľnosť hľadáte. Maklér sa vám ozve, keď sa objaví vhodná ponuka."],
+  ["Môžem cez vás predať alebo prenajať svoju nehnuteľnosť?",
+   "Samozrejme. Kliknite vyššie na náš e-mail, vyberte tému „Predaj nehnuteľnosti“ alebo „Prenájom“ a napíšte nám pár slov o vašej nehnuteľnosti. Maklér sa vám ozve a dohodne ďalší postup."],
+  ["Ako rýchlo dostanem odpoveď?",
+   "Na správy odpovedáme čo najskôr, spravidla v ten istý deň. Odpoveď nájdete vo svojej e-mailovej schránke."],
+  ["Nenašli ste odpoveď na svoju otázku?",
+   "Napíšte nám – kliknite vyššie na tejto stránke na náš e-mail, vyberte tému „Iné“ a položte nám svoju otázku. Maklér vám odpovie e-mailom."]
 ];
 
 // Pozvánka na Discord (tlačidlo „Mám záujem“, keď formulár nie je dostupný)
