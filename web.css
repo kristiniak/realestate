@@ -21,12 +21,24 @@
   text-transform:uppercase;padding:11px 18px;border:1px solid var(--pin);transition:background .15s,color .15s}
 .hdr-cta:hover,.hdr-cta[aria-current="page"]{background:transparent;color:var(--pin)}
 .site-header a:focus-visible{outline:2px solid var(--pin);outline-offset:2px}
+/* Rozbaľovacie menu „Služby“ */
+.nav-dd{position:relative;display:flex}
+.nav-dd .dd-arrow{display:inline-block;margin-left:6px;font-size:10px;transition:transform .2s}
+.nav-dd-menu{position:absolute;top:100%;left:0;min-width:270px;background:var(--panel);border:1px solid var(--line);border-top:2px solid var(--pin);
+  padding:6px 0;box-shadow:0 18px 40px rgba(0,0,0,.45);opacity:0;visibility:hidden;transform:translateY(8px);
+  transition:opacity .18s,transform .18s,visibility .18s;z-index:60}
+.site-nav .nav-dd-menu a{display:block;padding:12px 20px;border:0;letter-spacing:.08em;font-size:12px}
+.site-nav .nav-dd-menu a:hover{background:var(--panel-2);color:var(--pin)}
+.nav-dd:hover .nav-dd-menu,.nav-dd:focus-within .nav-dd-menu{opacity:1;visibility:visible;transform:none}
+.nav-dd:hover .dd-arrow,.nav-dd:focus-within .dd-arrow{transform:rotate(180deg)}
+@media (min-width:761px){.site-nav{overflow:visible}}
 @media (max-width:760px){
   .site-header{flex-wrap:wrap;height:auto;gap:0 12px;padding:10px 16px 0}
   .site-header .brand span{font-size:22px}
   .hdr-cta{margin-left:auto;padding:8px 12px;font-size:12px}
   .site-nav{order:3;width:100%;margin:6px -16px 0;padding:0 8px}
   .site-nav a{padding:12px 10px 10px;font-size:12px;letter-spacing:.12em}
+  .nav-dd-menu,.nav-dd .dd-arrow{display:none}
 }
 
 /* ===== Obsahové stránky ===== */

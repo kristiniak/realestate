@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Služby – ONYX Real Estate</title>
+<link rel="icon" href="img/onyx_logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Jost:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="web.css">
+<style>
+  .page-top{padding:48px 0 28px;border-bottom:1px solid var(--line)}
+  .page-top h1{font-size:clamp(48px,6vw,76px);color:var(--pin);margin:0 0 10px}
+
+  /* Rýchly rozcestník – 4 karty */
+  .svc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:22px;padding:36px 0 12px}
+  .svc{background:var(--panel-2);border:1px solid var(--line);padding:26px 24px;display:flex;flex-direction:column;gap:10px;
+    color:var(--text);text-decoration:none;transition:border-color .2s,transform .2s}
+  .svc:hover{border-color:var(--pin);transform:translateY(-4px)}
+  .svc:focus-visible{outline:2px solid var(--pin);outline-offset:2px}
+  .svc svg{width:44px;height:44px;fill:none;stroke:var(--pin);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+  .svc h2{font-size:26px;margin:2px 0 0}
+  .svc p{color:var(--muted);margin:0;flex:1}
+  .svc .link-more{margin-top:4px}
+  .js-anim .svc{opacity:0;transform:translateY(28px);transition:opacity .6s ease,transform .6s ease,border-color .2s}
+  .js-anim .svc.in{opacity:1;transform:none}
+  .js-anim .svc.in:hover{transform:translateY(-4px)}
+  @media (prefers-reduced-motion:reduce){.js-anim .svc{opacity:1;transform:none;transition:none}}
+
+  /* Detail služby */
+  .svc-detail{display:grid;grid-template-columns:1.25fr 1fr;gap:48px;padding:64px 0;border-bottom:1px solid var(--line);scroll-margin-top:20px}
+  .svc-detail:last-of-type{border-bottom:0}
+  .svc-detail h2{font-size:clamp(34px,4vw,48px);margin:0 0 16px}
+  .svc-detail .num{font-family:var(--serif);color:var(--pin);font-size:20px;letter-spacing:.1em}
+  .svc-detail p{color:#d8d1c2;line-height:1.75;margin:0 0 14px;max-width:62ch}
+  .checks-list{list-style:none;margin:18px 0 0;padding:0;display:grid;gap:10px}
+  .checks-list li{display:flex;gap:12px;align-items:flex-start;color:var(--text)}
+  .checks-list li::before{content:'';flex:none;width:18px;height:18px;margin-top:3px;border:1px solid var(--pin);border-radius:50%;
+    background:radial-gradient(circle,var(--pin) 0 4px,transparent 5px)}
+  .how{background:var(--panel-2);border:1px solid var(--line);padding:26px;align-self:start}
+  .how h3{font-size:26px;margin:0 0 16px;color:var(--pin)}
+  .how ol{list-style:none;margin:0 0 22px;padding:0;counter-reset:s;display:grid;gap:14px}
+  .how li{counter-increment:s;display:grid;grid-template-columns:34px 1fr;gap:12px;align-items:start;color:var(--text)}
+  .how li::before{content:counter(s);width:34px;height:34px;display:grid;place-items:center;border:1px solid var(--pin);color:var(--pin);
+    font-family:var(--serif);font-size:18px}
+  .how li span{display:block;color:var(--muted);font-size:14px;margin-top:2px}
+  .how .btn{width:100%}
+  .how .btn + .btn{margin-top:10px}
+  @media (max-width:900px){.svc-detail{grid-template-columns:1fr;gap:24px;padding:48px 0}}
+</style>
+</head>
+<body class="page">
+<header id="site-header"></header>
+<script src="nastavenia.js"></script>
+
+<main class="wrap">
+  <div class="page-top">
+    <h1>Služby</h1>
+    <p class="lead">Kupujete, prenajímate alebo chcete svoju nehnuteľnosť predať? Pri každom kroku vám pomôžeme.</p>
+  </div>
+
+  <nav class="svc-grid" aria-label="Prehľad služieb">
+    <a class="svc" href="#kupa">
+      <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M6 22 24 8l18 14"/><path d="M11 19v21h26V19"/><path d="M20 40V28h8v12"/></svg>
+      <h2>Predaj nehnuteľností</h2><p>Vily, domy aj byty z našej ponuky.</p><span class="link-more">Viac →</span></a>
+    <a class="svc" href="#prenajom">
+      <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="16" cy="24" r="7"/><path d="M23 24h19M36 24v6M41 24v4"/></svg>
+      <h2>Prenájom nehnuteľností</h2><p>Na deň, týždeň aj mesiac.</p><span class="link-more">Viac →</span></a>
+    <a class="svc" href="#sprostredkovanie">
+      <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 40V18l12-9 12 9v22z"/><path d="M15 40V28h10v12"/><path d="M34 14h8v8M42 14 31 25"/></svg>
+      <h2>Predáme či prenajmeme vašu nehnuteľnosť</h2><p>Postaráme sa o všetko od inzerátu po zmluvu.</p><span class="link-more">Viac →</span></a>
+    <a class="svc" href="#vykup">
+      <svg viewBox="0 0 48 48" aria-hidden="true"><rect x="7" y="14" width="34" height="22" rx="2"/><circle cx="24" cy="25" r="5"/><path d="M12 19h3M33 31h3"/></svg>
+      <h2>Výkup nehnuteľností</h2><p>Rýchly predaj bez čakania na kupujúceho.</p><span class="link-more">Viac →</span></a>
+  </nav>
+
+  <section class="svc-detail" id="kupa">
+    <div>
+      <span class="num">01</span>
+      <h2>Predaj nehnuteľností</h2>
+      <p>Hľadáte nový domov, reprezentatívnu vilu alebo investíciu? V našej ponuke nájdete nehnuteľnosti v celom Los Santos a okolí – od kompaktných bytov po luxusné rezidencie vo Vinewood Hills.</p>
+      <p>Každú nehnuteľnosť si môžete pozrieť vopred – vo fotogalérii, v 360° prehliadke interiéru aj na mape s pohľadom na okolie z ulice.</p>
+      <ul class="checks-list">
+        <li>Overené nehnuteľnosti s kompletnými informáciami</li>
+        <li>360° prehliadky interiérov priamo na webe</li>
+        <li>Osobná obhliadka s maklérom v čase, ktorý vám vyhovuje</li>
+        <li>Pomoc so zmluvou až po odovzdanie kľúčov</li>
+      </ul>
+    </div>
+    <aside class="how">
+      <h3>Ako to prebieha</h3>
+      <ol>
+        <li><div>Vyberte si v ponuke<span>Pomôžu vám filtre podľa lokality, ceny či vybavenia.</span></div></li>
+        <li><div>Kliknite na „Mám záujem“<span>Vyplníte krátky formulár, maklér sa vám ozve e-mailom.</span></div></li>
+        <li><div>Osobná obhliadka<span>Pozriete si nehnuteľnosť spolu s maklérom.</span></div></li>
+        <li><div>Zmluva a kľúče<span>Po podpise a úhrade je nehnuteľnosť vaša.</span></div></li>
+      </ol>
+      <a class="btn btn-gold" href="ponuka.html?typ=predaj">Prezrieť ponuku na predaj</a>
+      <button class="btn btn-line" type="button" data-form="kupa">Napíšte nám</button>
+    </aside>
+  </section>
+
+  <section class="svc-detail" id="prenajom">
+    <div>
+      <span class="num">02</span>
+      <h2>Prenájom nehnuteľností</h2>
+      <p>Potrebujete bývanie na pár dní, týždňov alebo dlhodobo? Ponúkame prenájmy s jasne stanovenou cenou za deň, týždeň alebo mesiac – vyberiete si to, čo sedí vašim plánom.</p>
+      <p>Nehnuteľnosti na prenájom nájdete zariadené aj nezariadené, takže sa môžete nasťahovať hneď, alebo si priestor zariadiť po svojom.</p>
+      <ul class="checks-list">
+        <li>Krátkodobé aj dlhodobé prenájmy</li>
+        <li>Zariadené aj nezariadené nehnuteľnosti</li>
+        <li>Jasné podmienky a vratná záloha</li>
+        <li>Maklér, ktorý je vám k dispozícii počas celého nájmu</li>
+      </ul>
+    </div>
+    <aside class="how">
+      <h3>Ako to prebieha</h3>
+      <ol>
+        <li><div>Vyberte si prenájom<span>V ponuke stačí zapnúť filter „Prenájom“.</span></div></li>
+        <li><div>Kliknite na „Mám záujem“<span>Maklér vás kontaktuje a dohodne obhliadku.</span></div></li>
+        <li><div>Nájomná zmluva<span>Dohodnete obdobie, nájom a zálohu.</span></div></li>
+        <li><div>Nasťahovanie<span>Po úhrade vám odovzdáme kľúče.</span></div></li>
+      </ol>
+      <a class="btn btn-gold" href="ponuka.html?typ=prenajom">Pozrieť prenájmy</a>
+      <button class="btn btn-line" type="button" data-form="prenajom">Napíšte nám</button>
+    </aside>
+  </section>
+
+  <section class="svc-detail" id="sprostredkovanie">
+    <div>
+      <span class="num">03</span>
+      <h2>Predáme či prenajmeme vašu nehnuteľnosť</h2>
+      <p>Chcete predať alebo prenajať svoju nehnuteľnosť, ale nemáte čas riešiť inzeráty, obhliadky a záujemcov? Prenechajte to nám.</p>
+      <p>Vašu nehnuteľnosť odborne oceníme, pripravíme profesionálnu prezentáciu a postaráme sa o celý proces až po podpis zmluvy.</p>
+      <ul class="checks-list">
+        <li>Ocenenie nehnuteľnosti podľa aktuálneho trhu</li>
+        <li>Fotografie a 360° prehliadka interiéru</li>
+        <li>Inzerát na našom webe aj na mape</li>
+        <li>Obhliadky so záujemcami a príprava zmluvy</li>
+      </ul>
+    </div>
+    <aside class="how">
+      <h3>Ako to prebieha</h3>
+      <ol>
+        <li><div>Napíšte nám<span>Pár údajov o vašej nehnuteľnosti stačí.</span></div></li>
+        <li><div>Obhliadka a ocenenie<span>Maklér nehnuteľnosť pozrie a navrhne cenu.</span></div></li>
+        <li><div>Prezentácia a inzerát<span>Fotky, 360° prehliadka a zverejnenie v ponuke.</span></div></li>
+        <li><div>Predaj alebo prenájom<span>Vybavíme záujemcov aj zmluvu.</span></div></li>
+      </ol>
+      <button class="btn btn-gold" type="button" data-form="sprostredkovanie">Ponúknuť nehnuteľnosť</button>
+    </aside>
+  </section>
+
+  <section class="svc-detail" id="vykup">
+    <div>
+      <span class="num">04</span>
+      <h2>Výkup nehnuteľností</h2>
+      <p>Potrebujete predať rýchlo a bez starostí? Vašu nehnuteľnosť od vás po dohode priamo odkúpime – bez čakania na kupujúceho a bez zdĺhavých obhliadok so záujemcami.</p>
+      <p>Cenu stanovíme individuálne podľa stavu, lokality a vybavenia nehnuteľnosti.</p>
+      <ul class="checks-list">
+        <li>Rýchle a férové jednanie</li>
+        <li>Bez čakania na kupujúceho</li>
+        <li>Individuálny návrh ceny</li>
+        <li>Celú administratívu vybavíme za vás</li>
+      </ul>
+    </div>
+    <aside class="how">
+      <h3>Ako to prebieha</h3>
+      <ol>
+        <li><div>Požiadajte o výkup<span>Vyplníte krátky formulár o nehnuteľnosti.</span></div></li>
+        <li><div>Obhliadka<span>Maklér si nehnuteľnosť pozrie.</span></div></li>
+        <li><div>Návrh ceny<span>Pripravíme vám ponuku na odkúpenie.</span></div></li>
+        <li><div>Zmluva a vyplatenie<span>Po dohode podpíšeme zmluvu a vyplatíme vás.</span></div></li>
+      </ol>
+      <button class="btn btn-gold" type="button" data-form="vykup">Požiadať o výkup</button>
+    </aside>
+  </section>
+</main>
+
+<div class="modal" id="inq" hidden role="dialog" aria-modal="true" aria-labelledby="inq-title">
+  <div class="modal-box inq-box">
+    <div class="modal-head">
+      <div><p class="eyebrow" id="inq-eyebrow" style="margin:0 0 6px">Služby</p><h2 id="inq-title"></h2><p id="inq-sub"></p>
+        <p class="ooc"><span class="spoiler" tabindex="0" title="Ukážte myšou alebo kliknite">Formulár aj všetka komunikácia je v IC. Osobné údaje vypisujte IC.</span></p></div>
+      <button class="modal-x" type="button" data-inq-close aria-label="Zavrieť">✕</button>
+    </div>
+    <form id="inq-form" novalidate>
+      <div class="inq-grid">
+        <div class="inq-field"><label for="q-name">Vaše meno a priezvisko *</label><input id="q-name" maxlength="60" autocomplete="off" placeholder="napr. John Carter"></div>
+        <div class="inq-field"><label for="q-phone">Tel. číslo *</label><input id="q-phone" maxlength="15" inputmode="numeric" autocomplete="off" placeholder="napr. 5550123"></div>
+        <div class="inq-field"><label for="q-email">E-mail *</label><input id="q-email" type="email" maxlength="80" autocomplete="off" placeholder="napr. john.carter@mail.ls"></div>
+        <div class="inq-field" data-for="sprostredkovanie"><label for="q-want">Chcem nehnuteľnosť</label><select id="q-want"><option>Predať</option><option>Prenajať</option></select></div>
+        <div class="inq-field wide" data-for="sprostredkovanie vykup"><label for="q-addr">Adresa nehnuteľnosti *</label><input id="q-addr" maxlength="80" autocomplete="off" placeholder="napr. North Conker Avenue 2044"></div>
+        <div class="inq-field" data-for="sprostredkovanie vykup"><label for="q-type">Druh nehnuteľnosti</label><select id="q-type"></select></div>
+        <div class="inq-field" data-for="sprostredkovanie vykup"><label for="q-area">Lokalita</label><select id="q-area"></select></div>
+        <div class="inq-field" data-for="sprostredkovanie vykup"><label for="q-price">Predstavovaná cena</label><input id="q-price" maxlength="40" autocomplete="off" placeholder="napr. 1 500 000 $"></div>
+        <div class="inq-field" data-for="vykup"><label for="q-when">Ako rýchlo potrebujete predať?</label><select id="q-when"><option>Čo najskôr</option><option>Do týždňa</option><option>Do mesiaca</option><option>Nie je to súrne</option></select></div>
+        <div class="inq-field wide"><label for="q-msg" id="q-msg-label">Vaša správa</label><textarea id="q-msg" maxlength="600" rows="4"></textarea></div>
+      </div>
+      <p class="inq-err" id="inq-err" role="alert" hidden></p>
+      <div class="inq-foot">
+        <p class="inq-user" id="inq-user"></p>
+        <button class="btn btn-gold" id="inq-send" type="submit">Odoslať</button>
+      </div>
+    </form>
+    <div class="inq-done" id="inq-done" hidden></div>
+  </div>
+</div>
+
+<footer id="site-footer"></footer>
+<script src="web.js"></script>
+<script>
+  // Karty sa pri načítaní postupne objavia
+  (function () {
+    const cards = document.querySelectorAll('.svc');
+    if (!('IntersectionObserver' in window)) return;
+    document.documentElement.classList.add('js-anim');
+    const io = new IntersectionObserver(es => es.forEach(e => {
+      if (!e.isIntersecting) return;
+      setTimeout(() => e.target.classList.add('in'), [...cards].indexOf(e.target) * 120);
+      io.unobserve(e.target);
+    }), {threshold: 0.2});
+    cards.forEach(c => io.observe(c));
+  })();
+
+  // ===== Formulár pre služby (správa príde maklérom ako e-mail) =====
+  (function () {
+    const KEY = 'onyx-sluzby';
+    const MODES = {
+      kupa:             {title: 'Kúpa nehnuteľnosti', sub: 'Napíšte nám, čo hľadáte alebo čo vás zaujíma. Maklér vám odpovie e-mailom.', topic: 'Kúpa nehnuteľnosti', msgReq: true, msgLabel: 'Vaša správa *', ph: 'Napíšte nám, s čím vám môžeme pomôcť…'},
+      prenajom:         {title: 'Prenájom nehnuteľnosti', sub: 'Napíšte nám, aký prenájom hľadáte. Maklér vám odpovie e-mailom.', topic: 'Prenájom', msgReq: true, msgLabel: 'Vaša správa *', ph: 'napr. hľadám zariadený byt na mesiac v meste…'},
+      sprostredkovanie: {title: 'Ponúknuť nehnuteľnosť', sub: 'Povedzte nám pár slov o vašej nehnuteľnosti. Maklér sa vám ozve a dohodne obhliadku.', topic: null, msgReq: false, msgLabel: 'Ďalšie informácie', ph: 'napr. počet izieb, garáž, bazén, stav…'},
+      vykup:            {title: 'Požiadať o výkup', sub: 'Vyplňte údaje o nehnuteľnosti. Maklér sa vám ozve s návrhom ďalšieho postupu.', topic: 'Výkup nehnuteľnosti', msgReq: false, msgLabel: 'Ďalšie informácie', ph: 'napr. počet izieb, stav, vybavenie…'}
+    };
+    const ANY = 'Neuvedené';
+    const opts = key => [ANY, ...(FILTERS.find(f => f.key === key) || {options: []}).options.map(o => o[1]), 'Iné'];
+    $('#q-type').innerHTML = opts('type').map(o => `<option>${esc(o)}</option>`).join('');
+    $('#q-area').innerHTML = opts('area').map(o => `<option>${esc(o)}</option>`).join('');
+    const ids = ['q-name', 'q-phone', 'q-email', 'q-want', 'q-addr', 'q-type', 'q-area', 'q-price', 'q-when', 'q-msg'];
+    let mode = 'kupa', user = null, apiOk = null;
+    const ready = fetch('/api/me', {cache: 'no-store'}).then(r => r.ok ? r.json() : null).catch(() => null)
+      .then(r => { apiOk = !!(r && 'user' in r); if (apiOk) user = r.user; return apiOk; });
+    const showErr = t => { $('#inq-err').innerHTML = t; $('#inq-err').hidden = false; };
+    const v = id => $('#' + id).value.trim();
+
+    function setMode(m) {
+      mode = MODES[m] ? m : 'kupa'; const M = MODES[mode];
+      $('#inq-title').textContent = M.title; $('#inq-sub').textContent = M.sub;
+      $('#q-msg-label').textContent = M.msgLabel; $('#q-msg').placeholder = M.ph;
+      document.querySelectorAll('#inq-form [data-for]').forEach(el => { el.hidden = !el.dataset.for.split(' ').includes(mode); });
+    }
+    function data() {
+      const M = MODES[mode];
+      const lines = [];
+      if (mode === 'sprostredkovanie' || mode === 'vykup') {
+        if (mode === 'sprostredkovanie') lines.push('Chcem nehnuteľnosť: ' + v('q-want'));
+        lines.push('Adresa: ' + v('q-addr'), 'Druh: ' + v('q-type'), 'Lokalita: ' + v('q-area'), 'Predstavovaná cena: ' + (v('q-price') || ANY));
+        if (mode === 'vykup') lines.push('Predať potrebujem: ' + v('q-when'));
+        if (v('q-msg')) lines.push('', 'Ďalšie informácie: ' + v('q-msg'));
+      } else lines.push(v('q-msg'));
+      const topic = M.topic || (v('q-want') === 'Prenajať' ? 'Prenájom mojej nehnuteľnosti' : 'Predaj nehnuteľnosti');
+      return {type: 'general', topic, icName: $('#q-name').value.normalize('NFC').replace(/\s+/g, ' ').trim(),
+        phone: v('q-phone'), email: v('q-email'), message: lines.join('\n')};
+    }
+    function renderUser() {
+      $('#inq-user').innerHTML = user
+        ? `${user.avatar ? `<img src="${esc(user.avatar)}" alt="">` : ''}Odpoveď príde na e-mail používateľa <b>${esc(user.name)}</b> · <button type="button" class="linkbtn" id="inq-logout">Nie ste to vy?</button>`
+        : 'Pri odoslaní overíme váš e-mail, aby vám maklér mohol odpovedať.';
+      $('#inq-send').textContent = user ? 'Odoslať' : 'Overiť e-mail a odoslať';
+      const lo = $('#inq-logout'); if (lo) lo.onclick = async () => { await fetch('/api/logout', {method: 'POST'}).catch(() => {}); user = null; renderUser(); };
+    }
+    function open(m, saved) {
+      setMode(m);
+      if (saved) ids.forEach(id => { if (saved[id] !== undefined) $('#' + id).value = saved[id]; });
+      $('#inq-form').hidden = false; $('#inq-done').hidden = true; $('#inq-err').hidden = true; renderUser();
+      $('#inq').hidden = false; document.body.style.overflow = 'hidden'; setTimeout(() => $('#q-name').focus(), 30);
+    }
+    const close = () => { $('#inq').hidden = true; document.body.style.overflow = ''; };
+    async function send() {
+      const d = data(); $('#inq-err').hidden = true;
+      if (!/^\p{L}+(?:[ '-]\p{L}+)+$/u.test(d.icName)) { showErr('Vyplňte prosím meno aj priezvisko (len písmená).'); $('#q-name').focus(); return; }
+      if (!/^\d{3,15}$/.test(d.phone)) { showErr('Vyplňte prosím tel. číslo (len číslice).'); $('#q-phone').focus(); return; }
+      if (!/^[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)*\.[a-z]{2,}$/i.test(d.email)) { showErr('Zadajte platný e-mail, napr. meno@domena.com.'); $('#q-email').focus(); return; }
+      if ((mode === 'sprostredkovanie' || mode === 'vykup') && !v('q-addr')) { showErr('Vyplňte prosím adresu nehnuteľnosti.'); $('#q-addr').focus(); return; }
+      if (MODES[mode].msgReq && v('q-msg').length < 5) { showErr('Napíšte nám prosím krátku správu.'); $('#q-msg').focus(); return; }
+      try { sessionStorage.setItem(KEY, JSON.stringify({mode, ...Object.fromEntries(ids.map(id => [id, $('#' + id).value]))})); } catch (e) {}
+      if (!user) { location.href = '/api/login?back=' + encodeURIComponent(location.pathname + '?odoslat=1'); return; }
+      const btn = $('#inq-send'); btn.disabled = true; btn.textContent = 'Odosielam…';
+      let body = {};
+      try { body = await fetch('/api/ticket', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(d)}).then(r => r.json()); }
+      catch (e) { body = {error: 'network'}; }
+      btn.disabled = false; renderUser();
+      if (body.ok) {
+        try { sessionStorage.removeItem(KEY); } catch (e) {}
+        $('#inq-form').hidden = true; $('#inq-done').hidden = false;
+        $('#inq-done').innerHTML = `<div class="inq-check">✓</div><h3>${body.existing ? 'Už s nami komunikujete' : 'Správa bola odoslaná'}</h3>
+          <p>${body.existing ? 'Pokračujte prosím v e-maile, ktorý s nami už máte.' : 'Ďakujeme. Maklér vám čoskoro odpovie e-mailom.'}</p>
+          <a class="btn btn-gold" href="${esc(body.url)}" target="_blank" rel="noopener">Otvoriť e-mail</a>`;
+        return;
+      }
+      const m = {login: () => { user = null; renderUser(); return 'Overenie vypršalo. Kliknite na „Overiť e-mail a odoslať“.'; },
+        not_member: () => 'Váš e-mail sa nepodarilo overiť. Skúste to prosím znova.',
+        too_many: () => `Máte už ${body.max || 3} otvorené konverzácie s maklérmi. Pokračujte prosím v nich.`,
+        message: () => 'Napíšte nám prosím krátku správu.', email: () => 'Zadajte platný e-mail, napr. meno@domena.com.',
+        phone: () => 'Vyplňte prosím tel. číslo (len číslice).', icName: () => 'Vyplňte prosím meno aj priezvisko (len písmená).'};
+      showErr(m[body.error] ? m[body.error]() : 'Správu sa nepodarilo odoslať. Skúste to prosím o chvíľu znova.');
+    }
+    document.querySelectorAll('[data-form]').forEach(b => b.addEventListener('click', async () => {
+      if (apiOk === null) await ready;
+      if (apiOk) open(b.dataset.form); else location.href = 'kontakt.html';
+    }));
+    $('#inq-form').addEventListener('submit', e => { e.preventDefault(); send(); });
+    $('#inq-form').addEventListener('input', () => { $('#inq-err').hidden = true; });
+    $('#q-name').addEventListener('input', e => { const x = e.target.value.replace(/[^\p{L}\p{M} '-]/gu, ''); if (x !== e.target.value) e.target.value = x; });
+    $('#q-phone').addEventListener('input', e => { const x = e.target.value.replace(/\D/g, ''); if (x !== e.target.value) e.target.value = x; });
+    $('#q-email').addEventListener('input', e => { const x = e.target.value.replace(/\s/g, ''); if (x !== e.target.value) e.target.value = x; });
+    $('#inq').addEventListener('click', e => { if (e.target.id === 'inq' || e.target.closest('[data-inq-close]')) close(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#inq').hidden) close(); });
+    ready.then(ok => {
+      if (!ok) return;
+      const p = new URLSearchParams(location.search);
+      let saved = null; try { saved = JSON.parse(sessionStorage.getItem(KEY) || 'null'); } catch (e) {}
+      if (p.has('prihlasenie')) { open(saved && saved.mode, saved); showErr(p.get('prihlasenie') === 'zrusene' ? 'Overenie bolo zrušené. Bez neho vám makléri nemôžu odpovedať.' : 'Overenie sa nepodarilo. Skúste to prosím znova.'); }
+      else if (p.has('odoslat') && saved && user) { open(saved.mode, saved); send(); }
+      else if (p.has('formular')) open(p.get('formular'));      // sluzby.html?formular=vykup otvorí formulár rovno
+      if (location.search) history.replaceState(null, '', location.pathname + location.hash);
+    });
+  })();
+</script>
+</body>
+</html>

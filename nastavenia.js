@@ -126,18 +126,25 @@ const STATUSES = {
 // =====================================================================
 //  Odtiaľto nižšie už nič nemeň – vykreslí sa horná lišta s menu.
 // =====================================================================
+// Položky rozbaľovacieho menu „Služby“ (odkazy na časti stránky sluzby.html)
+const SERVICES = [['kupa', 'Predaj nehnuteľností'], ['prenajom', 'Prenájom nehnuteľností'],
+  ['sprostredkovanie', 'Predaj a prenájom vašej nehnuteľnosti'], ['vykup', 'Výkup nehnuteľností']];
+
 (function renderHeader() {
   const el = document.getElementById('site-header');
   if (!el) return;
   const page = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
-  const links = [['index.html', 'Domov'], ['ponuka.html', 'Ponuka'], ['mapa.html', 'Mapa'], ['makleri.html', 'Makléri']];
+  const links = [['index.html', 'Domov'], ['ponuka.html', 'Ponuka'], ['sluzby.html', 'Služby'], ['mapa.html', 'Mapa'], ['makleri.html', 'Makléri']];
   el.className = 'site-header';
   el.innerHTML =
     `<a class="brand" href="index.html">` +
       (AGENCY.logo ? `<img src="${AGENCY.logo}" alt="" onerror="this.remove()">` : '') +
       `<span>${AGENCY.name}</span></a>` +
     `<nav class="site-nav" aria-label="Hlavné menu">` +
-      links.map(([href, text]) => `<a href="${href}"${page === href ? ' aria-current="page"' : ''}>${text}</a>`).join('') +
+      links.map(([href, text]) => href === 'sluzby.html'
+        ? `<div class="nav-dd"><a href="${href}"${page === href ? ' aria-current="page"' : ''}>${text}<span class="dd-arrow" aria-hidden="true">▾</span></a>` +
+          `<div class="nav-dd-menu">` + SERVICES.map(([id, t]) => `<a href="sluzby.html#${id}">${t}</a>`).join('') + `</div></div>`
+        : `<a href="${href}"${page === href ? ' aria-current="page"' : ''}>${text}</a>`).join('') +
     `</nav>` +
     `<a class="hdr-cta" href="kontakt.html"${page === 'kontakt.html' ? ' aria-current="page"' : ''}>Kontakt</a>`;
 })();

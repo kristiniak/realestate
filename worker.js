@@ -131,16 +131,18 @@ async function ticket(req, env, url) {
 
   // Všeobecná správa zo stránky Kontakt (bez konkrétnej ponuky)
   const general = body.type === 'general';
-  const TOPICS = ['Hľadám nehnuteľnosť', 'Kúpa nehnuteľnosti', 'Predaj nehnuteľnosti', 'Výkup nehnuteľnosti', 'Prenájom', 'Spolupráca', 'Iné'];
+  // Téma → kód (každá téma má vlastný e-mail, aby sa správy rôznych služieb nemiešali)
+  const TOPICS = {'Hľadám nehnuteľnosť': 'HLADAM', 'Kúpa nehnuteľnosti': 'KUPA', 'Predaj nehnuteľnosti': 'PREDAJ',
+    'Prenájom mojej nehnuteľnosti': 'PRENAJMEM', 'Výkup nehnuteľnosti': 'VYKUP', 'Prenájom': 'PRENAJOM', 'Spolupráca': 'SPOLUPRACA', 'Iné': 'SPRAVA'};
   if (general) {
-    form.topic = TOPICS.includes(body.topic) ? body.topic : 'Iné';
+    form.topic = Object.hasOwn(TOPICS, body.topic) ? body.topic : 'Iné';
     if (form.message.length < 5) return json({error: 'message'}, 400);
   }
 
   // Údaje o ponuke berieme priamo zo súboru data.json na webe (nedajú sa podvrhnúť)
   const houses = general ? [] : await env.ASSETS.fetch(new Request(url.origin + '/data.json')).then(r => r.json()).catch(() => []);
   const seeking = general && form.topic === 'Hľadám nehnuteľnosť';
-  const h = general ? {id: '', name: seeking ? 'Hľadá nehnuteľnosť' : 'Správa z webu', code: seeking ? 'HLADAM' : 'SPRAVA', status: []} : houses.find(x => x.id === body.listingId);
+  const h = general ? {id: '', name: seeking ? 'Hľadá nehnuteľnosť' : form.topic === 'Iné' ? 'Správa z webu' : form.topic, code: TOPICS[form.topic], status: []} : houses.find(x => x.id === body.listingId);
   if (!h) return json({error: 'listing'}, 404);
   const closed = [].concat(h.status || []).map(v => String(v).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''))
     .some(k => k === 'predane' || k === 'prenajate');
@@ -175,7 +177,7 @@ async function ticket(req, env, url) {
 
   // Krátky názov kanála: email-014-meno (číslo z kódu ponuky ONX-014, meno max. 16 znakov)
   const norm = v => String(v).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
-  const num = general ? (seeking ? 'hladam' : 'sprava') : (/(\d+)$/.exec(h.code || '') || [])[1];
+  const num = general ? code.toLowerCase() : (/(\d+)$/.exec(h.code || '') || [])[1];
   const chName = ['email', num, norm(s.username).slice(0, 16).replace(/-+$/, '')].filter(Boolean).join('-');
   const ch = await bot(env, `/guilds/${g}/channels`, 'POST', {
     name: chName, type: 0, parent_id: env.DISCORD_CATEGORY_ID,
@@ -214,7 +216,7 @@ async function ticket(req, env, url) {
       : `Dobrý deň, ďakujeme za záujem o nehnuteľnosť${h.code ? ' **' + h.code + '**' : ''}. Maklér vám odpovie v tomto e-maile.`),
     allowed_mentions: {users: [s.id, agentId].filter(Boolean), roles: pingRoles},
     embeds: [{
-      title: general ? (seeking ? 'Hľadá nehnuteľnosť' : 'Správa z kontaktného formulára') : 'Otvoriť inzerát na webe →', url: general ? undefined : pageUrl, color: 0xc9a961,
+      title: general ? (seeking ? 'Hľadá nehnuteľnosť' : form.topic === 'Iné' ? 'Správa z webu' : form.topic) : 'Otvoriť inzerát na webe →', url: general ? undefined : pageUrl, color: 0xc9a961,
       description: h.street || undefined, fields,
       thumbnail: !general && photo ? {url: url.origin + '/' + String(photo).split('/').map(encodeURIComponent).join('/')} : undefined,
       footer: {text: `Dopyt z webu · ${s.name} (@${s.username})`}, timestamp: new Date().toISOString()
