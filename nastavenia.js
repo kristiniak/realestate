@@ -35,6 +35,31 @@ const CONTACT = {
   // Názvy ulíc sú v súbore kontakt-ulice.js
 };
 
+// ===== ČASTÉ OTÁZKY (zobrazia sa na stránke Kontakt) =====
+// Každá položka: ['Otázka', 'Odpoveď']. Nový odsek v odpovedi = \n
+const FAQ = [
+  ['Ako prebieha kúpa nehnuteľnosti?',
+   'Pri vybranej nehnuteľnosti kliknite na „Mám záujem“ a vyplňte krátky formulár. Maklér vás kontaktuje e-mailom, dohodne s vami osobnú obhliadku a zodpovie všetky otázky. Ak sa rozhodnete pre kúpu, pripravíme zmluvu a po jej podpise a úhrade vám odovzdáme kľúče.'],
+  ['Ako funguje prenájom?',
+   'Pri každej nehnuteľnosti na prenájom je uvedená cena aj obdobie – za deň, týždeň alebo mesiac. Postup je rovnaký ako pri kúpe: vyplníte formulár, maklér vás kontaktuje, dohodnete si obhliadku a podmienky prenájmu.'],
+  ['Môžem si nehnuteľnosť pozrieť ešte pred obhliadkou?',
+   'Áno. Pri vybraných nehnuteľnostiach nájdete 360° prehliadku interiéru, v ktorej sa môžete prejsť miestnosť po miestnosti. Na mape si cez „Poobzerajte sa po lokalitách“ prezriete aj okolie z ulice.'],
+  ['Čo znamená „Dizajn interiéru“?',
+   'Uvádzame, ktoré štúdio interiér navrhlo:\nM.L.O. Architects (Maison Luxe Originals) – interiéry navrhnuté na mieru priamo pre konkrétnu budovu.\nI.P.L. Interiors (Interior Prestige Los Santos) – overený dizajn známy z prestížnych rezidencií.\nShell & Co. Living – cenovo dostupné bývanie, ktoré si zariadite podľa seba.'],
+  ['Predávate nehnuteľnosti aj zariadené?',
+   'Áno. Pri každej ponuke je uvedené, či je zariadená alebo nezariadená, a vo filtri „Vybavenie“ si môžete zobraziť len to, čo hľadáte.'],
+  ['Čo znamená štítok „Rezervované“?',
+   'Nehnuteľnosť už má záujemcu, s ktorým prebiehajú rokovania. Ak by obchod nakoniec neprebehol, ponuka sa opäť uvoľní – pokojne nám napíšte a dáme vám vedieť.'],
+  ['Na čo slúži kód ponuky?',
+   'Každá nehnuteľnosť má vlastný kód (napr. ONX-014). Keď sa o nej budete rozprávať s maklérom, stačí uviesť kód a hneď bude vedieť, o ktorú ide.'],
+  ['Nenašli ste, čo hľadáte?',
+   'Na úvodnej stránke kliknite pri „Hľadáte niečo konkrétne?“ na „Kontaktujte nás“ a vyplňte, akú nehnuteľnosť hľadáte. Maklér sa vám ozve, keď sa objaví vhodná ponuka.'],
+  ['Môžem cez vás predať alebo prenajať svoju nehnuteľnosť?',
+   'Samozrejme. Kliknite vyššie na náš e-mail, vyberte tému „Predaj nehnuteľnosti“ alebo „Prenájom“ a napíšte nám pár slov o vašej nehnuteľnosti. Maklér sa vám ozve a dohodne ďalší postup.'],
+  ['Ako rýchlo dostanem odpoveď?',
+   'Na správy odpovedáme čo najskôr, spravidla v ten istý deň. Odpoveď nájdete vo svojej e-mailovej schránke.']
+];
+
 // Pozvánka na Discord (tlačidlo „Mám záujem“, keď formulár nie je dostupný)
 const DISCORD = 'https://discord.gg/PrrqcxaUy7';
 const CONTACT_LABEL = 'Mám záujem';

@@ -64,6 +64,19 @@
   .lm span{position:absolute;left:10px;top:-11px;white-space:nowrap;color:#f3ecdc;font:500 13px var(--sans);
     text-shadow:0 0 3px #000,0 0 6px #000}
 
+  /* Časté otázky */
+  .faq{padding:0 0 72px}
+  .faq-list{border-top:1px solid var(--line)}
+  .faq details{border-bottom:1px solid var(--line)}
+  .faq summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:20px;
+    padding:20px 4px;font-family:var(--serif);font-size:24px;font-weight:600;color:var(--text)}
+  .faq summary::-webkit-details-marker{display:none}
+  .faq summary::after{content:'+';flex:none;color:var(--pin);font:400 28px/1 var(--sans);transition:transform .2s}
+  .faq details[open] summary::after{transform:rotate(45deg)}
+  .faq summary:hover{color:var(--pin)}
+  .faq summary:focus-visible{outline:2px solid var(--pin);outline-offset:2px}
+  .faq .ans{padding:0 4px 22px;color:#d8d1c2;line-height:1.75;max-width:75ch}
+  .faq .ans p{margin:0 0 8px}
   @media (max-width:900px){
     .contact{grid-template-columns:1fr}
     .cmap{height:340px;order:-1}
@@ -107,6 +120,11 @@
       <div class="cm-hint" id="cm-hint">Oddiaľte mapu kolieskom alebo tlačidlom −</div>
     </div>
   </div>
+
+  <section class="faq" id="caste-otazky" hidden>
+    <div class="section-head"><div><p class="eyebrow">Máte otázku?</p><h2>Časté otázky</h2></div></div>
+    <div class="faq-list" id="faq-list"></div>
+  </section>
 </main>
 
 <div class="modal" id="inq" hidden role="dialog" aria-modal="true" aria-labelledby="inq-title">
@@ -148,6 +166,15 @@
   if (CONTACT.email) $('#c-email span').textContent = CONTACT.email;
   else $('#c-email-li').hidden = true;
   if (!CONTACT.phone && !CONTACT.email) $('#c-reach-box').hidden = true;
+
+  // Časté otázky – z faq.json (upravuje sa v admine); ak súbor ešte nie je, použijú sa otázky z nastavenia.js
+  loadJSON('faq.json', null).then(list => {
+    const items = Array.isArray(list) ? list.map(f => [f.q, f.a]) : (typeof FAQ !== 'undefined' ? FAQ : []);
+    if (!items.length) return;
+    $('#faq-list').innerHTML = items.map(([q, a]) => `<details><summary>${esc(q)}</summary>
+      <div class="ans">${String(a).split(/\n+/).map(p => `<p>${esc(p)}</p>`).join('')}</div></details>`).join('');
+    $('#caste-otazky').hidden = false;
+  });
   if (CONTACT.hours) { $('#c-hours').textContent = CONTACT.hours; $('#c-hours-box').hidden = false; }
 
   const probe = new Image();

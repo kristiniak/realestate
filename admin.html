@@ -88,6 +88,12 @@
   #st-map{height:340px;border:1px solid var(--line);background:var(--sea)}
   .tagline{display:inline-block;font-size:12px;padding:2px 8px;border:1px solid var(--line);color:var(--muted)}
   .tagline.on{border-color:#4aa3ff;color:#9ccfff}
+  .faq-ed{display:flex;flex-direction:column;gap:12px}
+  .faq-item{background:var(--panel-2);border:1px solid var(--line);padding:14px}
+  .faq-head{display:flex;gap:10px;align-items:center;margin:0 0 10px}
+  .faq-head input{flex:1}
+  .faq-n{color:var(--pin);font-family:var(--serif);font-size:22px;min-width:28px}
+  .faq-item textarea{min-height:80px}
   .st-group{border:1px solid var(--line);background:var(--panel-2);margin:0 0 10px}
   .st-group[open]{border-color:var(--pin)}
   .st-group > summary{list-style:none;display:flex;align-items:center;gap:14px;padding:14px 16px;cursor:pointer;user-select:none}
@@ -142,6 +148,7 @@
     <button type="button" role="tab" data-tab="list-view" aria-selected="true">Ponuky</button>
     <button type="button" role="tab" data-tab="agents-view" aria-selected="false">Makléri</button>
     <button type="button" role="tab" data-tab="streets-view" aria-selected="false">Ulice 360°</button>
+    <button type="button" role="tab" data-tab="faq-view" aria-selected="false">Časté otázky</button>
   </nav>
   <div id="msg"></div>
 
@@ -255,6 +262,16 @@
         <button class="btn btn-line" id="btn-cancel" type="button">← Späť na zoznam</button>
         <button class="btn btn-gold" id="btn-save" type="button">Uložiť ponuku</button>
       </div>
+    </div>
+  </section>
+
+  <!-- ČASTÉ OTÁZKY -->
+  <section id="faq-view" hidden>
+    <p class="hint" style="margin:24px 0 16px">Otázky a odpovede sa zobrazujú na stránke Kontakt v tomto poradí. Nový odsek v odpovedi urobíte klávesom Enter.</p>
+    <div id="faq-body" class="faq-ed"></div>
+    <div class="bar">
+      <button class="btn btn-line" id="faq-add" type="button">+ Pridať otázku</button>
+      <button class="btn btn-gold" id="faq-save" type="button">Uložiť otázky</button>
     </div>
   </section>
 
@@ -421,8 +438,8 @@
   // ================= UI pomocníci =================
   function msg(text, type = 'info') { $('#msg').innerHTML = text ? `<div class="msg ${type}">${text}</div>` : ''; }
   function show(view) {
-    ['setup', 'list-view', 'editor', 'agents-view', 'agent-editor', 'streets-view', 'street-editor'].forEach(id => $('#' + id).hidden = id !== view);
-    const isList = view === 'list-view' || view === 'agents-view' || view === 'streets-view';
+    ['setup', 'list-view', 'editor', 'agents-view', 'agent-editor', 'streets-view', 'street-editor', 'faq-view'].forEach(id => $('#' + id).hidden = id !== view);
+    const isList = view === 'list-view' || view === 'agents-view' || view === 'streets-view' || view === 'faq-view';
     $('#btn-new-street').hidden = view !== 'streets-view';
     $('#top-actions').hidden = !isList;
     $('#btn-new').hidden = view !== 'list-view';
@@ -810,7 +827,8 @@
   });
   $('#tabs').addEventListener('click', e => {
     const t = e.target.closest('[data-tab]'); if (!t) return;
-    msg(''); if (t.dataset.tab === 'agents-view') renderAgents(); else if (t.dataset.tab === 'streets-view') renderStreets(); else renderList();
+    msg(''); if (t.dataset.tab === 'agents-view') renderAgents(); else if (t.dataset.tab === 'streets-view') renderStreets();
+    else if (t.dataset.tab === 'faq-view') renderFaq(); else renderList();
     show(t.dataset.tab);
   });
 
@@ -883,6 +901,51 @@
       openPanoEditor(sc, options, 'Šípky – ' + (sc.title || k), renderRooms);
     }
   });
+
+  // ================= Časté otázky (faq.json) =================
+  let faqs = [];
+  function syncFaq() {                                           // prenesie text z políčok do poľa faqs
+    document.querySelectorAll('#faq-body .faq-item').forEach((el, i) => {
+      faqs[i] = {q: el.querySelector('input').value, a: el.querySelector('textarea').value};
+    });
+  }
+  function renderFaq() {
+    $('#faq-body').innerHTML = faqs.length ? faqs.map((f, i) => `<div class="faq-item">
+        <div class="faq-head"><span class="faq-n">${i + 1}.</span>
+          <input type="text" value="${esc(f.q || '')}" placeholder="Otázka" aria-label="Otázka ${i + 1}">
+          <span class="order"><button class="btn btn-line small" data-fq-up="${i}" type="button" ${i ? '' : 'disabled'} aria-label="Vyššie">↑</button>
+          <button class="btn btn-line small" data-fq-down="${i}" type="button" ${i < faqs.length - 1 ? '' : 'disabled'} aria-label="Nižšie">↓</button></span>
+          <button class="btn btn-danger small" data-fq-del="${i}" type="button">Zmazať</button></div>
+        <textarea rows="3" placeholder="Odpoveď" aria-label="Odpoveď ${i + 1}">${esc(f.a || '')}</textarea>
+      </div>`).join('') : '<p class="empty">Zatiaľ žiadne otázky. Kliknite na „+ Pridať otázku“.</p>';
+  }
+  $('#faq-body').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    syncFaq();
+    if (b.dataset.fqDel !== undefined) { const i = Number(b.dataset.fqDel); if (!confirm(`Zmazať otázku „${faqs[i].q || 'bez názvu'}“?`)) return; faqs.splice(i, 1); }
+    const mv = (i, d) => { const j = i + d; if (j < 0 || j >= faqs.length) return; [faqs[i], faqs[j]] = [faqs[j], faqs[i]]; };
+    if (b.dataset.fqUp !== undefined) mv(Number(b.dataset.fqUp), -1);
+    if (b.dataset.fqDown !== undefined) mv(Number(b.dataset.fqDown), 1);
+    renderFaq();
+  });
+  $('#faq-add').onclick = () => {
+    syncFaq(); faqs.push({q: '', a: ''}); renderFaq();
+    const items = document.querySelectorAll('#faq-body .faq-item input'); items[items.length - 1].focus();
+  };
+  $('#faq-save').onclick = async () => {
+    syncFaq();
+    const list = faqs.map(f => ({q: f.q.trim(), a: f.a.replace(/\r/g, '').trim()})).filter(f => f.q || f.a);
+    if (list.some(f => !f.q || !f.a)) { msg('Každá otázka musí mať vyplnenú otázku aj odpoveď.', 'err'); return; }
+    const btn = $('#faq-save'); btn.disabled = true;
+    try {
+      msg('Ukladám otázky…');
+      const fresh = await getFile('faq.json');
+      await putFile('faq.json', b64encode(JSON.stringify(list, null, 2) + '\n'), fresh.sha, 'Časté otázky');
+      faqs = list; renderFaq();
+      msg('✓ Otázky sú uložené. Na webe sa objavia o 1–2 minúty.', 'ok');
+    } catch (e) { msg('Uloženie zlyhalo: ' + esc(e.message), 'err'); }
+    btn.disabled = false;
+  };
 
   // ================= Ulice 360° (body.json) =================
   let stEditing = null, stState = null, stMap = null, stMarker = null;
@@ -1212,6 +1275,8 @@
       houses = Array.isArray(data) ? data : [];
       try { const a = await getFile('makleri.json'); agents = Array.isArray(a.data) ? a.data : []; } catch (e) { agents = []; }
       try { const b = await getFile('body.json'); streets = Array.isArray(b.data) ? b.data : []; } catch (e) { streets = []; }
+      try { const f = await getFile('faq.json'); faqs = Array.isArray(f.data) ? f.data : null; } catch (e) { faqs = null; }
+      if (!faqs) faqs = (typeof FAQ !== 'undefined' ? FAQ : []).map(([q, a]) => ({q, a}));   // prvé spustenie: otázky z nastavenia.js
       $('#conn').innerHTML = `Pripojené k <b>${esc(cfg.owner)}/${esc(cfg.repo)}</b> (${esc(cfg.branch)}) · <button class="linkbtn" id="btn-logout" type="button">Odpojiť</button>`;
       $('#btn-logout').onclick = () => { try { localStorage.removeItem(LS); sessionStorage.removeItem(LS); } catch (e) {} location.reload(); };
       renderList(); renderAgents(); renderStreets(); show('list-view'); msg('');
