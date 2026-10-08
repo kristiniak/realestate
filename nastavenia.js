@@ -51,6 +51,8 @@ const FILTERS = [
   {key: 'type', title: 'Druh nehnuteľnosti', open: true, options: [
     ['vila', 'Vily a luxusné domy'], ['dom', 'Bežné domy a bungalovy'], ['apartman', 'Apartmány a byty'],
     ['farma', 'Farmy a chaty'], ['biznis', 'Kancelárie alebo biznis']]},
+  {key: 'design', title: 'Dizajn interiéru', onlyUsed: true, options: [
+    ['mlo', 'M.L.O. Architects'], ['ipl', 'I.P.L. Interiors'], ['shell', 'Shell & Co. Living']]},
   {key: 'price', title: 'Cena', options: [
     ['do500k', 'do 500 000 $'], ['500k-2m', '500 000 – 2 mil. $'], ['2m-5m', '2 – 5 mil. $'], ['nad5m', 'nad 5 mil. $']]},
   {key: 'rooms', title: 'Počet izieb', onlyUsed: true, options: [
@@ -58,6 +60,13 @@ const FILTERS = [
   {key: 'pool', title: 'Bazén', options: [['true', 'S bazénom'], ['false', 'Bez bazéna']]},
   {key: 'view', title: 'Výhľad', options: [['more', 'Na more'], ['mesto', 'Na mesto'], ['priroda', 'Na prírodu a hory']]}
 ];
+
+// ===== DIZAJN INTERIÉRU – krátky popis štúdia v inzeráte =====
+const DESIGNERS = {
+  mlo:   'Interiér navrhnutý na mieru priamo pre túto budovu – skutočné okná, výhľad aj vchod. Unikátne riešenie, ktoré inde nenájdete.',
+  ipl:   'Overený dizajn renomovaného štúdia, známy z prestížnych rezidencií v Los Santos.',
+  shell: 'Cenovo dostupná jednotka so samostatným vstupom, pripravená na vaše vlastné zariadenie.'
+};
 
 // ===== ŠTÍTKY STAVU =====
 // V data.json: "status": "novinka"  alebo viac naraz: "status": ["novinka", "zlava"]

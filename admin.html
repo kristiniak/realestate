@@ -197,6 +197,7 @@
         <div class="row">
           <div class="field"><label for="e-type">Druh nehnuteľnosti</label><select id="e-type"></select></div>
           <div class="field"><label for="e-area">Lokalita</label><select id="e-area"></select></div>
+          <div class="field"><label for="e-design">Dizajn interiéru</label><select id="e-design"></select></div>
         </div>
         <div class="row">
           <div class="field"><label for="e-rooms">Počet izieb</label><input type="number" id="e-rooms" min="0" max="50"></div>
@@ -473,6 +474,7 @@
     syncOfferFields();
     $('#e-type').innerHTML = opt('', '—') + filterOpts('type').map(([v, l]) => opt(v, l, d.type === v)).join('');
     $('#e-area').innerHTML = opt('', '—') + filterOpts('area').map(([v, l]) => opt(v, l, d.area === v)).join('');
+    $('#e-design').innerHTML = opt('', '—') + filterOpts('design').map(([v, l]) => opt(v, l, d.design === v)).join('');
     $('#e-rooms').value = d.rooms || '';
     $('#e-pool').value = typeof d.pool === 'boolean' ? String(d.pool) : '';
     $('#e-agent').innerHTML = opt('', '—') + agents.map(a => opt(a.id, a.name, d.agent === a.id)).join('');
@@ -616,6 +618,7 @@
       setOrDel('rentPeriod', renting ? $('#e-period').value : '');
       setOrDel('type', $('#e-type').value);
       setOrDel('area', $('#e-area').value);
+      setOrDel('design', $('#e-design').value);
       setOrDel('rooms', $('#e-rooms').value === '' ? '' : Number($('#e-rooms').value));
       setOrDel('pool', $('#e-pool').value === '' ? '' : $('#e-pool').value === 'true');
       setOrDel('agent', $('#e-agent').value);

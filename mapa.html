@@ -340,6 +340,7 @@
     const rows = [];
     if (offersOf(h).length) rows.push(['Typ', offerText(h)]);
     if (h.area) rows.push(['Lokalita', optLabel('area', h.area)]);
+    if (h.design) rows.push(['Dizajn interiéru', optLabel('design', h.design)]);
     if (h.type) rows.push(['Druh nehnuteľnosti', optLabel('type', h.type)]);
     if (h.rooms) rows.push(['Počet izieb', String(h.rooms)]);
     const ag = h.agent && agents.find(a => a.id === h.agent);

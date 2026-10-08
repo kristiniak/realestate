@@ -57,6 +57,8 @@
   .params{display:grid;grid-template-columns:1fr 1fr;gap:0 40px;margin:0}
   .params div{display:flex;justify-content:space-between;gap:16px;padding:12px 0;border-bottom:1px solid var(--line)}
   .params dt{color:var(--muted)} .params dd{margin:0;text-align:right}
+  .design-note{margin:-24px 0 40px;color:var(--muted);font-size:15px;line-height:1.6;border-left:2px solid var(--pin);padding:4px 0 4px 14px}
+  .design-note b{color:var(--pin);font-weight:500}
   .media-btns{display:flex;flex-wrap:wrap;gap:10px}
 
   /* Bočný panel */
@@ -207,6 +209,7 @@
       ['Typ', offerText(h)],
       ['Druh', h.type && optLabel('type', h.type)],
       ['Lokalita', h.area && optLabel('area', h.area)],
+      ['Dizajn interiéru', h.design && optLabel('design', h.design)],
       ['Izby', h.rooms],
       ['Bazén', typeof h.pool === 'boolean' ? (h.pool ? 'Áno' : 'Nie') : null],
       ['Výhľad', h.view && [].concat(h.view).map(v => optLabel('view', v)).join(', ')]
@@ -254,6 +257,7 @@
           <div>
             ${params.length ? `<details class="block fold" open><summary><h2>Parametre</h2></summary><dl class="params">${params.map(([k, v]) =>
               `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl></details>` : ''}
+            ${h.design && typeof DESIGNERS !== 'undefined' && DESIGNERS[h.design] ? `<p class="design-note"><b>${esc(optLabel('design', h.design))}</b> – ${esc(DESIGNERS[h.design])}</p>` : ''}
             ${(hasTour360 || h.video) ? `<section class="block"><h2>Prehliadka</h2><div class="media-btns">
               ${hasTour360 ? `<a class="btn btn-line" href="mapa.html?prehliadka=1#${encodeURIComponent(h.id)}">⟳ 360° prehliadka</a>` : ''}
               ${h.video ? `<a class="btn btn-line" href="${esc(h.video)}" target="_blank" rel="noopener">▶ Videoprehliadka</a>` : ''}
