@@ -54,8 +54,17 @@
   .fold:not([open]) > summary::after{content:'Zobraziť ▾'}
   .fold > summary:focus-visible{outline:2px solid var(--pin);outline-offset:4px}
   .desc p{color:#d8d1c2;line-height:1.75;margin:0 0 14px;max-width:70ch}
-  .params{display:grid;grid-template-columns:1fr 1fr;gap:0 40px;margin:0}
-  .params div{display:flex;justify-content:space-between;gap:16px;padding:12px 0;border-bottom:1px solid var(--line)}
+  /* Popis: zobrazí sa pár riadkov, zvyšok je rozmazaný a otvorí sa tlačidlom */
+  .desc-body{position:relative;max-height:none}
+  .desc-body.clamp{max-height:11.5em;overflow:hidden}
+  .desc-body.clamp::after{content:'';position:absolute;left:0;right:0;bottom:0;height:6em;pointer-events:none;
+    background:linear-gradient(rgba(13,13,15,0),var(--panel) 85%);backdrop-filter:blur(1.5px);-webkit-mask:linear-gradient(transparent,#000 60%);mask:linear-gradient(transparent,#000 60%)}
+  .more-btn{font:500 12px var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--pin);background:none;border:0;padding:6px 0;cursor:pointer;margin-top:4px}
+  .more-btn:hover{text-decoration:underline}
+  .more-btn:focus-visible{outline:2px solid var(--pin);outline-offset:2px}
+  /* Parametre sa čítajú zhora nadol: najprv ľavý stĺpec, potom pravý */
+  .params{column-count:2;column-gap:40px;margin:0}
+  .params div{break-inside:avoid;display:flex;justify-content:space-between;gap:16px;padding:12px 0;border-bottom:1px solid var(--line)}
   .params dt{color:var(--muted)} .params dd{margin:0;text-align:right}
   .design-desc{color:var(--muted);font-size:14px;line-height:1.6;margin:14px 0 0}
   .agent-ph.mono{font-size:20px;letter-spacing:.04em}
@@ -127,7 +136,7 @@
   @media (max-width:960px){
     .body{grid-template-columns:1fr;gap:24px}
     .side{position:static;order:-1}
-    .params{grid-template-columns:1fr}
+    .params{column-count:1}
   }
   @media (max-width:640px){
     .gallery{grid-template-columns:1fr;grid-template-rows:1fr;height:280px}
@@ -205,27 +214,22 @@
       : `<div class="no-photo">Zatiaľ bez fotiek</div>`;
 
     // Hlavné údaje
-    const facts = [
-      ['Typ', offerText(h)],
+    // Parametre v pevnom poradí; cena, typ ponuky a dizajn interiéru sú v inzeráte inde, preto tu nie sú
+    const det = {...(h.details || {})};
+    const take = k => { const v = det[k]; delete det[k]; return v; };
+    ['Cena', 'Štvrť', 'Typ', 'Ulica'].forEach(take);               // duplicitné údaje z "details" sa preskočia
+    const params = [
+      ['Kód ponuky', h.code],
       ['Druh', h.type && optLabel('type', h.type)],
       ['Lokalita', h.area && optLabel('area', h.area)],
-      ['Dizajn interiéru', h.design && optLabel('design', h.design)],
-      ['Izby', h.rooms],
+      ['Ulica', h.street],
       ['Vybavenie', typeof h.furnished === 'boolean' ? (h.furnished ? 'Zariadené' : 'Nezariadené') : null],
+      ['Izby', h.rooms],
       ['Bazén', typeof h.pool === 'boolean' ? (h.pool ? 'Áno' : 'Nie') : null],
-      ['Výhľad', h.view && [].concat(h.view).map(v => optLabel('view', v)).join(', ')]
+      ['Garáž', take('Garáž')],
+      ['Výhľad', h.view && [].concat(h.view).map(v => optLabel('view', v)).join(', ')],
+      ...Object.entries(det)                                        // ostatné vlastné parametre z adminu idú na koniec
     ].filter(([, v]) => v !== undefined && v !== null && v !== '');
-
-    // Všetky parametre (vrátane "details" z data.json)
-    const params = [...facts];
-    if (typeof h.price === 'number') params.push([typeof h.rent === 'number' ? 'Cena (predaj)' : 'Cena', fmtPrice(h.price)]);
-    if (typeof h.rent === 'number') params.push(['Cena prenájmu', rentText(h)]);
-    Object.entries(h.details || {}).forEach(([k, v]) => {
-      if ((k === 'Cena' && typeof h.price === 'number') || (k === 'Štvrť' && h.area)) return;
-      params.push([k, v]);
-    });
-    if (h.street) params.splice(0, 0, ['Ulica', h.street]);
-    if (h.code) params.splice(0, 0, ['Kód ponuky', h.code]);
 
     const desc = String(h.desc || '').split(/\n+/).filter(Boolean).map(p => `<p>${esc(p)}</p>`).join('');
     const hasTour360 = hasTour(h);
@@ -267,13 +271,14 @@
         ${gallery}
         <div class="body">
           <div>
+            ${desc ? `<section class="block desc"><h2>Popis</h2><div class="desc-body" id="desc-body">${desc}</div>
+              <button type="button" class="more-btn" id="desc-more" hidden>Zobraziť viac ▾</button></section>` : ''}
             ${params.length ? `<details class="block fold" open><summary><h2>Parametre</h2></summary><dl class="params">${params.map(([k, v]) =>
               `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl></details>` : ''}
             ${(hasTour360 || h.video) ? `<section class="block"><h2>Prehliadka</h2><div class="media-btns">
               ${hasTour360 ? `<a class="btn btn-line" href="mapa.html?prehliadka=1#${encodeURIComponent(h.id)}">⟳ 360° prehliadka</a>` : ''}
               ${h.video ? `<a class="btn btn-line" href="${esc(h.video)}" target="_blank" rel="noopener">▶ Videoprehliadka</a>` : ''}
             </div></section>` : ''}
-            ${desc ? `<section class="block desc"><h2>Popis</h2>${desc}</section>` : ''}
           </div>
           <aside class="side">
             <div class="box">
@@ -314,6 +319,13 @@
       <a class="link-more" href="ponuka.html">Celá ponuka →</a></div><div class="grid">${list.map(cardHtml).join('')}</div>`;
 
     if (!sold) initInquiry(h);
+
+    // Dlhý popis: skrátiť a pridať „Zobraziť viac“
+    const db = $('#desc-body');
+    if (db && db.scrollHeight > 230) {                       // dlhší než cca 7 riadkov
+      db.classList.add('clamp'); const mb = $('#desc-more'); mb.hidden = false;
+      mb.onclick = () => { const open = db.classList.toggle('clamp'); mb.textContent = open ? 'Zobraziť viac ▾' : 'Zobraziť menej ▴'; };
+    }
 
     $('#share').addEventListener('click', () => {
       const done = () => { $('#copied').textContent = 'Odkaz skopírovaný ✓'; };
